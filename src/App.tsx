@@ -3,6 +3,7 @@ import LoginPage from "@/routes/login";
 import AdminLayout from "@/components/AdminLayout";
 import DashboardPlaceholder from "@/components/DashboardPlaceholder";
 import ComingSoon from "@/components/ComingSoon";
+import SystemPricing from "@/routes/admin/system";
 import NotFoundPage from "@/routes/admin/404";
 import CouponList from "@/routes/admin/coupons/list";
 import CouponDetail from "@/routes/admin/coupons/detail";
@@ -50,7 +51,7 @@ export default function App() {
         />
         <Route
           path="/system"
-          element={<ComingSoon name="ตั้งค่าระบบ" />}
+          element={<SystemPricing />}
         />
         <Route
           path="/admins"

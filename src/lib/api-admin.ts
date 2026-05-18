@@ -474,6 +474,68 @@ export async function adminRestoreUser(
 }
 
 // ---------------------------------------------------------------------------
+// Pricing config types (Wave 4.6)
+// ---------------------------------------------------------------------------
+
+export interface PricingPack {
+  thb: number;
+  krub: number;
+}
+
+export interface PricingConfig {
+  krub_per_resolution: {
+    "1K": number;
+    "2K": number;
+    "4K": number;
+  };
+  packs: PricingPack[];
+}
+
+export interface UpdatePricingParams {
+  krub_per_resolution: {
+    "1K": number;
+    "2K": number;
+    "4K": number;
+  };
+  packs: PricingPack[];
+}
+
+// ---------------------------------------------------------------------------
+// Pricing API functions (Wave 4.6)
+// ---------------------------------------------------------------------------
+
+/**
+ * GET /api/admin/config/pricing — อ่านราคาปัจจุบัน (admin + owner)
+ *
+ * Server returns flat shape: { ok, krub_per_resolution, packs }
+ * (no `config` wrapper)
+ */
+export async function adminGetPricing(): Promise<PricingConfig> {
+  const { ok: _ok, ...config } = await adminFetch<
+    { ok: true } & PricingConfig
+  >("/api/admin/config/pricing");
+  return config;
+}
+
+/**
+ * PATCH /api/admin/config/pricing — อัปเดตราคา (owner only — server enforces)
+ *
+ * Server returns { ok: true } only — no config echo.
+ * Request body uses "1K"/"2K"/"4K" keys matching server contract.
+ */
+export async function adminUpdatePricing(
+  params: UpdatePricingParams,
+): Promise<{ ok: true }> {
+  return adminFetch<{ ok: true }>(
+    "/api/admin/config/pricing",
+    {
+      method: "PATCH",
+      body: JSON.stringify(params),
+    },
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Formatting helpers
 // ---------------------------------------------------------------------------
 
