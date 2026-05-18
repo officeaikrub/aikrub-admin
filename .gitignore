@@ -1,0 +1,20 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+.vite/
+
+# TypeScript incremental build info
+*.tsbuildinfo
+
+# Local secrets — NEVER commit these
+.env.local
+.env*.local
+
+# macOS artifacts
+.DS_Store
+
+# Logs
+*.log
+npm-debug.log*

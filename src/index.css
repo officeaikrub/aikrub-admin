@@ -1,0 +1,159 @@
+/* ─── Font import ────────────────────────────────────────────
+   Krub (display) + Anuphan (UI/content) — mirror main AIKrub design system.
+   Thai glyphs included automatically via Google Fonts.
+─────────────────────────────────────────────────────────────── */
+@import url('https://fonts.googleapis.com/css2?family=Krub:wght@700&family=Anuphan:wght@400;500&display=swap');
+
+/* ─── Design tokens (CSS custom properties) ──────────────────
+   Admin is DARK-FIRST — .dark is the default class on <html>.
+   :root values = dark (what most users see).
+   .light class = overrides ถ้า Pete จะ toggle ในอนาคต.
+─────────────────────────────────────────────────────────────── */
+:root {
+  /* Font families */
+  --font-display:  "Krub", ui-sans-serif, system-ui, sans-serif;
+  --font-ui:       "Anuphan", ui-sans-serif, system-ui, sans-serif;
+  --font-content:  "Anuphan", ui-sans-serif, system-ui, sans-serif;
+
+  /* Dark surface — admin default */
+  --color-bg:         #0F172A;
+  --color-bg-muted:   #1E2A3D;
+  --color-bg-raised:  #2A3952;
+
+  /* Dark text */
+  --color-fg:         #F5F1E8;
+  --color-fg-muted:   #A8A89C;
+  --color-fg-subtle:  #5A5A51;
+
+  /* Dark border */
+  --color-border:        rgba(245, 241, 232, 0.10);
+  --color-border-strong: rgba(245, 241, 232, 0.20);
+
+  /* Accent (same across themes) */
+  --color-accent:      #F25F2D;
+  --color-accent-deep: #C7461A;
+  --color-accent-tint: rgba(242, 95, 45, 0.18);
+  --color-accent-fg:   #FFFFFF;
+
+  /* Status */
+  --color-success: #2E8B57;
+  --color-warning: #E89412;
+  --color-error:   #D4452D;
+  --color-info:    #2A6FDB;
+
+  /* shadcn/ui CSS vars — dark mode values (HSL triplet without hsl() wrapper).
+     Format: H S% L%  — Tailwind wraps with hsl() via bg-primary etc.
+     Kept in :root because admin defaults to dark mode. */
+  --background:            222 47% 11%;   /* #0F172A */
+  --foreground:            40 25% 93%;    /* #F5F1E8 */
+  --card:                  217 39% 18%;   /* #1E2A3D */
+  --card-foreground:       40 25% 93%;    /* #F5F1E8 */
+  --popover:               217 39% 18%;   /* #1E2A3D */
+  --popover-foreground:    40 25% 93%;    /* #F5F1E8 */
+  --primary:               15 88% 56%;    /* #F25F2D — brand accent */
+  --primary-foreground:    0 0% 100%;     /* #FFFFFF */
+  --secondary:             217 32% 24%;   /* #2A3952 */
+  --secondary-foreground:  40 25% 93%;    /* #F5F1E8 */
+  --muted:                 217 32% 24%;   /* #2A3952 */
+  --muted-foreground:      60 5% 63%;     /* #A8A89C */
+  --accent:                19 84% 25%;    /* accent tint dark */
+  --accent-foreground:     40 25% 93%;    /* #F5F1E8 */
+  --destructive:           9 66% 50%;     /* #D4452D */
+  --destructive-foreground:0 0% 100%;     /* #FFFFFF */
+  --border:                217 32% 24%;   /* #2A3952 */
+  --input:                 217 32% 24%;   /* #2A3952 */
+  --ring:                  15 88% 56%;    /* #F25F2D */
+  --radius:                0.5rem;
+
+  /* Spacing */
+  --space-1:   0.25rem;
+  --space-2:   0.5rem;
+  --space-3:   0.75rem;
+  --space-4:   1rem;
+  --space-5:   1.25rem;
+  --space-6:   1.5rem;
+  --space-8:   2rem;
+  --space-10:  2.5rem;
+  --space-12:  3rem;
+  --space-16:  4rem;
+
+  /* Radius */
+  --radius-xs:   4px;
+  --radius-sm:   8px;
+  --radius-md:   12px;
+  --radius-lg:   20px;
+  --radius-xl:   28px;
+  --radius-full: 9999px;
+}
+
+/* ─── Light override (future — ถ้า Pete ต้องการ toggle ──────── */
+.light {
+  --color-bg:         #FAFAF9;
+  --color-bg-muted:   #F4F4F0;
+  --color-bg-raised:  #E8E8E2;
+  --color-fg:         #1A1814;
+  --color-fg-muted:   #5A5A51;
+  --color-fg-subtle:  #A8A89C;
+  --color-border:        rgba(26, 24, 20, 0.10);
+  --color-border-strong: rgba(26, 24, 20, 0.18);
+  --color-accent-tint: #FCE6DC;
+
+  --background:            60 9% 98%;
+  --foreground:            40 13% 9%;
+  --card:                  60 15% 95%;
+  --card-foreground:       40 13% 9%;
+  --popover:               60 15% 95%;
+  --popover-foreground:    40 13% 9%;
+  --secondary:             60 15% 95%;
+  --secondary-foreground:  40 13% 9%;
+  --muted:                 60 15% 95%;
+  --muted-foreground:      60 5% 34%;
+  --accent:                19 84% 93%;
+  --accent-foreground:     40 13% 9%;
+  --border:                60 9% 81%;
+  --input:                 60 9% 81%;
+}
+
+/* ─── Base resets ────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  background-color: var(--color-bg);
+  color: var(--color-fg);
+  font-family: var(--font-content);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─── Glass shell utility ─────────────────────────────────────
+   ใช้สำหรับ sidebar, nav panel, filter drawer, modal shell.
+   ห้ามใช้กับ data table body — ตาม research doc (glass shell + utility core pattern).
+   Reference: docs/research/admin-design-glassmorphism-utility-2026.md
+─────────────────────────────────────────────────────────────── */
+@layer components {
+  .glass-shell {
+    background-color: hsl(var(--background) / 0.8);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.10);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.20);
+  }
+
+  /* supports-[backdrop-filter] fallback — เพิ่ม opacity เมื่อ browser ไม่ support blur */
+  @supports not (backdrop-filter: blur(1px)) {
+    .glass-shell {
+      background-color: hsl(var(--background) / 0.95);
+    }
+  }
+
+  /* Sticky table header ที่ใช้ glass ได้ (เล็กพอ — ไม่กระทบ readability ของ data row) */
+  .glass-table-header {
+    background-color: hsl(var(--background) / 0.95);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+  }
+}

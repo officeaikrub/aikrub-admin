@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="th">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AIKrub Admin</title>
+    <meta name="description" content="AIKrub Admin — ระบบจัดการแบ็กออฟฟิศ" />
+    <!-- ห้าม index ใน search engine — admin panel ไม่ควรปรากฎใน Google -->
+    <meta name="robots" content="noindex, nofollow" />
+    <!-- Favicon — ใช้อันเดียวกับ main repo -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png" />
+    <!-- Preconnect to Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  </head>
+  <!-- inline bg matches --color-bg dark base (#0F172A)
+       ป้องกัน flash ขาวก่อน React hydrate -->
+  <body style="background:#0F172A; margin:0;">
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
