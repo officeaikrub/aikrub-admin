@@ -300,6 +300,180 @@ export async function adminUploadSlip(file: File): Promise<SlipUploadResponse> {
 }
 
 // ---------------------------------------------------------------------------
+// User management types (Wave 4.4)
+// ---------------------------------------------------------------------------
+
+export type UserRole = "user" | "admin" | "owner";
+export type UserStatus = "active" | "suspended" | "soft_deleted";
+export type SuspendReason = "fraud" | "abuse" | "non_payment" | "user_request" | "other";
+
+export interface AdminUserRow {
+  id: string;
+  email: string | null;
+  display_name: string | null;
+  role: UserRole;
+  status: UserStatus;
+  created_at: string;
+  suspended_at: string | null;
+  suspended_reason: string | null;
+  deleted_at: string | null;
+}
+
+export interface AdminUserDetail {
+  user: AdminUserRow;
+  credits: {
+    balance: number;
+    lifetime_topup: number;
+    lifetime_spend: number;
+  };
+  recent_generations: {
+    id: string;
+    model: string;
+    provider: string;
+    cost: number;
+    status: string;
+    created_at: string;
+  }[];
+  recent_redemptions: {
+    coupon_id: string;
+    krub_added: number;
+    redeemed_at: string;
+  }[];
+  audit_trail: {
+    id: string;
+    actor_id: string;
+    actor_role: string;
+    action: string;
+    payload: Record<string, unknown>;
+    ip_address: string | null;
+    created_at: string;
+  }[];
+}
+
+export interface UserListParams {
+  cursor?: string;
+  limit?: number;
+  q?: string;
+  role?: UserRole | "";
+  status?: UserStatus | "";
+}
+
+export interface UserListResponse {
+  ok: true;
+  items: AdminUserRow[];
+  next_cursor: string | null;
+  total: number;
+}
+
+// ---------------------------------------------------------------------------
+// User API functions (Wave 4.4)
+// ---------------------------------------------------------------------------
+
+/**
+ * GET /api/admin/users — รายการผู้ใช้พร้อม filter + cursor pagination
+ */
+export async function adminListUsers(
+  params: UserListParams = {},
+): Promise<UserListResponse> {
+  const query = new URLSearchParams();
+  if (params.cursor) query.set("cursor", params.cursor);
+  if (params.limit) query.set("limit", String(params.limit));
+  if (params.q) query.set("q", params.q);
+  if (params.role) query.set("role", params.role);
+  if (params.status) query.set("status", params.status);
+  const qs = query.toString();
+  return adminFetch<UserListResponse>(
+    `/api/admin/users${qs ? `?${qs}` : ""}`,
+  );
+}
+
+/**
+ * GET /api/admin/users/:id — รายละเอียดผู้ใช้ + credits + generations + coupons + audit
+ */
+export async function adminGetUser(id: string): Promise<{ ok: true } & AdminUserDetail> {
+  return adminFetch<{ ok: true } & AdminUserDetail>(`/api/admin/users/${id}`);
+}
+
+/**
+ * POST /api/admin/users/:id/credits/adjust — ปรับยอด krub (admin+owner)
+ * Body: { delta: number (int, non-zero), note: string (≥5 chars) }
+ * Note: wireframe says "reason" but endpoint field is "note"; min is 5 server-side,
+ *       we enforce 10 client-side for safety.
+ */
+export async function adminAdjustKrub(
+  userId: string,
+  delta: number,
+  note: string,
+): Promise<{ ok: true; new_balance: number }> {
+  return adminFetch<{ ok: true; new_balance: number }>(
+    `/api/admin/users/${userId}/credits/adjust`,
+    {
+      method: "POST",
+      body: JSON.stringify({ delta, note }),
+    },
+  );
+}
+
+/**
+ * POST /api/admin/users/:id/suspend — ระงับบัญชี (admin+owner)
+ * Note: endpoint only accepts { reason, note }. Duration + notify fields
+ *       are not yet implemented server-side (Wave 4.4.1 scope).
+ */
+export async function adminSuspendUser(
+  userId: string,
+  reason: SuspendReason,
+  note?: string,
+): Promise<{ ok: true; user: AdminUserRow; already_suspended?: boolean }> {
+  return adminFetch<{ ok: true; user: AdminUserRow; already_suspended?: boolean }>(
+    `/api/admin/users/${userId}/suspend`,
+    {
+      method: "POST",
+      body: JSON.stringify({ reason, note }),
+    },
+  );
+}
+
+/**
+ * POST /api/admin/users/:id/unsuspend — ยกเลิกการระงับ (admin+owner)
+ */
+export async function adminUnsuspendUser(
+  userId: string,
+): Promise<{ ok: true; user: AdminUserRow }> {
+  return adminFetch<{ ok: true; user: AdminUserRow }>(
+    `/api/admin/users/${userId}/unsuspend`,
+    { method: "POST", body: JSON.stringify({}) },
+  );
+}
+
+/**
+ * POST /api/admin/users/:id/soft-delete — ลบบัญชี soft (owner only)
+ * Body: { confirm_text: "DELETE" }
+ */
+export async function adminSoftDeleteUser(
+  userId: string,
+): Promise<{ ok: true; user: AdminUserRow }> {
+  return adminFetch<{ ok: true; user: AdminUserRow }>(
+    `/api/admin/users/${userId}/soft-delete`,
+    {
+      method: "POST",
+      body: JSON.stringify({ confirm_text: "DELETE" }),
+    },
+  );
+}
+
+/**
+ * POST /api/admin/users/:id/restore — กู้คืนบัญชี (owner only, grace period only)
+ */
+export async function adminRestoreUser(
+  userId: string,
+): Promise<{ ok: true; user: AdminUserRow; warning?: string }> {
+  return adminFetch<{ ok: true; user: AdminUserRow; warning?: string }>(
+    `/api/admin/users/${userId}/restore`,
+    { method: "POST", body: JSON.stringify({}) },
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Formatting helpers
 // ---------------------------------------------------------------------------
 

@@ -6,6 +6,8 @@ import ComingSoon from "@/components/ComingSoon";
 import NotFoundPage from "@/routes/admin/404";
 import CouponList from "@/routes/admin/coupons/list";
 import CouponDetail from "@/routes/admin/coupons/detail";
+import UserList from "@/routes/admin/users/list";
+import UserDetail from "@/routes/admin/users/detail";
 
 /**
  * App — router shell สำหรับ AIKrub Admin.
@@ -30,10 +32,10 @@ export default function App() {
           {/* create-paid and create-free routes removed in Wave 4.3 — modal-only */}
           <Route path=":id" element={<CouponDetail />} />
         </Route>
-        <Route
-          path="/users"
-          element={<ComingSoon name="จัดการผู้ใช้" />}
-        />
+        <Route path="/users">
+          <Route index element={<UserList />} />
+          <Route path=":id" element={<UserDetail />} />
+        </Route>
         <Route
           path="/generations"
           element={<ComingSoon name="ประวัติการสร้าง" />}
