@@ -4,14 +4,17 @@ import AdminLayout from "@/components/AdminLayout";
 import DashboardPlaceholder from "@/components/DashboardPlaceholder";
 import ComingSoon from "@/components/ComingSoon";
 import NotFoundPage from "@/routes/admin/404";
+import CouponList from "@/routes/admin/coupons/list";
+import CouponDetail from "@/routes/admin/coupons/detail";
 
 /**
  * App — router shell สำหรับ AIKrub Admin.
  *
- * Wave 4.2b:
+ * Wave 4.2b / 4.3:
  *   - /login → LoginPage (Supabase auth + role check)
  *   - /* wrapped in AdminLayout (auth guard + glass nav shell)
- *   - Placeholder routes for Wave 4.3/4.4/Sprint 3/4
+ *   - Wave 4.3: /coupons/create-paid + /coupons/create-free removed;
+ *     coupon creation is now a Radix Dialog modal over /coupons (CreateCouponModal)
  */
 export default function App() {
   return (
@@ -22,10 +25,11 @@ export default function App() {
       {/* Authenticated admin section — AdminLayout handles auth guard */}
       <Route element={<AdminLayout />}>
         <Route index element={<DashboardPlaceholder />} />
-        <Route
-          path="/coupons"
-          element={<ComingSoon name="จัดการคูปอง" />}
-        />
+        <Route path="/coupons">
+          <Route index element={<CouponList />} />
+          {/* create-paid and create-free routes removed in Wave 4.3 — modal-only */}
+          <Route path=":id" element={<CouponDetail />} />
+        </Route>
         <Route
           path="/users"
           element={<ComingSoon name="จัดการผู้ใช้" />}
