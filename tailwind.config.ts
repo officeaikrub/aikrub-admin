@@ -1,4 +1,5 @@
 import type { Config } from "tailwindcss";
+import animate from "tailwindcss-animate";
 
 const config: Config = {
   // Admin is dark-first — class strategy so Pete can toggle later if needed.
@@ -154,10 +155,7 @@ const config: Config = {
     },
   },
 
-  plugins: [
-    // shadcn will add @tailwindcss/typography and animate when Wave 4.2 runs:
-    // npx shadcn@latest add button card input table
-  ],
+  plugins: [animate],
 };
 
 export default config;
