@@ -536,6 +536,61 @@ export async function adminUpdatePricing(
 }
 
 // ---------------------------------------------------------------------------
+// Notification settings types (Wave 4.5)
+// ---------------------------------------------------------------------------
+
+export type NotificationSeverity = "info" | "warning" | "critical";
+
+export interface NotificationSettingRow {
+  type: string;
+  /** Thai label for display */
+  label: string;
+  severity_default: NotificationSeverity;
+  enabled: boolean;
+  /** When true, UI shows disabled toggle + security tooltip */
+  owner_only_override: boolean;
+}
+
+export interface NotificationSettingsResponse {
+  ok: true;
+  items: NotificationSettingRow[];
+}
+
+export interface UpdateNotificationSettingParams {
+  enabled: boolean;
+}
+
+// ---------------------------------------------------------------------------
+// Notification settings API functions (Wave 4.5)
+// ---------------------------------------------------------------------------
+
+/**
+ * GET /api/admin/notification-settings — รายการ notification type ทั้งหมด + toggle state
+ */
+export async function adminGetNotificationSettings(): Promise<NotificationSettingRow[]> {
+  const res = await adminFetch<NotificationSettingsResponse>(
+    "/api/admin/notification-settings",
+  );
+  return res.items;
+}
+
+/**
+ * PATCH /api/admin/notification-settings/:type — เปลี่ยน enabled state per type
+ */
+export async function adminUpdateNotificationSetting(
+  type: string,
+  params: UpdateNotificationSettingParams,
+): Promise<{ ok: true }> {
+  return adminFetch<{ ok: true }>(
+    `/api/admin/notification-settings/${type}`,
+    {
+      method: "PATCH",
+      body: JSON.stringify(params),
+    },
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Formatting helpers
 // ---------------------------------------------------------------------------
 

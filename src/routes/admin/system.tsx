@@ -19,8 +19,12 @@ import { Plus, X } from "lucide-react";
 import {
   adminGetPricing,
   adminUpdatePricing,
+  adminGetNotificationSettings,
+  adminUpdateNotificationSetting,
   type PricingConfig,
   type PricingPack,
+  type NotificationSettingRow,
+  type NotificationSeverity,
 } from "@/lib/api-admin";
 import { useAdmin } from "@/components/AdminLayout";
 import { Button } from "@/components/ui/button";
@@ -448,6 +452,222 @@ function ConfirmModal({
 }
 
 // ---------------------------------------------------------------------------
+// Inline toggle component (no Switch shadcn dep needed)
+// ---------------------------------------------------------------------------
+
+interface ToggleSwitchProps {
+  checked: boolean;
+  disabled?: boolean;
+  onChange: (val: boolean) => void;
+  id: string;
+}
+
+function ToggleSwitch({ checked, disabled, onChange, id }: ToggleSwitchProps) {
+  return (
+    <button
+      id={id}
+      role="switch"
+      aria-checked={checked}
+      disabled={disabled}
+      onClick={() => !disabled && onChange(!checked)}
+      className={cn(
+        "relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent",
+        "transition-colors duration-200 ease-in-out",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F25F2D] focus-visible:ring-offset-2",
+        "disabled:cursor-not-allowed disabled:opacity-40",
+        checked ? "bg-[#F25F2D]" : "bg-[#334155]"
+      )}
+    >
+      <span
+        aria-hidden="true"
+        className={cn(
+          "pointer-events-none inline-block h-4 w-4 rounded-full bg-white shadow-sm",
+          "transform transition duration-200 ease-in-out",
+          checked ? "translate-x-4" : "translate-x-0"
+        )}
+      />
+    </button>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Severity badge
+// ---------------------------------------------------------------------------
+
+function SeverityBadge({ severity }: { severity: NotificationSeverity }) {
+  const map: Record<NotificationSeverity, { label: string; cls: string }> = {
+    critical: { label: "CRITICAL", cls: "bg-red-900/30 text-red-300 border-red-500/30" },
+    warning:  { label: "WARNING",  cls: "bg-amber-900/30 text-amber-300 border-amber-500/30" },
+    info:     { label: "INFO",     cls: "bg-blue-900/30 text-blue-300 border-blue-500/30" },
+  };
+  const { label, cls } = map[severity];
+  return (
+    <span className={`inline-flex items-center px-2 py-0.5 rounded-full border font-ui text-[10px] font-medium tracking-wide ${cls}`}>
+      {label}
+    </span>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// NotificationSettingsSection
+// ---------------------------------------------------------------------------
+
+interface NotificationSettingsSectionProps {
+  isOwner: boolean;
+}
+
+function NotificationSettingsSection({ isOwner }: NotificationSettingsSectionProps) {
+  const qc = useQueryClient();
+
+  const { data, isLoading, isError, refetch } = useQuery({
+    queryKey: ["admin", "notification-settings"],
+    queryFn: adminGetNotificationSettings,
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: ({ type, enabled }: { type: string; enabled: boolean }) =>
+      adminUpdateNotificationSetting(type, { enabled }),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ["admin", "notification-settings"] });
+    },
+  });
+
+  if (isLoading) {
+    return (
+      <div className="bg-[#1E293B] rounded-xl border border-white/8 p-5 animate-pulse">
+        <div className="h-4 w-36 bg-white/5 rounded mb-4" />
+        {Array.from({ length: 5 }, (_, i) => (
+          <div key={i} className="h-9 bg-white/3 rounded mb-2" />
+        ))}
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="bg-[#1E293B] rounded-xl border border-white/8 p-5">
+        <p className="font-ui text-xs text-[#94A3B8] uppercase tracking-wide mb-3">
+          การแจ้งเตือน — ระบบ
+        </p>
+        <div className="flex items-center justify-between p-3 rounded-lg bg-red-900/20 border border-red-500/30 text-red-300 text-sm font-ui">
+          <span>โหลดข้อมูลไม่สำเร็จ (รอ Cheese deploy endpoint)</span>
+          <Button
+            variant="outline"
+            size="sm"
+            className="border-red-500/30 text-red-300 hover:bg-red-900/30"
+            onClick={() => refetch()}
+          >
+            ลองใหม่
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  const items = data ?? [];
+
+  return (
+    <div className="bg-[#1E293B] rounded-xl border border-white/8 p-5">
+      <p className="font-ui text-xs text-[#94A3B8] uppercase tracking-wide mb-4">
+        การแจ้งเตือน — ระบบ
+      </p>
+
+      {/* Column headers */}
+      <div className="grid grid-cols-[1fr_auto_auto] gap-3 mb-2 px-1">
+        <span className="font-ui text-xs text-[#475569] uppercase tracking-wide">ประเภท</span>
+        <span className="font-ui text-xs text-[#475569] uppercase tracking-wide w-20 text-center">Severity</span>
+        <span className="font-ui text-xs text-[#475569] uppercase tracking-wide w-16 text-center">เปิด</span>
+      </div>
+
+      <div className="space-y-1">
+        {items.map((row: NotificationSettingRow) => {
+          const isLocked = row.owner_only_override;
+          const isPending =
+            updateMutation.isPending &&
+            (updateMutation.variables as { type: string } | undefined)?.type === row.type;
+
+          return (
+            <div
+              key={row.type}
+              className="grid grid-cols-[1fr_auto_auto] gap-3 items-center
+                         py-2 px-3 rounded-lg hover:bg-white/4 transition-colors"
+            >
+              {/* Label */}
+              <div className="flex items-center gap-2 min-w-0">
+                {isLocked && (
+                  <span aria-hidden="true" className="text-[#94A3B8] text-xs shrink-0">🔒</span>
+                )}
+                <span className={`font-ui text-sm truncate ${isLocked ? "text-[#64748B]" : "text-[#E2E8F0]"}`}>
+                  {row.label}
+                </span>
+              </div>
+
+              {/* Severity badge */}
+              <div className="w-20 flex justify-center">
+                <SeverityBadge severity={row.severity_default} />
+              </div>
+
+              {/* Toggle or lock label */}
+              <div className="w-16 flex justify-center">
+                {isLocked ? (
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <span className="font-ui text-xs text-[#64748B] cursor-default select-none">
+                          ส่งเสมอ
+                        </span>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p className="font-ui text-xs">ห้ามปิด — สำหรับความปลอดภัย user</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                ) : (
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <span>
+                          <ToggleSwitch
+                            id={`notif-toggle-${row.type}`}
+                            checked={row.enabled}
+                            disabled={!isOwner || isPending}
+                            onChange={(enabled) => {
+                              updateMutation.mutate({ type: row.type, enabled });
+                            }}
+                          />
+                        </span>
+                      </TooltipTrigger>
+                      {!isOwner && (
+                        <TooltipContent>
+                          <p className="font-ui text-xs">เฉพาะ owner เท่านั้น</p>
+                        </TooltipContent>
+                      )}
+                    </Tooltip>
+                  </TooltipProvider>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Save error inline */}
+      {updateMutation.isError && (
+        <div className="mt-3 flex items-center gap-2 px-3 py-2 rounded-lg bg-red-900/20 border border-red-500/30 text-red-300 text-sm font-ui">
+          <span>✕</span>
+          <span>
+            บันทึกไม่สำเร็จ —{" "}
+            {updateMutation.error instanceof Error
+              ? updateMutation.error.message
+              : "เกิดข้อผิดพลาด"}
+          </span>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // SystemPricing page
 // ---------------------------------------------------------------------------
 
@@ -673,6 +893,9 @@ export default function SystemPricing() {
           onRemove={handlePackRemove}
           onChange={handlePackChange}
         />
+
+        {/* Notification settings section */}
+        <NotificationSettingsSection isOwner={isOwner} />
 
         {/* Form-level validation error summary */}
         {formHasErrors && (
