@@ -27,6 +27,7 @@ import { AdjustKrubModal } from "@/components/AdjustKrubModal";
 import { SuspendUserModal } from "@/components/SuspendUserModal";
 import { SoftDeleteUserModal } from "@/components/SoftDeleteUserModal";
 import { RestoreUserModal } from "@/components/RestoreUserModal";
+import { PiiAccessLogTable } from "@/components/PiiAccessLogTable";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -213,7 +214,7 @@ function GenerationStatusBadge({ status }: { status: string }) {
   );
 }
 
-function TabsPanel({ data }: { data: AdminUserDetail }) {
+function TabsPanel({ data, viewerRole }: { data: AdminUserDetail; viewerRole: "admin" | "owner" }) {
   const [activeTab, setActiveTab] = useState<TabId>("generations");
 
   return (
@@ -332,15 +333,10 @@ function TabsPanel({ data }: { data: AdminUserDetail }) {
         )}
 
         {activeTab === "pii" && (
-          <div className="py-8 text-center space-y-2">
-            <p className="font-content text-sm text-[#475569]">
-              PII access log endpoint pending
-            </p>
-            <p className="font-ui text-xs text-[#475569]">
-              Cheese to add <span className="font-mono">pii_access_log</span> field to{" "}
-              <span className="font-mono">GET /admin/users/:id</span> response (Wave 4.4.1)
-            </p>
-          </div>
+          <PiiAccessLogTable
+            rows={data.pii_access_log ?? []}
+            viewerRole={viewerRole}
+          />
         )}
       </div>
     </div>
@@ -593,13 +589,14 @@ export default function UserDetail() {
     );
   }
 
-  const { user, credits, recent_generations, recent_redemptions, audit_trail } = data;
+  const { user, credits, recent_generations, recent_redemptions, audit_trail, pii_access_log } = data;
   const detailData: AdminUserDetail = {
     user,
     credits,
     recent_generations,
     recent_redemptions,
     audit_trail,
+    pii_access_log: pii_access_log ?? [],
   };
 
   return (
@@ -624,7 +621,7 @@ export default function UserDetail() {
         {/* Left column */}
         <div className="flex-1 min-w-0">
           <HeroCard user={user} balance={credits.balance} />
-          <TabsPanel data={detailData} />
+          <TabsPanel data={detailData} viewerRole={viewer.role === "owner" ? "owner" : "admin"} />
           <AuditTrailCard trail={audit_trail} />
         </div>
 

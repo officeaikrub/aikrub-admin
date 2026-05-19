@@ -1,13 +1,13 @@
 /**
- * CouponDetail — รายละเอียดคูปอง + ประวัติ Redeem
+ * CouponDetail — รายละเอียดคูปอง + ประวัติ Redeem + per-row clawback
  *
  * Section C of admin-coupon-wireframes.md
  * - PII access transparency banner (Q-OQ-05)
  * - All 18 coupon columns displayed
  * - Slip image with lightbox (click to enlarge)
- * - Redemption history table (newest first, max 50)
- * - Action buttons: Disable / Revoke (modal) / Clawback shortcut
- *   Clawback: visible only when status=revoked AND used_count>0 (task spec)
+ * - Redemption history table (newest first, max 50) with per-row clawback actions
+ * - Action buttons: Disable / Revoke (modal)
+ *   Clawback moved to per-row in the redemption table
  *
  * Uses useAdmin() for role check — loaded inside AdminLayout context.
  */
@@ -30,6 +30,7 @@ import {
   type Coupon,
   type RedemptionRecord,
 } from "@/lib/api-admin";
+import { ClawbackRowModal } from "@/components/ClawbackRowModal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -204,50 +205,121 @@ function SlipLightbox({ url, onClose }: { url: string; onClose: () => void }) {
 }
 
 // ---------------------------------------------------------------------------
-// Redemption history table
+// Redemption history table (with per-row clawback actions)
 // ---------------------------------------------------------------------------
 
-function RedemptionTable({ records }: { records: RedemptionRecord[] }) {
+interface RedemptionTableProps {
+  couponId: string;
+  couponStatus: CouponStatus;
+  records: RedemptionRecord[];
+  onClawbackSuccess: (redemptionId: string, clawedBackAt: string) => void;
+}
+
+interface ClawbackModalTarget {
+  redemptionId: string;
+  userEmail: string;
+  krubAmount: number;
+}
+
+function formatThaiDate(iso: string): string {
+  return new Intl.DateTimeFormat("th-TH", {
+    timeZone: "Asia/Bangkok",
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  }).format(new Date(iso));
+}
+
+function RedemptionTable({ couponId, couponStatus, records, onClawbackSuccess }: RedemptionTableProps) {
+  const [clawbackTarget, setClawbackTarget] = useState<ClawbackModalTarget | null>(null);
+
   if (records.length === 0) {
     return (
       <p className="font-content text-sm text-[#475569] py-4 text-center">ยังไม่มีการ Redeem</p>
     );
   }
+
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full">
-        <thead>
-          <tr>
-            <th className="px-3 py-2 font-ui text-xs text-[#94A3B8] uppercase tracking-wide text-left">วันที่ Redeem</th>
-            <th className="px-3 py-2 font-ui text-xs text-[#94A3B8] uppercase tracking-wide text-left">Email</th>
-            <th className="px-3 py-2 font-ui text-xs text-[#94A3B8] uppercase tracking-wide text-right">krub</th>
-            <th className="px-3 py-2 w-10" />
-          </tr>
-        </thead>
-        <tbody>
-          {records.map((r) => (
-            <tr key={r.id} className="border-t border-white/5">
-              <td className="px-3 py-2 font-mono text-xs text-[#475569] tabular-nums">
-                {formatDateTime(r.redeemed_at)}
-              </td>
-              <td className="px-3 py-2 font-content text-sm text-[#94A3B8]">{r.user_email}</td>
-              <td className="px-3 py-2 text-right font-mono text-sm text-[#F1F5F9] tabular-nums">
-                {r.krub_credited}
-              </td>
-              <td className="px-3 py-2">
-                <Link
-                  to={`/users/${r.user_id}`}
-                  className="flex items-center justify-center w-7 h-7 rounded text-[#475569] hover:text-[#F25F2D] transition-colors"
-                  title="ดูผู้ใช้"
-                >
-                  <ExternalLink className="w-3.5 h-3.5" />
-                </Link>
-              </td>
+    <>
+      <div className="overflow-x-auto">
+        <table className="w-full">
+          <thead>
+            <tr>
+              <th className="px-3 py-2 font-ui text-xs text-[#94A3B8] uppercase tracking-wide text-left">User</th>
+              <th className="px-3 py-2 font-ui text-xs text-[#94A3B8] uppercase tracking-wide text-left">วันที่ใช้</th>
+              <th className="px-3 py-2 font-ui text-xs text-[#94A3B8] uppercase tracking-wide text-right">Krub</th>
+              <th className="px-3 py-2 font-ui text-xs text-[#94A3B8] uppercase tracking-wide text-right">Action</th>
+              <th className="px-3 py-2 w-8" />
             </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+          </thead>
+          <tbody>
+            {records.map((r) => (
+              <tr key={r.id} className="border-t border-white/5">
+                <td className="px-3 py-2 font-content text-sm text-[#94A3B8] max-w-[200px] truncate" title={r.user_email}>
+                  {r.user_email}
+                </td>
+                <td className="px-3 py-2 font-mono text-xs text-[#475569] tabular-nums whitespace-nowrap">
+                  {formatDateTime(r.redeemed_at)}
+                </td>
+                <td className="px-3 py-2 text-right font-mono text-sm text-[#F1F5F9] tabular-nums">
+                  {r.krub_credited}
+                </td>
+                <td className="px-3 py-2 text-right">
+                  {couponStatus === "revoked" ? (
+                    r.status === "clawed_back" ? (
+                      <span className="font-ui text-xs text-[#475569] cursor-default">
+                        ✓ คืนแล้ว {r.clawed_back_at ? formatThaiDate(r.clawed_back_at) : ""}
+                      </span>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => setClawbackTarget({
+                          redemptionId: r.id,
+                          userEmail: r.user_email,
+                          krubAmount: r.krub_credited,
+                        })}
+                        className="border border-red-500/40 text-red-400 hover:bg-red-900/20 rounded-lg px-3 py-1 text-xs font-ui transition-colors"
+                      >
+                        ↩ ดึงคืน
+                      </button>
+                    )
+                  ) : (
+                    <span className="text-[#475569]">—</span>
+                  )}
+                </td>
+                <td className="px-3 py-2">
+                  <Link
+                    to={`/users/${r.user_id}`}
+                    className="flex items-center justify-center w-7 h-7 rounded text-[#475569] hover:text-[#F25F2D] transition-colors"
+                    title="ดูผู้ใช้"
+                  >
+                    <ExternalLink className="w-3.5 h-3.5" />
+                  </Link>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        <p className="px-3 py-2 font-ui text-xs text-[#475569] text-right">
+          รวม {records.length} รายการ
+        </p>
+      </div>
+
+      {clawbackTarget && (
+        <ClawbackRowModal
+          open={clawbackTarget !== null}
+          couponId={couponId}
+          redemptionId={clawbackTarget.redemptionId}
+          userEmail={clawbackTarget.userEmail}
+          krubAmount={clawbackTarget.krubAmount}
+          onClose={() => setClawbackTarget(null)}
+          onSuccess={(clawedBackAt) => {
+            onClawbackSuccess(clawbackTarget.redemptionId, clawedBackAt);
+            setClawbackTarget(null);
+          }}
+        />
+      )}
+    </>
   );
 }
 
@@ -287,6 +359,23 @@ export default function CouponDetail() {
     },
   });
 
+  function handleClawbackSuccess(redemptionId: string, clawedBackAt: string) {
+    queryClient.setQueryData(
+      ["admin", "coupon", id],
+      (old: typeof data) => {
+        if (!old) return old;
+        return {
+          ...old,
+          redemptions: old.redemptions.map((r) =>
+            r.id === redemptionId
+              ? { ...r, status: "clawed_back" as const, clawed_back_at: clawedBackAt }
+              : r,
+          ),
+        };
+      },
+    );
+  }
+
   if (isLoading) {
     return (
       <div className="px-4 py-6 md:px-6 md:py-8 space-y-4">
@@ -310,16 +399,7 @@ export default function CouponDetail() {
     );
   }
 
-  const { coupon, redemptions } = data;
-
-  // Clawback gating: visible only when status=revoked AND used_count>0 (per task spec)
-  const showClawback = coupon.status === "revoked" && coupon.used_count > 0;
-  // First redemption for clawback pre-fill (TODO: per-row clawback for multi-use coupons)
-  const firstRedemption: RedemptionRecord | undefined = redemptions[0];
-
-  const clawbackHref = firstRedemption
-    ? `/users/${firstRedemption.user_id}?adjust=-${coupon.krub_amount}&note=Clawback%20from%20${encodeURIComponent(coupon.code)}`
-    : undefined;
+  const { coupon } = data;
 
   return (
     <div className="px-4 py-6 md:px-6 md:py-8 space-y-6">
@@ -427,11 +507,20 @@ export default function CouponDetail() {
         </div>
       </div>
 
-      {/* Redemption history */}
-      <div className="bg-[#1E293B] rounded-xl border border-white/8 p-4">
-        <h2 className="font-ui text-xs text-[#94A3B8] uppercase tracking-wide mb-3">ประวัติการ Redeem</h2>
-        <RedemptionTable records={redemptions} />
-      </div>
+      {/* Redemption history with per-row clawback */}
+      {data.redemptions.length > 0 && (
+        <div className="bg-[#1E293B] rounded-xl border border-white/8 overflow-hidden">
+          <div className="px-4 pt-4 pb-2">
+            <h2 className="font-ui text-xs text-[#94A3B8] uppercase tracking-wide">ประวัติการใช้คูปอง</h2>
+          </div>
+          <RedemptionTable
+            couponId={coupon.id}
+            couponStatus={coupon.status}
+            records={data.redemptions}
+            onClawbackSuccess={handleClawbackSuccess}
+          />
+        </div>
+      )}
 
       {/* Action buttons */}
       <div className="flex items-center gap-3 flex-wrap pt-2">
@@ -454,17 +543,6 @@ export default function CouponDetail() {
           >
             ยกเลิก (Revoke)
           </Button>
-        )}
-
-        {showClawback && clawbackHref && (
-          <Link to={clawbackHref}>
-            <Button
-              variant="outline"
-              className="border-red-500/30 bg-red-900/20 text-red-400 hover:bg-red-900/40"
-            >
-              📤 Clawback ⚠
-            </Button>
-          </Link>
         )}
       </div>
 

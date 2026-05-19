@@ -6,15 +6,24 @@
  * - Role tab bar (owner sees all; admin sees only user tab)
  * - Status filter + search
  * - Desktop table + mobile card view
+ * - Multi-select checkbox column (desktop only, md:+)
+ *   - Checkbox col 0, sticky left, z-index above scroll
+ *   - Header checkbox with indeterminate state on partial selection
+ *   - admin/owner rows: checkbox visible but disabled + greyed
+ *   - Selected rows: bg-amber-900/10
+ * - Sticky action bar at bottom-4 when ≥1 selected
+ * - Bulk suspend result banner (above PII banner, 8s auto-dismiss)
  * - Row actions: ดูรายละเอียด / ปรับ krub / ระงับ / ยกเลิกระงับ / กู้คืน
- * - Bulk suspend bar (desktop only, max 100)
  * - Cursor-based pagination
  *
  * OQ-04m-05 resolved: Worker filters admin/owner rows server-side for admin viewers.
  * No redacted-cell branch needed — admin viewers never receive admin/owner rows.
+ *
+ * Pom RED-1: bulk suspend response has no skipped_elevated[] — silent skip client-side.
+ * Result banner shows only: ✓ Suspended X • ✗ Failed Z
  */
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { MoreHorizontal, ChevronLeft, ChevronRight } from "lucide-react";
@@ -25,6 +34,7 @@ import {
   type AdminUserRow,
   type UserRole,
   type UserStatus,
+  type BulkSuspendResult,
 } from "@/lib/api-admin";
 import { useAdmin } from "@/components/AdminLayout";
 import { UserListFilters, type UserFilters } from "@/components/UserListFilters";
@@ -89,7 +99,7 @@ function UserRoleBadge({ role }: { role: UserRole }) {
 }
 
 // ---------------------------------------------------------------------------
-// Skeleton row
+// Skeleton row (10 columns now: checkbox + 9 original)
 // ---------------------------------------------------------------------------
 
 function SkeletonRows() {
@@ -97,12 +107,12 @@ function SkeletonRows() {
     <>
       {[...Array(5)].map((_, i) => (
         <tr key={i} className="border-t border-white/5">
-          {[...Array(9)].map((__, j) => (
+          {[...Array(10)].map((__, j) => (
             <td key={j} className="px-3 py-3">
               <div
                 className={cn(
                   "h-4 rounded bg-white/5 animate-pulse",
-                  j === 2 ? "w-36" : j === 3 ? "w-20" : "w-12",
+                  j === 0 ? "w-4" : j === 3 ? "w-36" : j === 4 ? "w-20" : "w-12",
                 )}
               />
             </td>
@@ -110,6 +120,49 @@ function SkeletonRows() {
         </tr>
       ))}
     </>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Bulk result banner
+// ---------------------------------------------------------------------------
+
+interface BulkResultBannerProps {
+  result: BulkSuspendResult;
+  onDismiss: () => void;
+}
+
+function BulkResultBanner({ result, onDismiss }: BulkResultBannerProps) {
+  const suspendedCount = result.suspended.length;
+  const failedCount = result.failed.length;
+
+  useEffect(() => {
+    const timer = setTimeout(onDismiss, 8000);
+    return () => clearTimeout(timer);
+  }, [onDismiss]);
+
+  return (
+    <div className="bg-[#1E293B] border border-white/8 rounded-xl px-4 py-3 flex items-center gap-4 flex-wrap">
+      {suspendedCount > 0 && (
+        <span className="font-ui text-sm text-green-400">
+          ✓ ระงับแล้ว {suspendedCount} คน
+        </span>
+      )}
+      {failedCount > 0 && (
+        <span className="font-ui text-sm text-red-400">
+          ✗ ล้มเหลว {failedCount} คน
+        </span>
+      )}
+      {suspendedCount === 0 && failedCount === 0 && (
+        <span className="font-ui text-sm text-[#94A3B8]">ไม่มีการดำเนินการ</span>
+      )}
+      <button
+        onClick={onDismiss}
+        className="ml-auto font-ui text-xs text-[#475569] hover:text-[#94A3B8] transition-colors"
+      >
+        ✕
+      </button>
+    </div>
   );
 }
 
@@ -130,7 +183,6 @@ interface ModalState {
   balance: number;
 }
 
-
 export default function UserList() {
   const { user: viewer } = useAdmin();
   const navigate = useNavigate();
@@ -139,6 +191,14 @@ export default function UserList() {
   const [filters, setFilters] = useState<UserFilters>(DEFAULT_FILTERS);
   const [cursors, setCursors] = useState<string[]>([]);
   const [modalState, setModalState] = useState<ModalState>({ type: null, user: null, balance: 0 });
+
+  // Bulk selection state
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [showBulkModal, setShowBulkModal] = useState(false);
+  const [bulkResult, setBulkResult] = useState<BulkSuspendResult | null>(null);
+
+  // Header checkbox ref for indeterminate state
+  const headerCheckboxRef = useRef<HTMLInputElement>(null);
 
   const currentCursor = cursors[cursors.length - 1] as string | undefined;
 
@@ -164,12 +224,14 @@ export default function UserList() {
 
   function handleFilterChange(next: Partial<UserFilters>) {
     setFilters((f) => ({ ...f, ...next }));
-    setCursors([]); // Reset pagination on filter change
+    setCursors([]);
+    setSelectedIds(new Set()); // Clear selection on filter change
   }
 
   function handleFilterReset() {
     setFilters(DEFAULT_FILTERS);
     setCursors([]);
+    setSelectedIds(new Set());
   }
 
   function openModal(type: ModalState["type"], user: AdminUserRow, balance = 0) {
@@ -188,11 +250,15 @@ export default function UserList() {
   const hasPrev = cursors.length > 0;
 
   function goNext() {
-    if (nextCursor) setCursors((c) => [...c, nextCursor]);
+    if (nextCursor) {
+      setCursors((c) => [...c, nextCursor]);
+      setSelectedIds(new Set()); // Clear selection on page change
+    }
   }
 
   function goPrev() {
     setCursors((c) => c.slice(0, -1));
+    setSelectedIds(new Set()); // Clear selection on page change
   }
 
   // Permission helpers
@@ -210,6 +276,18 @@ export default function UserList() {
     return true;
   }
 
+  function isEligibleForCheckbox(target: AdminUserRow): boolean {
+    // Eligible = can be selected (must be active user, not self, not elevated)
+    if (target.status !== "active") return false;
+    if (viewer.id === target.id) return false;
+    // admin/owner rows are shown as disabled checkbox
+    return target.role === "user";
+  }
+
+  function isElevated(target: AdminUserRow): boolean {
+    return target.role === "admin" || target.role === "owner";
+  }
+
   function canUnsuspend(target: AdminUserRow): boolean {
     if (target.status !== "suspended") return false;
     if (viewer.role === "admin" && (target.role === "admin" || target.role === "owner")) return false;
@@ -224,8 +302,71 @@ export default function UserList() {
     return isInGracePeriod(target.deleted_at);
   }
 
+  // Checkbox logic
+  const eligibleItems = items.filter(isEligibleForCheckbox);
+  const eligibleIds = new Set(eligibleItems.map((u) => u.id));
+  const selectedEligibleCount = [...selectedIds].filter((id) => eligibleIds.has(id)).length;
+  const allEligibleSelected = eligibleItems.length > 0 && selectedEligibleCount === eligibleItems.length;
+  const someSelected = selectedEligibleCount > 0 && !allEligibleSelected;
+
+  // Update header checkbox indeterminate state
+  useEffect(() => {
+    if (headerCheckboxRef.current) {
+      headerCheckboxRef.current.indeterminate = someSelected;
+    }
+  }, [someSelected]);
+
+  function toggleSelectAll() {
+    if (allEligibleSelected) {
+      // Deselect all eligible on current page
+      setSelectedIds((prev) => {
+        const next = new Set(prev);
+        eligibleIds.forEach((id) => next.delete(id));
+        return next;
+      });
+    } else {
+      // Select all eligible on current page
+      setSelectedIds((prev) => {
+        const next = new Set(prev);
+        eligibleIds.forEach((id) => next.add(id));
+        return next;
+      });
+    }
+  }
+
+  function toggleRow(userId: string) {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(userId)) {
+        next.delete(userId);
+      } else {
+        next.add(userId);
+      }
+      return next;
+    });
+  }
+
+  // Bulk suspend: collect full AdminUserRow for selected IDs
+  const selectedUsers = items.filter((u) => selectedIds.has(u.id));
+  // Only eligible (canSuspend) users go into the modal
+  const suspendableSelected = selectedUsers.filter(canSuspend);
+  const allSelectedAreElevated = selectedIds.size > 0 && suspendableSelected.length === 0;
+
+  // The user shown in single-mode modal when exactly 1 eligible selected.
+  // Must be null when no suspendable users are selected — never fall back to an
+  // arbitrary row that the admin may not have intended to suspend.
+  const primaryUser = suspendableSelected[0] ?? null;
+
   return (
-    <div className="p-4 md:p-6 space-y-4">
+    <div className="p-4 md:p-6 space-y-4 relative">
+      {/* Bulk result banner — above PII banner */}
+      {bulkResult && (
+        <BulkResultBanner
+          result={bulkResult}
+          onDismiss={() => setBulkResult(null)}
+        />
+      )}
+
       {/* Page header */}
       <div className="flex items-center justify-between">
         <h1 className="font-display text-xl text-[#F1F5F9]">จัดการผู้ใช้</h1>
@@ -267,6 +408,19 @@ export default function UserList() {
           <table className="w-full">
             <thead>
               <tr className="border-b border-white/8">
+                {/* Checkbox column */}
+                <th className="w-[40px] px-2 py-3 sticky left-0 z-10 bg-[#1E293B]">
+                  <input
+                    ref={headerCheckboxRef}
+                    type="checkbox"
+                    checked={allEligibleSelected}
+                    onChange={toggleSelectAll}
+                    disabled={eligibleItems.length === 0}
+                    style={{ accentColor: "#F25F2D" }}
+                    className="w-4 h-4 cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+                    aria-label="เลือกทั้งหมด"
+                  />
+                </th>
                 <th className="w-[4%] px-2 py-3">
                   <span className="sr-only">avatar</span>
                 </th>
@@ -285,7 +439,7 @@ export default function UserList() {
 
               {!isLoading && items.length === 0 && (
                 <tr>
-                  <td colSpan={9} className="px-4 py-12 text-center font-content text-sm text-[#475569]">
+                  <td colSpan={10} className="px-4 py-12 text-center font-content text-sm text-[#475569]">
                     ยังไม่มีผู้ใช้ที่ตรงกับเงื่อนไข
                     {(filters.role || filters.status || filters.q) && (
                       <>
@@ -301,12 +455,35 @@ export default function UserList() {
 
               {!isLoading && items.map((user) => {
                 const isSoftDeleted = user.status === "soft_deleted";
+                const isSelected = selectedIds.has(user.id);
+                const eligible = isEligibleForCheckbox(user);
+                const elevated = isElevated(user);
 
                 return (
                   <tr
                     key={user.id}
-                    className="border-t border-white/5 hover:bg-white/[0.02] transition-colors"
+                    className={cn(
+                      "border-t border-white/5 transition-colors",
+                      isSelected ? "bg-amber-900/10" : "hover:bg-white/[0.02]",
+                    )}
                   >
+                    {/* Checkbox */}
+                    <td className="px-2 py-3 sticky left-0 z-10" style={{ background: "inherit" }}>
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={() => { if (eligible) toggleRow(user.id); }}
+                        disabled={!eligible}
+                        style={{ accentColor: "#F25F2D" }}
+                        className={cn(
+                          "w-4 h-4",
+                          eligible ? "cursor-pointer" : "cursor-not-allowed opacity-30",
+                          elevated && !eligible && "opacity-20",
+                        )}
+                        title={elevated ? "admin/owner ไม่สามารถเลือกได้" : undefined}
+                      />
+                    </td>
+
                     {/* Avatar */}
                     <td className="px-2 py-3">
                       <div className="w-7 h-7 rounded-full bg-slate-700 flex items-center justify-center text-[10px] font-ui text-[#94A3B8]">
@@ -538,6 +715,36 @@ export default function UserList() {
         )}
       </div>
 
+      {/* Sticky action bar — desktop only, slides in when ≥1 selected */}
+      {selectedIds.size >= 1 && (
+        <div className="hidden md:flex sticky bottom-4 z-20 items-center gap-3 bg-[#1E293B] border border-amber-500/30 rounded-xl px-4 py-3 transition-all">
+          <span className="text-[#F25F2D] font-ui text-sm">⊘</span>
+          <span className="font-ui text-sm text-[#F1F5F9]">
+            {selectedIds.size} user เลือก
+          </span>
+          <div className="flex-1" />
+          <button
+            onClick={() => setShowBulkModal(true)}
+            disabled={allSelectedAreElevated}
+            title={allSelectedAreElevated ? "ผู้ใช้ที่เลือกทั้งหมดเป็น admin/owner — ไม่สามารถระงับได้" : undefined}
+            className={cn(
+              "px-4 py-1.5 rounded-lg font-ui text-sm transition-colors",
+              allSelectedAreElevated
+                ? "bg-amber-600/30 text-amber-300/40 cursor-not-allowed"
+                : "bg-amber-600 hover:bg-amber-700 text-white",
+            )}
+          >
+            Suspend ทั้งหมด
+          </button>
+          <button
+            onClick={() => setSelectedIds(new Set())}
+            className="font-ui text-sm text-[#94A3B8] hover:text-[#F1F5F9] underline transition-colors"
+          >
+            ล้างการเลือก
+          </button>
+        </div>
+      )}
+
       {/* Modals */}
       {modalState.type === "adjust" && modalState.user && (
         <AdjustKrubModal
@@ -572,6 +779,27 @@ export default function UserList() {
           onClose={closeModal}
           onSuccess={() => {
             closeModal();
+            void queryClient.invalidateQueries({ queryKey: ["admin", "users"] });
+          }}
+        />
+      )}
+
+      {/* Bulk suspend modal */}
+      {showBulkModal && primaryUser && (
+        <SuspendUserModal
+          open
+          user={primaryUser}
+          users={suspendableSelected}
+          onClose={() => setShowBulkModal(false)}
+          onSuccess={() => {
+            setShowBulkModal(false);
+            setSelectedIds(new Set());
+            void queryClient.invalidateQueries({ queryKey: ["admin", "users"] });
+          }}
+          onBulkSuccess={(result) => {
+            setBulkResult(result);
+            setShowBulkModal(false);
+            setSelectedIds(new Set());
             void queryClient.invalidateQueries({ queryKey: ["admin", "users"] });
           }}
         />

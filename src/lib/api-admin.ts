@@ -62,6 +62,8 @@ export interface RedemptionRecord {
   user_email: string;
   redeemed_at: string;
   krub_credited: number;
+  status: "active" | "clawed_back";
+  clawed_back_at: string | null;
 }
 
 // ---------------------------------------------------------------------------
@@ -288,6 +290,49 @@ export async function adminBulkRevoke(
 }
 
 /**
+ * POST /api/admin/coupons/:id/clawback-row — ดึงคืน Krub รายแถว
+ * Body: { redemption_id, reason_category, note? }
+ */
+export async function adminClawbackRow(
+  couponId: string,
+  params: {
+    redemption_id: string;
+    reason_category: ClawbackReason;
+    note?: string;
+  },
+): Promise<{
+  ok: true;
+  transaction: {
+    id: string;
+    user_id: string;
+    kind: string;
+    delta: number;
+    created_at: string;
+    related_redemption_id: string | null;
+  };
+  new_balance: number;
+}> {
+  return adminFetch<{
+    ok: true;
+    transaction: {
+      id: string;
+      user_id: string;
+      kind: string;
+      delta: number;
+      created_at: string;
+      related_redemption_id: string | null;
+    };
+    new_balance: number;
+  }>(
+    `/api/admin/coupons/${couponId}/clawback-row`,
+    {
+      method: "POST",
+      body: JSON.stringify(params),
+    },
+  );
+}
+
+/**
  * POST /api/admin/coupons/slip-upload — multipart slip image upload
  */
 export async function adminUploadSlip(file: File): Promise<SlipUploadResponse> {
@@ -306,6 +351,17 @@ export async function adminUploadSlip(file: File): Promise<SlipUploadResponse> {
 export type UserRole = "user" | "admin" | "owner";
 export type UserStatus = "active" | "suspended" | "soft_deleted";
 export type SuspendReason = "fraud" | "abuse" | "non_payment" | "user_request" | "other";
+export type BulkSuspendReason = "spam" | "abuse" | "fraud" | "tos_violation" | "other";
+export type DurationOption = "1d" | "7d" | "30d" | "permanent";
+export type ClawbackReason = "fraud" | "duplicate" | "error" | "other";
+
+export interface PiiAccessLogRow {
+  admin_id: string;
+  admin_email: string;
+  viewed_field: string;
+  viewed_at: string;
+  ip_address: string | null;
+}
 
 export interface AdminUserRow {
   id: string;
@@ -348,6 +404,7 @@ export interface AdminUserDetail {
     ip_address: string | null;
     created_at: string;
   }[];
+  pii_access_log: PiiAccessLogRow[];
 }
 
 export interface UserListParams {
@@ -416,19 +473,47 @@ export async function adminAdjustKrub(
 
 /**
  * POST /api/admin/users/:id/suspend — ระงับบัญชี (admin+owner)
- * Note: endpoint only accepts { reason, note }. Duration + notify fields
- *       are not yet implemented server-side (Wave 4.4.1 scope).
+ * Body: { reason_category, duration_option, notify_user, note? }
  */
 export async function adminSuspendUser(
   userId: string,
-  reason: SuspendReason,
+  reason_category: SuspendReason,
+  duration_option: DurationOption,
+  notify_user: boolean,
   note?: string,
 ): Promise<{ ok: true; user: AdminUserRow; already_suspended?: boolean }> {
   return adminFetch<{ ok: true; user: AdminUserRow; already_suspended?: boolean }>(
     `/api/admin/users/${userId}/suspend`,
     {
       method: "POST",
-      body: JSON.stringify({ reason, note }),
+      body: JSON.stringify({ reason_category, duration_option, notify_user, note }),
+    },
+  );
+}
+
+export interface BulkSuspendResult {
+  ok: true;
+  suspended: { user_id: string; email: string; suspended_until: string | null }[];
+  failed: { user_id: string; error: string }[];
+}
+
+/**
+ * POST /api/admin/users/bulk-suspend — ระงับหลายบัญชีพร้อมกัน (admin+owner)
+ * Body: { user_ids, reason_category, duration_option, notify_user, note? }
+ * Note: skipped_elevated[] removed per Pom RED-1 security audit (enumeration risk)
+ */
+export async function adminBulkSuspend(params: {
+  user_ids: string[];
+  reason_category: BulkSuspendReason;
+  duration_option: DurationOption;
+  notify_user: boolean;
+  note?: string;
+}): Promise<BulkSuspendResult> {
+  return adminFetch<BulkSuspendResult>(
+    "/api/admin/users/bulk-suspend",
+    {
+      method: "POST",
+      body: JSON.stringify(params),
     },
   );
 }
