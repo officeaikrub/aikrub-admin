@@ -8,16 +8,17 @@ import NotFoundPage from "@/routes/admin/404";
 import CouponList from "@/routes/admin/coupons/list";
 import CouponDetail from "@/routes/admin/coupons/detail";
 import UserList from "@/routes/admin/users/list";
-import UserDetail from "@/routes/admin/users/detail";
 
 /**
  * App — router shell สำหรับ AIKrub Admin.
  *
- * Wave 4.2b / 4.3:
+ * Wave 4.2b / 4.3 / C2:
  *   - /login → LoginPage (Supabase auth + role check)
  *   - /* wrapped in AdminLayout (auth guard + glass nav shell)
  *   - Wave 4.3: /coupons/create-paid + /coupons/create-free removed;
  *     coupon creation is now a Radix Dialog modal over /coupons (CreateCouponModal)
+ *   - C2: /users/:id renders UserList (UserDetail route removed);
+ *     UserList auto-opens UserDetailModal when :id param is present
  */
 export default function App() {
   return (
@@ -35,7 +36,8 @@ export default function App() {
         </Route>
         <Route path="/users">
           <Route index element={<UserList />} />
-          <Route path=":id" element={<UserDetail />} />
+          {/* /users/:id renders UserList which auto-opens the detail modal */}
+          <Route path=":id" element={<UserList />} />
         </Route>
         <Route
           path="/generations"

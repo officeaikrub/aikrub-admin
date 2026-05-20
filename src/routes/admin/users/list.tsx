@@ -3,6 +3,11 @@
  *
  * Section A of admin-user-mgmt-wireframes.md + admin-wireframe-deltas-v2.md §3
  *
+ * C2 update: "ดูรายละเอียด" now opens UserDetailModal in-place instead of
+ * navigating to /users/:id. Deep-link /users/:id still works — this route
+ * is mounted at both /users and /users/:id; when :id param is present the
+ * modal opens automatically on mount.
+ *
  * Changes from pre-Wave-3a:
  *  - PageHeader with 4 StatChips (รวมผู้ใช้/เปิดใช้งาน/ระงับ/ถูกลบ)
  *  - TableCard (glass sticky header + solid body) — dense h-12 rows
@@ -27,7 +32,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import type { RefObject } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { ChevronLeft, ChevronRight, MoreHorizontal, ShieldAlert, Users } from "lucide-react";
 import {
@@ -43,6 +48,7 @@ import { UserListFilters, type UserFilters } from "@/components/UserListFilters"
 import { AdjustKrubModal } from "@/components/AdjustKrubModal";
 import { SuspendUserModal } from "@/components/SuspendUserModal";
 import { RestoreUserModal } from "@/components/RestoreUserModal";
+import { UserDetailModal } from "@/components/UserDetailModal";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -272,7 +278,20 @@ interface ModalState {
 export default function UserList() {
   const { user: viewer } = useAdmin();
   const navigate = useNavigate();
+  const { id: routeUserId } = useParams<{ id?: string }>();
   const queryClient = useQueryClient();
+
+  // L2: derive detailUserId directly from URL param — URL is the source of truth.
+  // Browser back/forward naturally open/close the modal without extra state.
+  const detailUserId = routeUserId ?? null;
+
+  function openDetailModal(userId: string) {
+    navigate(`/users/${userId}`);
+  }
+
+  function closeDetailModal() {
+    navigate("/users");
+  }
 
   const [filters, setFilters] = useState<UserFilters>(DEFAULT_FILTERS);
   const [cursors, setCursors] = useState<string[]>([]);
@@ -603,7 +622,7 @@ export default function UserList() {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="min-w-[200px]">
                   <DropdownMenuItem
-                    onClick={() => navigate(`/users/${user.id}`)}
+                    onClick={() => openDetailModal(user.id)}
                     className="font-ui text-sm cursor-pointer"
                   >
                     ดูรายละเอียด
@@ -778,7 +797,7 @@ export default function UserList() {
             <Button
               variant="outline"
               size="sm"
-              onClick={() => navigate(`/users/${user.id}`)}
+              onClick={() => openDetailModal(user.id)}
               className="w-full border-white/10 text-[var(--color-fg-muted)] hover:bg-[var(--color-bg-raised)] h-8 text-xs font-ui"
             >
               ดูรายละเอียด
@@ -882,6 +901,15 @@ export default function UserList() {
             setSelectedIds(new Set());
             void queryClient.invalidateQueries({ queryKey: ["admin", "users"] });
           }}
+        />
+      )}
+
+      {/* User detail modal — opened by row action or /users/:id deep-link */}
+      {detailUserId && (
+        <UserDetailModal
+          open={!!detailUserId}
+          userId={detailUserId}
+          onClose={closeDetailModal}
         />
       )}
     </div>
