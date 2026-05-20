@@ -53,7 +53,6 @@ import {
   type RevokeReason,
   type Coupon,
 } from "@/lib/api-admin";
-import { useAdmin } from "@/components/AdminLayout";
 import { CreateCouponModal } from "@/components/CreateCouponModal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -340,17 +339,10 @@ function BulkRevokeModal({
 
 export default function CouponList() {
   const location = useLocation();
-  const { role } = useAdmin();
   const queryClient = useQueryClient();
 
   // Create coupon modal state
   const [createModalOpen, setCreateModalOpen] = useState(false);
-  const [createModalType, setCreateModalType] = useState<"paid" | "free">("paid");
-
-  function openCreateModal(type: "paid" | "free") {
-    setCreateModalType(type);
-    setCreateModalOpen(true);
-  }
 
   // Success banner — auto-dismiss 5s
   const [successCode, setSuccessCode] = useState<string | null>(
@@ -668,7 +660,7 @@ export default function CouponList() {
                 ล้างตัวกรอง
               </button>
             ) : (
-              <Button variant="cta" onClick={() => openCreateModal("paid")}>
+              <Button variant="cta" onClick={() => setCreateModalOpen(true)}>
                 เริ่มสร้างคูปองแรก →
               </Button>
             )
@@ -704,27 +696,11 @@ export default function CouponList() {
           </>
         }
         cta={
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              {/* variant="cta" carries accent + glow per design-system §4 */}
-              <Button variant="cta" size="sm" className="gap-1.5">
-                <Plus className="w-4 h-4" aria-hidden="true" />
-                สร้างคูปองใหม่
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => openCreateModal("paid")} className="font-ui text-sm cursor-pointer">
-                คูปองแบบจ่ายเงิน
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                disabled={role !== "owner"}
-                onClick={() => openCreateModal("free")}
-                className="font-ui text-sm cursor-pointer"
-              >
-                คูปองแบบฟรี {role !== "owner" && "(owner เท่านั้น)"}
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          /* variant="cta" carries accent + glow per design-system §4 */
+          <Button variant="cta" size="sm" className="gap-1.5" onClick={() => setCreateModalOpen(true)}>
+            <Plus className="w-4 h-4" aria-hidden="true" />
+            + สร้างคูปองใหม่
+          </Button>
         }
       />
 
@@ -834,7 +810,6 @@ export default function CouponList() {
       {/* ── Create coupon modal ── */}
       <CreateCouponModal
         open={createModalOpen}
-        initialType={createModalType}
         onClose={() => setCreateModalOpen(false)}
         onSuccess={(code) => {
           setCreateModalOpen(false);
