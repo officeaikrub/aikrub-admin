@@ -1,36 +1,38 @@
 /**
- * UserList — รายการผู้ใช้ทั้งหมด
+ * UserList — รายการผู้ใช้ทั้งหมด (Wave 3a refactor — uses PageHeader/TableCard/etc. primitives)
  *
- * Section A of admin-user-mgmt-wireframes.md
- * - PII access banner (always shown on page load)
- * - Role tab bar (owner sees all; admin sees only user tab)
- * - Status filter + search
- * - Desktop table + mobile card view
- * - Multi-select checkbox column (desktop only, md:+)
- *   - Checkbox col 0, sticky left, z-index above scroll
- *   - Header checkbox with indeterminate state on partial selection
- *   - admin/owner rows: checkbox visible but disabled + greyed
- *   - Selected rows: bg-amber-900/10
- * - Sticky action bar at bottom-4 when ≥1 selected
- * - Bulk suspend result banner (above PII banner, 8s auto-dismiss)
- * - Row actions: ดูรายละเอียด / ปรับ krub / ระงับ / ยกเลิกระงับ / กู้คืน
- * - Cursor-based pagination
+ * Section A of admin-user-mgmt-wireframes.md + admin-wireframe-deltas-v2.md §3
+ *
+ * Changes from pre-Wave-3a:
+ *  - PageHeader with 4 StatChips (รวมผู้ใช้/เปิดใช้งาน/ระงับ/ถูกลบ)
+ *  - TableCard (glass sticky header + solid body) — dense h-12 rows
+ *  - StickyBulkActionBar (fixed bottom-6/bottom-20, glass-shell rounded-full)
+ *  - EmptyState, LoadingSkeleton, ErrorState primitives
+ *  - Removed: "สมัคร" + "Login ล่าสุด" columns (move to Wave 3b drawer)
+ *  - Fixed all forbid-list violations (hard-coded hex, saturated status colors,
+ *    non-token hover bg, amber bulk bar, blue-300 PII banner)
+ *
+ * Stat-chip data situation:
+ *  - `total` chip: wired to data.total
+ *  - `active`, `suspended`, `soft_deleted` chips: render "—" (null)
+ *    because GET /api/admin/users currently returns only { total } at the
+ *    aggregate level. A backend endpoint is needed — see summary note.
+ *
+ * Preserved intact: all permission helpers, role tabs, modal logic,
+ * bulk-suspend, pagination, self-target rule, JWT freshness check.
  *
  * OQ-04m-05 resolved: Worker filters admin/owner rows server-side for admin viewers.
- * No redacted-cell branch needed — admin viewers never receive admin/owner rows.
- *
  * Pom RED-1: bulk suspend response has no skipped_elevated[] — silent skip client-side.
- * Result banner shows only: ✓ Suspended X • ✗ Failed Z
  */
 
 import { useState, useEffect, useRef } from "react";
+import type { RefObject } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { MoreHorizontal, ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, MoreHorizontal, ShieldAlert, Users } from "lucide-react";
 import {
   adminListUsers,
   adminUnsuspendUser,
-  formatDateTime,
   type AdminUserRow,
   type UserRole,
   type UserStatus,
@@ -49,7 +51,21 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
+import { PageHeader } from "@/components/admin/PageHeader";
+import { StatChip } from "@/components/admin/StatChip";
+import { TableCard } from "@/components/admin/TableCard";
+import { StickyBulkActionBar } from "@/components/admin/StickyBulkActionBar";
+import { EmptyState } from "@/components/admin/EmptyState";
+import { LoadingSkeleton } from "@/components/admin/LoadingSkeleton";
+import { ErrorState } from "@/components/admin/ErrorState";
 import { cn } from "@/lib/utils";
+
+// ---------------------------------------------------------------------------
+// Column count constant — update here if columns change
+// ---------------------------------------------------------------------------
+
+/** Desktop table column count: checkbox + avatar + email + ชื่อ + role + krub + สถานะ + actions = 8 */
+const COL_COUNT = 8;
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -67,64 +83,51 @@ function isInGracePeriod(deletedAt: string | null): boolean {
 }
 
 // ---------------------------------------------------------------------------
-// Status badge
+// Status badge (design-system-v2.md §5 — dot + label, token-bound colors)
 // ---------------------------------------------------------------------------
 
 function UserStatusBadge({ status }: { status: UserStatus }) {
   const map: Record<UserStatus, { dot: string; badge: string; label: string }> = {
-    active:       { dot: "bg-[var(--color-success)]",   badge: "bg-[var(--color-success)]/15   text-[var(--color-success)]   border-[var(--color-success)]/20",   label: "เปิดใช้งาน" },
-    suspended:    { dot: "bg-[var(--color-warning)]",   badge: "bg-[var(--color-warning)]/15   text-[var(--color-warning)]   border-[var(--color-warning)]/20",   label: "ระงับ"       },
-    soft_deleted: { dot: "bg-[var(--color-error)]",     badge: "bg-[var(--color-error)]/15     text-[var(--color-error)]     border-[var(--color-error)]/20",     label: "ลบแล้ว"      },
+    active: {
+      dot:   "bg-[var(--color-success)]",
+      badge: "bg-[var(--color-success)]/15 text-[var(--color-success)] border-[var(--color-success)]/20",
+      label: "เปิดใช้งาน",
+    },
+    suspended: {
+      dot:   "bg-[var(--color-warning)]",
+      badge: "bg-[var(--color-warning)]/15 text-[var(--color-warning)] border-[var(--color-warning)]/20",
+      label: "ระงับ",
+    },
+    soft_deleted: {
+      dot:   "bg-[var(--color-error)]",
+      badge: "bg-[var(--color-error)]/15 text-[var(--color-error)] border-[var(--color-error)]/20",
+      label: "ลบแล้ว",
+    },
   };
   const s = map[status];
   return (
     <span className={cn("inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-ui border", s.badge)}>
-      <span className={cn("w-1.5 h-1.5 rounded-full shrink-0", s.dot)} />
+      <span className={cn("w-1.5 h-1.5 rounded-full shrink-0", s.dot)} aria-hidden="true" />
       {s.label}
     </span>
   );
 }
 
 // ---------------------------------------------------------------------------
-// Role badge
+// Role badge (token-bound only — no slate-700/blue-900/amber-900 hard-codes)
 // ---------------------------------------------------------------------------
 
 function UserRoleBadge({ role }: { role: UserRole }) {
   const map: Record<UserRole, string> = {
-    user:  "px-2 py-0.5 rounded bg-slate-700/50 text-slate-300 text-xs font-ui",
-    admin: "px-2 py-0.5 rounded bg-blue-900/40 text-blue-300 text-xs font-ui",
-    owner: "px-2 py-0.5 rounded bg-amber-900/40 text-amber-300 text-xs font-ui",
+    user:  "px-2 py-0.5 rounded bg-[var(--color-bg-raised)] text-[var(--color-fg-muted)] text-xs font-ui",
+    admin: "px-2 py-0.5 rounded bg-[var(--color-info)]/15 text-[var(--color-info)] text-xs font-ui",
+    owner: "px-2 py-0.5 rounded bg-[var(--color-warning)]/15 text-[var(--color-warning)] text-xs font-ui",
   };
   return <span className={map[role]}>{role}</span>;
 }
 
 // ---------------------------------------------------------------------------
-// Skeleton row (10 columns now: checkbox + 9 original)
-// ---------------------------------------------------------------------------
-
-function SkeletonRows() {
-  return (
-    <>
-      {[...Array(5)].map((_, i) => (
-        <tr key={i} className="border-t border-white/5">
-          {[...Array(10)].map((__, j) => (
-            <td key={j} className="px-3 py-3">
-              <div
-                className={cn(
-                  "h-4 rounded bg-white/5 animate-pulse",
-                  j === 0 ? "w-4" : j === 3 ? "w-36" : j === 4 ? "w-20" : "w-12",
-                )}
-              />
-            </td>
-          ))}
-        </tr>
-      ))}
-    </>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Bulk result banner
+// Bulk result banner (token-bound colors — no green-400 / red-400)
 // ---------------------------------------------------------------------------
 
 interface BulkResultBannerProps {
@@ -142,27 +145,110 @@ function BulkResultBanner({ result, onDismiss }: BulkResultBannerProps) {
   }, [onDismiss]);
 
   return (
-    <div className="bg-card border border-white/8 rounded-xl px-4 py-3 flex items-center gap-4 flex-wrap">
+    <div className="bg-[var(--color-bg-muted)] border border-white/[0.08] rounded-xl px-4 py-3 flex items-center gap-4 flex-wrap">
       {suspendedCount > 0 && (
-        <span className="font-ui text-sm text-green-400">
+        <span className="font-ui text-sm text-[var(--color-success)]">
           ✓ ระงับแล้ว {suspendedCount} คน
         </span>
       )}
       {failedCount > 0 && (
-        <span className="font-ui text-sm text-red-400">
+        <span className="font-ui text-sm text-[var(--color-error)]">
           ✗ ล้มเหลว {failedCount} คน
         </span>
       )}
       {suspendedCount === 0 && failedCount === 0 && (
-        <span className="font-ui text-sm text-muted-foreground">ไม่มีการดำเนินการ</span>
+        <span className="font-ui text-sm text-[var(--color-fg-muted)]">ไม่มีการดำเนินการ</span>
       )}
       <button
         onClick={onDismiss}
-        className="ml-auto font-ui text-xs text-fg-subtle hover:text-muted-foreground transition-colors"
+        className="ml-auto font-ui text-xs text-[var(--color-fg-subtle)] hover:text-[var(--color-fg-muted)] motion-safe:transition-colors duration-150"
       >
         ✕
       </button>
     </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Desktop table head row
+// ---------------------------------------------------------------------------
+
+interface TableHeadProps {
+  allEligibleSelected: boolean;
+  someSelected: boolean;
+  eligibleCount: number;
+  onToggleAll: () => void;
+  headerCheckboxRef: RefObject<HTMLInputElement>;
+}
+
+function TableHead({
+  allEligibleSelected,
+  someSelected,
+  eligibleCount,
+  onToggleAll,
+  headerCheckboxRef,
+}: TableHeadProps) {
+  // Keep indeterminate state in sync
+  useEffect(() => {
+    if (headerCheckboxRef.current) {
+      headerCheckboxRef.current.indeterminate = someSelected;
+    }
+  }, [someSelected, headerCheckboxRef]);
+
+  return (
+    <tr className="h-10">
+      {/* Checkbox */}
+      <th className="w-10 pl-4 pr-2">
+        <input
+          ref={headerCheckboxRef}
+          type="checkbox"
+          checked={allEligibleSelected}
+          onChange={onToggleAll}
+          disabled={eligibleCount === 0}
+          style={{ accentColor: "var(--color-accent)" }}
+          className="w-4 h-4 cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+          aria-label="เลือกทั้งหมด"
+        />
+      </th>
+      {/* Avatar */}
+      <th className="w-10 px-2">
+        <span className="sr-only">avatar</span>
+      </th>
+      {/* Email */}
+      <th className="px-4 text-left">
+        <span className="font-ui text-xs text-[var(--color-fg-muted)] uppercase tracking-wide">
+          Email
+        </span>
+      </th>
+      {/* ชื่อ */}
+      <th className="w-32 px-4 text-left">
+        <span className="font-ui text-xs text-[var(--color-fg-muted)] uppercase tracking-wide">
+          ชื่อ
+        </span>
+      </th>
+      {/* Role */}
+      <th className="w-24 px-4 text-left">
+        <span className="font-ui text-xs text-[var(--color-fg-muted)] uppercase tracking-wide">
+          Role
+        </span>
+      </th>
+      {/* krub */}
+      <th className="w-24 px-4 text-right">
+        <span className="font-ui text-xs text-[var(--color-fg-muted)] uppercase tracking-wide">
+          krub
+        </span>
+      </th>
+      {/* สถานะ */}
+      <th className="w-28 px-4 text-left">
+        <span className="font-ui text-xs text-[var(--color-fg-muted)] uppercase tracking-wide">
+          สถานะ
+        </span>
+      </th>
+      {/* Actions */}
+      <th className="w-20 px-4 text-right">
+        <span className="sr-only">Actions</span>
+      </th>
+    </tr>
   );
 }
 
@@ -197,7 +283,7 @@ export default function UserList() {
   const [showBulkModal, setShowBulkModal] = useState(false);
   const [bulkResult, setBulkResult] = useState<BulkSuspendResult | null>(null);
 
-  // Header checkbox ref for indeterminate state
+  // Header checkbox ref for indeterminate state (managed in TableHead)
   const headerCheckboxRef = useRef<HTMLInputElement>(null);
 
   const currentCursor = cursors[cursors.length - 1] as string | undefined;
@@ -225,7 +311,7 @@ export default function UserList() {
   function handleFilterChange(next: Partial<UserFilters>) {
     setFilters((f) => ({ ...f, ...next }));
     setCursors([]);
-    setSelectedIds(new Set()); // Clear selection on filter change
+    setSelectedIds(new Set());
   }
 
   function handleFilterReset() {
@@ -243,7 +329,7 @@ export default function UserList() {
   }
 
   const items = data?.items ?? [];
-  const total = data?.total ?? 0;
+  const total = data?.total ?? null;
   const nextCursor = data?.next_cursor ?? null;
   const page = cursors.length + 1;
   const hasNext = !!nextCursor;
@@ -252,13 +338,13 @@ export default function UserList() {
   function goNext() {
     if (nextCursor) {
       setCursors((c) => [...c, nextCursor]);
-      setSelectedIds(new Set()); // Clear selection on page change
+      setSelectedIds(new Set());
     }
   }
 
   function goPrev() {
     setCursors((c) => c.slice(0, -1));
-    setSelectedIds(new Set()); // Clear selection on page change
+    setSelectedIds(new Set());
   }
 
   // Permission helpers
@@ -277,10 +363,8 @@ export default function UserList() {
   }
 
   function isEligibleForCheckbox(target: AdminUserRow): boolean {
-    // Eligible = can be selected (must be active user, not self, not elevated)
     if (target.status !== "active") return false;
     if (viewer.id === target.id) return false;
-    // admin/owner rows are shown as disabled checkbox
     return target.role === "user";
   }
 
@@ -309,23 +393,14 @@ export default function UserList() {
   const allEligibleSelected = eligibleItems.length > 0 && selectedEligibleCount === eligibleItems.length;
   const someSelected = selectedEligibleCount > 0 && !allEligibleSelected;
 
-  // Update header checkbox indeterminate state
-  useEffect(() => {
-    if (headerCheckboxRef.current) {
-      headerCheckboxRef.current.indeterminate = someSelected;
-    }
-  }, [someSelected]);
-
   function toggleSelectAll() {
     if (allEligibleSelected) {
-      // Deselect all eligible on current page
       setSelectedIds((prev) => {
         const next = new Set(prev);
         eligibleIds.forEach((id) => next.delete(id));
         return next;
       });
     } else {
-      // Select all eligible on current page
       setSelectedIds((prev) => {
         const next = new Set(prev);
         eligibleIds.forEach((id) => next.add(id));
@@ -346,19 +421,248 @@ export default function UserList() {
     });
   }
 
-  // Bulk suspend: collect full AdminUserRow for selected IDs
+  // Bulk suspend helpers
   const selectedUsers = items.filter((u) => selectedIds.has(u.id));
-  // Only eligible (canSuspend) users go into the modal
   const suspendableSelected = selectedUsers.filter(canSuspend);
   const allSelectedAreElevated = selectedIds.size > 0 && suspendableSelected.length === 0;
-
-  // The user shown in single-mode modal when exactly 1 eligible selected.
-  // Must be null when no suspendable users are selected — never fall back to an
-  // arbitrary row that the admin may not have intended to suspend.
   const primaryUser = suspendableSelected[0] ?? null;
 
+  // -----------------------------------------------------------------------
+  // Stat chips
+  // -----------------------------------------------------------------------
+  // `total` is wired from API response.
+  // Per-status counts (active / suspended / soft_deleted) are NOT available
+  // from GET /api/admin/users — the API only returns `total`.
+  // Chips render "—" until Cheese adds aggregate counts to the endpoint.
+  // See summary: backend needs `counts: { active, suspended, soft_deleted }`
+  // added to GET /api/admin/users response (or a separate /stats endpoint).
+  const totalCount = total;     // number | null — null until first data lands
+  const activeCount: number | null = null;      // not in API response
+  const suspendedCount: number | null = null;   // not in API response
+  const deletedCount: number | null = null;     // not in API response
+
+  // -----------------------------------------------------------------------
+  // Pagination controls
+  // -----------------------------------------------------------------------
+  const paginationNode = (hasNext || hasPrev) ? (
+    <div className="flex items-center justify-between px-4 py-3">
+      <span className="font-ui text-xs text-[var(--color-fg-subtle)] tabular-nums">
+        หน้า {page}{total !== null ? ` · รวม ${total.toLocaleString()} ผู้ใช้` : ""}
+      </span>
+      <div className="flex gap-2">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={goPrev}
+          disabled={!hasPrev}
+          className="border-white/10 text-[var(--color-fg-muted)] hover:bg-[var(--color-bg-raised)] h-8"
+        >
+          <ChevronLeft className="w-4 h-4" />
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={goNext}
+          disabled={!hasNext}
+          className="border-white/10 text-[var(--color-fg-muted)] hover:bg-[var(--color-bg-raised)] h-8"
+        >
+          <ChevronRight className="w-4 h-4" />
+        </Button>
+      </div>
+    </div>
+  ) : null;
+
+  // -----------------------------------------------------------------------
+  // Table body
+  // -----------------------------------------------------------------------
+  const tableBody = (
+    <>
+      {isLoading && (
+        <LoadingSkeleton
+          colCount={COL_COUNT}
+          cellShapes={["checkbox", "avatar", "text-lg", "text-md", "text-sm", "number", "text-sm", "action"]}
+        />
+      )}
+
+      {isError && (
+        <ErrorState
+          colSpan={COL_COUNT}
+          title="โหลดรายการผู้ใช้ไม่สำเร็จ"
+          onRetry={() => void refetch()}
+        />
+      )}
+
+      {!isLoading && !isError && items.length === 0 && (
+        <EmptyState
+          icon={Users}
+          colSpan={COL_COUNT}
+          title={
+            filters.role || filters.status || filters.q
+              ? "ไม่พบผู้ใช้ที่ตรงกับเงื่อนไข"
+              : "ยังไม่มีผู้ใช้"
+          }
+          body={
+            filters.role || filters.status || filters.q
+              ? "ลองปรับหรือล้างตัวกรอง"
+              : undefined
+          }
+          action={
+            filters.role || filters.status || filters.q ? (
+              <button
+                onClick={handleFilterReset}
+                className="font-ui text-sm text-[var(--color-accent)] hover:underline"
+              >
+                ล้างตัวกรอง
+              </button>
+            ) : undefined
+          }
+        />
+      )}
+
+      {!isLoading && !isError && items.map((user) => {
+        const isSoftDeleted = user.status === "soft_deleted";
+        const isSelected = selectedIds.has(user.id);
+        const eligible = isEligibleForCheckbox(user);
+        const elevated = isElevated(user);
+
+        return (
+          <tr
+            key={user.id}
+            className={cn(
+              "h-12 border-t border-white/[0.05] motion-safe:transition-colors duration-150",
+              isSelected
+                ? "bg-[rgba(242,95,45,0.12)] border-l-2 border-l-[var(--color-accent)]"
+                : "hover:bg-[var(--color-bg-raised)]",
+            )}
+          >
+            {/* Checkbox */}
+            <td className="w-10 pl-4 pr-2">
+              <input
+                type="checkbox"
+                checked={isSelected}
+                onChange={() => { if (eligible) toggleRow(user.id); }}
+                disabled={!eligible}
+                style={{ accentColor: "var(--color-accent)" }}
+                className={cn(
+                  "w-4 h-4",
+                  eligible ? "cursor-pointer" : "cursor-not-allowed opacity-30",
+                  elevated && !eligible && "opacity-20",
+                )}
+                title={elevated ? "admin/owner ไม่สามารถเลือกได้" : undefined}
+              />
+            </td>
+
+            {/* Avatar */}
+            <td className="w-10 px-2">
+              <div className="w-8 h-8 rounded-full bg-[var(--color-bg-raised)] flex items-center justify-center text-[10px] font-ui text-[var(--color-fg-muted)]">
+                {user.display_name ? user.display_name[0]?.toUpperCase() : "?"}
+              </div>
+            </td>
+
+            {/* Email */}
+            <td className="px-4">
+              <span className="font-content text-sm text-[var(--color-fg-muted)] truncate max-w-[200px] block">
+                {user.email ?? "—"}
+              </span>
+            </td>
+
+            {/* ชื่อ */}
+            <td className="w-32 px-4">
+              <span className="font-ui text-sm text-[var(--color-fg)] truncate max-w-[128px] block">
+                {user.display_name ?? "—"}
+              </span>
+            </td>
+
+            {/* Role */}
+            <td className="w-24 px-4">
+              <UserRoleBadge role={user.role} />
+            </td>
+
+            {/* krub — not in list response */}
+            <td className="w-24 px-4 font-mono text-sm text-right text-[var(--color-fg-muted)] tabular-nums">
+              —
+            </td>
+
+            {/* Status */}
+            <td className="w-28 px-4">
+              <UserStatusBadge status={user.status} />
+            </td>
+
+            {/* Actions */}
+            <td className="w-20 px-4 text-right">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 w-7 p-0 text-[var(--color-fg-subtle)] hover:text-[var(--color-fg)] hover:bg-white/[0.05]"
+                  >
+                    <span className="sr-only">actions</span>
+                    <MoreHorizontal className="w-4 h-4" aria-hidden="true" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="min-w-[200px]">
+                  <DropdownMenuItem
+                    onClick={() => navigate(`/users/${user.id}`)}
+                    className="font-ui text-sm cursor-pointer"
+                  >
+                    ดูรายละเอียด
+                  </DropdownMenuItem>
+
+                  {!isSoftDeleted && (
+                    <>
+                      <DropdownMenuSeparator className="bg-white/10" />
+                      {canAdjustKrub(user) && (
+                        <DropdownMenuItem
+                          onClick={() => openModal("adjust", user)}
+                          className="font-ui text-sm cursor-pointer"
+                        >
+                          ปรับ krub
+                        </DropdownMenuItem>
+                      )}
+                      {canSuspend(user) && (
+                        <DropdownMenuItem
+                          onClick={() => openModal("suspend", user)}
+                          className="font-ui text-sm text-[var(--color-warning)] focus:text-[var(--color-warning)] cursor-pointer"
+                        >
+                          ระงับบัญชี
+                        </DropdownMenuItem>
+                      )}
+                      {canUnsuspend(user) && (
+                        <DropdownMenuItem
+                          onClick={() => {
+                            void unsuspendMutation.mutateAsync(user.id);
+                          }}
+                          className="font-ui text-sm cursor-pointer"
+                        >
+                          ยกเลิกการระงับ
+                        </DropdownMenuItem>
+                      )}
+                    </>
+                  )}
+
+                  {canRestore(user) && (
+                    <>
+                      <DropdownMenuSeparator className="bg-white/10" />
+                      <DropdownMenuItem
+                        onClick={() => openModal("restore", user)}
+                        className="font-ui text-sm text-[var(--color-success)] focus:text-[var(--color-success)] cursor-pointer"
+                      >
+                        กู้คืนบัญชี
+                      </DropdownMenuItem>
+                    </>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </td>
+          </tr>
+        );
+      })}
+    </>
+  );
+
   return (
-    <div className="p-4 md:p-6 space-y-4 relative">
+    <div className="px-3 py-3 md:px-4 md:py-4 lg:px-6 lg:py-5 space-y-4 relative">
       {/* Bulk result banner — above PII banner */}
       {bulkResult && (
         <BulkResultBanner
@@ -367,16 +671,30 @@ export default function UserList() {
         />
       )}
 
-      {/* Page header */}
-      <div className="flex items-center justify-between">
-        <h1 className="font-display text-xl text-foreground">จัดการผู้ใช้</h1>
-        <span className="font-ui text-sm text-fg-subtle">รวม {total.toLocaleString()} คน</span>
-      </div>
+      {/* PageHeader with stat chips */}
+      <PageHeader
+        title="จัดการผู้ใช้"
+        chips={
+          <>
+            <StatChip label="รวมผู้ใช้"    value={totalCount}     dot="neutral" />
+            <StatChip label="เปิดใช้งาน"   value={activeCount}    dot="success" />
+            <StatChip label="ระงับ"        value={suspendedCount} dot="warning" />
+            <StatChip label="ถูกลบ"        value={deletedCount}   dot="error"   />
+          </>
+        }
+      />
 
-      {/* PII access banner */}
-      <div className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-blue-900/20 border border-blue-500/30 text-blue-300 text-sm font-ui">
-        <span>🔒</span>
-        <span>การเข้าถึงข้อมูลนี้ถูกบันทึกแล้ว · อ่านข้อมูล PDPA</span>
+      {/* PII access banner (admin-page-template-mockup-b.md §11) */}
+      <div
+        className="flex items-center gap-2 px-4 py-3 rounded-lg border bg-[var(--color-info)]/[0.12] border-[var(--color-info)]/[0.30]"
+      >
+        <ShieldAlert
+          className="w-4 h-4 shrink-0 text-[var(--color-info)]"
+          aria-hidden="true"
+        />
+        <span className="font-ui text-sm text-[var(--color-info)]">
+          การเข้าถึงข้อมูลนี้ถูกบันทึกแล้ว · อ่านข้อมูล PDPA
+        </span>
       </div>
 
       {/* Filters */}
@@ -387,251 +705,21 @@ export default function UserList() {
         onReset={handleFilterReset}
       />
 
-      {/* Content */}
-      {isError && (
-        <div className="flex items-center justify-between p-4 rounded-lg bg-red-900/20 border border-red-500/30 text-red-300 text-sm font-ui">
-          <span>โหลดข้อมูลไม่สำเร็จ</span>
-          <Button
-            variant="outline"
-            size="sm"
-            className="border-red-500/30 text-red-300 hover:bg-red-900/30"
-            onClick={() => refetch()}
-          >
-            ลองใหม่
-          </Button>
-        </div>
-      )}
-
       {/* Desktop table */}
-      <div className="hidden md:block bg-card rounded-xl border border-white/8 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-white/8">
-                {/* Checkbox column */}
-                <th className="w-[40px] px-2 py-3 sticky left-0 z-10 bg-card">
-                  <input
-                    ref={headerCheckboxRef}
-                    type="checkbox"
-                    checked={allEligibleSelected}
-                    onChange={toggleSelectAll}
-                    disabled={eligibleItems.length === 0}
-                    style={{ accentColor: "#F25F2D" }}
-                    className="w-4 h-4 cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
-                    aria-label="เลือกทั้งหมด"
-                  />
-                </th>
-                <th className="w-[4%] px-2 py-3">
-                  <span className="sr-only">avatar</span>
-                </th>
-                <th className="w-[22%] px-3 py-3 font-ui text-xs text-muted-foreground uppercase tracking-wide text-left">Email</th>
-                <th className="w-[12%] px-3 py-3 font-ui text-xs text-muted-foreground uppercase tracking-wide text-left">ชื่อ</th>
-                <th className="w-[7%] px-3 py-3 font-ui text-xs text-muted-foreground uppercase tracking-wide text-left">Role</th>
-                <th className="w-[9%] px-3 py-3 font-ui text-xs text-muted-foreground uppercase tracking-wide text-right">krub</th>
-                <th className="w-[9%] px-3 py-3 font-ui text-xs text-muted-foreground uppercase tracking-wide text-left">สถานะ</th>
-                <th className="w-[10%] px-3 py-3 font-ui text-xs text-muted-foreground uppercase tracking-wide text-left">สมัคร</th>
-                <th className="w-[9%] px-3 py-3 font-ui text-xs text-muted-foreground uppercase tracking-wide text-left">Login ล่าสุด</th>
-                <th className="w-[8%] px-3 py-3 font-ui text-xs text-muted-foreground uppercase tracking-wide text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {isLoading && <SkeletonRows />}
-
-              {!isLoading && items.length === 0 && (
-                <tr>
-                  <td colSpan={10} className="px-4 py-12 text-center font-content text-sm text-fg-subtle">
-                    ยังไม่มีผู้ใช้ที่ตรงกับเงื่อนไข
-                    {(filters.role || filters.status || filters.q) && (
-                      <>
-                        {" "}—{" "}
-                        <button onClick={handleFilterReset} className="text-[#F25F2D] hover:underline">
-                          ล้างตัวกรอง
-                        </button>
-                      </>
-                    )}
-                  </td>
-                </tr>
-              )}
-
-              {!isLoading && items.map((user) => {
-                const isSoftDeleted = user.status === "soft_deleted";
-                const isSelected = selectedIds.has(user.id);
-                const eligible = isEligibleForCheckbox(user);
-                const elevated = isElevated(user);
-
-                return (
-                  <tr
-                    key={user.id}
-                    className={cn(
-                      "border-t border-white/5 transition-colors",
-                      isSelected ? "bg-[rgba(242,95,45,0.12)] border-l-2 border-l-[var(--color-accent)]" : "hover:bg-white/[0.02]",
-                    )}
-                  >
-                    {/* Checkbox */}
-                    <td className="px-2 py-3 sticky left-0 z-10" style={{ background: "inherit" }}>
-                      <input
-                        type="checkbox"
-                        checked={isSelected}
-                        onChange={() => { if (eligible) toggleRow(user.id); }}
-                        disabled={!eligible}
-                        style={{ accentColor: "#F25F2D" }}
-                        className={cn(
-                          "w-4 h-4",
-                          eligible ? "cursor-pointer" : "cursor-not-allowed opacity-30",
-                          elevated && !eligible && "opacity-20",
-                        )}
-                        title={elevated ? "admin/owner ไม่สามารถเลือกได้" : undefined}
-                      />
-                    </td>
-
-                    {/* Avatar */}
-                    <td className="px-2 py-3">
-                      <div className="w-7 h-7 rounded-full bg-slate-700 flex items-center justify-center text-[10px] font-ui text-muted-foreground">
-                        {user.display_name ? user.display_name[0]?.toUpperCase() : "?"}
-                      </div>
-                    </td>
-
-                    {/* Email */}
-                    <td className="px-3 py-3">
-                      <span className="font-content text-sm text-muted-foreground truncate max-w-[180px] block">
-                        {user.email ?? "—"}
-                      </span>
-                    </td>
-
-                    {/* Name */}
-                    <td className="px-3 py-3 font-ui text-sm text-foreground">
-                      {user.display_name ?? "—"}
-                    </td>
-
-                    {/* Role */}
-                    <td className="px-3 py-3">
-                      <UserRoleBadge role={user.role} />
-                    </td>
-
-                    {/* krub balance — no separate fetch for list; show N/A */}
-                    <td className="px-3 py-3 font-mono text-sm text-right text-muted-foreground tabular-nums">
-                      —
-                    </td>
-
-                    {/* Status */}
-                    <td className="px-3 py-3">
-                      <UserStatusBadge status={user.status} />
-                    </td>
-
-                    {/* Created at */}
-                    <td className="px-3 py-3 font-mono text-xs text-fg-subtle tabular-nums">
-                      {user.created_at ? formatDateTime(user.created_at).slice(0, 10) : "—"}
-                    </td>
-
-                    {/* Last login (not in list response — omit) */}
-                    <td className="px-3 py-3 font-mono text-xs text-fg-subtle tabular-nums">
-                      —
-                    </td>
-
-                    {/* Actions */}
-                    <td className="px-3 py-3 text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-7 w-7 p-0 text-fg-subtle hover:text-foreground hover:bg-white/5"
-                          >
-                            <MoreHorizontal className="w-4 h-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent
-                          align="end"
-                          className="min-w-[200px]"
-                        >
-                          <DropdownMenuItem
-                            onClick={() => navigate(`/users/${user.id}`)}
-                            className="font-ui text-sm text-foreground cursor-pointer"
-                          >
-                            👁 ดูรายละเอียด
-                          </DropdownMenuItem>
-
-                          {!isSoftDeleted && (
-                            <>
-                              <DropdownMenuSeparator className="bg-white/10" />
-                              {canAdjustKrub(user) && (
-                                <DropdownMenuItem
-                                  onClick={() => openModal("adjust", user)}
-                                  className="font-ui text-sm text-foreground cursor-pointer"
-                                >
-                                  ⚡ ปรับ krub
-                                </DropdownMenuItem>
-                              )}
-                              {canSuspend(user) && (
-                                <DropdownMenuItem
-                                  onClick={() => openModal("suspend", user)}
-                                  className="font-ui text-sm text-amber-300 cursor-pointer"
-                                >
-                                  ⊘ ระงับบัญชี
-                                </DropdownMenuItem>
-                              )}
-                              {canUnsuspend(user) && (
-                                <DropdownMenuItem
-                                  onClick={() => {
-                                    void unsuspendMutation.mutateAsync(user.id);
-                                  }}
-                                  className="font-ui text-sm text-muted-foreground cursor-pointer"
-                                >
-                                  ◎ ยกเลิกการระงับ
-                                </DropdownMenuItem>
-                              )}
-                            </>
-                          )}
-
-                          {canRestore(user) && (
-                            <>
-                              <DropdownMenuSeparator className="bg-white/10" />
-                              <DropdownMenuItem
-                                onClick={() => openModal("restore", user)}
-                                className="font-ui text-sm text-green-300 cursor-pointer"
-                              >
-                                ↩ กู้คืนบัญชี
-                              </DropdownMenuItem>
-                            </>
-                          )}
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Pagination */}
-        {(hasNext || hasPrev) && (
-          <div className="flex items-center justify-between px-4 py-3 border-t border-white/8">
-            <span className="font-ui text-xs text-fg-subtle">
-              หน้า {page} · รวม {total.toLocaleString()} ผู้ใช้
-            </span>
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={goPrev}
-                disabled={!hasPrev}
-                className="border-white/10 text-muted-foreground hover:bg-white/5 h-8"
-              >
-                <ChevronLeft className="w-4 h-4" />
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={goNext}
-                disabled={!hasNext}
-                className="border-white/10 text-muted-foreground hover:bg-white/5 h-8"
-              >
-                <ChevronRight className="w-4 h-4" />
-              </Button>
-            </div>
-          </div>
-        )}
+      <div className="hidden md:block">
+        <TableCard
+          head={
+            <TableHead
+              allEligibleSelected={allEligibleSelected}
+              someSelected={someSelected}
+              eligibleCount={eligibleItems.length}
+              onToggleAll={toggleSelectAll}
+              headerCheckboxRef={headerCheckboxRef}
+            />
+          }
+          body={tableBody}
+          pagination={paginationNode}
+        />
       </div>
 
       {/* Mobile card view */}
@@ -639,32 +727,46 @@ export default function UserList() {
         {isLoading && (
           <div className="space-y-3">
             {[...Array(4)].map((_, i) => (
-              <div key={i} className="bg-card rounded-xl border border-white/8 p-4 space-y-2 animate-pulse">
-                <div className="h-4 w-32 bg-white/5 rounded" />
-                <div className="h-3 w-48 bg-white/5 rounded" />
-                <div className="h-3 w-24 bg-white/5 rounded" />
+              <div key={i} className="bg-[var(--color-bg-muted)] rounded-xl border border-white/[0.08] p-4 space-y-2 motion-safe:animate-pulse">
+                <div className="h-4 w-32 bg-white/[0.05] rounded" />
+                <div className="h-3 w-48 bg-white/[0.05] rounded" />
+                <div className="h-3 w-24 bg-white/[0.05] rounded" />
               </div>
             ))}
           </div>
         )}
 
-        {!isLoading && items.length === 0 && (
-          <div className="py-12 text-center font-content text-sm text-fg-subtle">
+        {isError && (
+          <div className="flex items-center justify-between p-4 rounded-xl bg-[var(--color-error)]/10 border border-[var(--color-error)]/30">
+            <span className="font-ui text-sm text-[var(--color-error)]">โหลดข้อมูลไม่สำเร็จ</span>
+            <Button
+              variant="outline"
+              size="sm"
+              className="border-[var(--color-error)]/30 text-[var(--color-error)] hover:bg-[var(--color-error)]/10"
+              onClick={() => void refetch()}
+            >
+              ลองใหม่
+            </Button>
+          </div>
+        )}
+
+        {!isLoading && !isError && items.length === 0 && (
+          <div className="py-12 text-center font-content text-sm text-[var(--color-fg-subtle)]">
             ยังไม่มีผู้ใช้ที่ตรงกับเงื่อนไข
           </div>
         )}
 
-        {!isLoading && items.map((user) => (
+        {!isLoading && !isError && items.map((user) => (
           <div
             key={user.id}
-            className="bg-card rounded-xl border border-white/8 p-4 space-y-2"
+            className="bg-[var(--color-bg-muted)] rounded-xl border border-white/[0.08] p-4 space-y-2"
           >
             <div className="flex items-start justify-between">
               <div>
-                <p className="font-ui text-sm text-foreground">
+                <p className="font-ui text-sm text-[var(--color-fg)]">
                   {user.display_name ?? "—"}
                 </p>
-                <p className="font-content text-xs text-muted-foreground mt-0.5">
+                <p className="font-content text-xs text-[var(--color-fg-muted)] mt-0.5">
                   {user.email ?? "—"}
                 </p>
               </div>
@@ -673,17 +775,11 @@ export default function UserList() {
                 <UserStatusBadge status={user.status} />
               </div>
             </div>
-            <p className="font-mono text-xs text-fg-subtle">
-              สมัคร {user.created_at ? formatDateTime(user.created_at).slice(0, 10) : "—"}
-              {user.status === "soft_deleted" && user.deleted_at && (
-                <> · ลบแล้ว ({daysUntilPurge(user.deleted_at)} วัน เหลือ)</>
-              )}
-            </p>
             <Button
               variant="outline"
               size="sm"
               onClick={() => navigate(`/users/${user.id}`)}
-              className="w-full border-white/10 text-muted-foreground hover:bg-white/5 h-8 text-xs"
+              className="w-full border-white/10 text-[var(--color-fg-muted)] hover:bg-[var(--color-bg-raised)] h-8 text-xs font-ui"
             >
               ดูรายละเอียด
             </Button>
@@ -698,7 +794,7 @@ export default function UserList() {
               size="sm"
               onClick={goPrev}
               disabled={!hasPrev}
-              className="flex-1 border-white/10 text-muted-foreground hover:bg-white/5"
+              className="flex-1 border-white/10 text-[var(--color-fg-muted)] hover:bg-[var(--color-bg-raised)]"
             >
               ← ก่อนหน้า
             </Button>
@@ -707,7 +803,7 @@ export default function UserList() {
               size="sm"
               onClick={goNext}
               disabled={!hasNext}
-              className="flex-1 border-white/10 text-muted-foreground hover:bg-white/5"
+              className="flex-1 border-white/10 text-[var(--color-fg-muted)] hover:bg-[var(--color-bg-raised)]"
             >
               ถัดไป →
             </Button>
@@ -715,35 +811,19 @@ export default function UserList() {
         )}
       </div>
 
-      {/* Sticky action bar — desktop only, slides in when ≥1 selected */}
-      {selectedIds.size >= 1 && (
-        <div className="hidden md:flex sticky bottom-4 z-20 items-center gap-3 bg-card border border-amber-500/30 rounded-xl px-4 py-3 transition-colors">
-          <span className="text-[#F25F2D] font-ui text-sm">⊘</span>
-          <span className="font-ui text-sm text-foreground">
-            {selectedIds.size} user เลือก
-          </span>
-          <div className="flex-1" />
-          <button
-            onClick={() => setShowBulkModal(true)}
-            disabled={allSelectedAreElevated}
-            title={allSelectedAreElevated ? "ผู้ใช้ที่เลือกทั้งหมดเป็น admin/owner — ไม่สามารถระงับได้" : undefined}
-            className={cn(
-              "px-4 py-1.5 rounded-lg font-ui text-sm transition-colors",
-              allSelectedAreElevated
-                ? "bg-amber-600/30 text-amber-300/40 cursor-not-allowed"
-                : "bg-amber-600 hover:bg-amber-700 text-white",
-            )}
-          >
-            Suspend ทั้งหมด
-          </button>
-          <button
-            onClick={() => setSelectedIds(new Set())}
-            className="font-ui text-sm text-muted-foreground hover:text-foreground underline transition-colors"
-          >
-            ล้างการเลือก
-          </button>
-        </div>
-      )}
+      {/* StickyBulkActionBar — fixed bottom, hidden when no selection */}
+      <StickyBulkActionBar
+        count={selectedIds.size}
+        primaryLabel="ระงับ"
+        onPrimary={() => setShowBulkModal(true)}
+        primaryDisabled={allSelectedAreElevated}
+        primaryDisabledTitle={
+          allSelectedAreElevated
+            ? "ผู้ใช้ที่เลือกทั้งหมดเป็น admin/owner — ไม่สามารถระงับได้"
+            : undefined
+        }
+        onClear={() => setSelectedIds(new Set())}
+      />
 
       {/* Modals */}
       {modalState.type === "adjust" && modalState.user && (

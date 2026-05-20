@@ -72,13 +72,6 @@ const config: Config = {
         error:           "var(--color-error)",
         info:            "var(--color-info)",
 
-        // Status group (hex — for badge/pill components)
-        status: {
-          error:   "#D4452D",
-          warning: "#E89412",
-          success: "#2E8B57",
-        },
-
         // shadcn/ui semantic color tokens — required by button/card/input
         background:          "hsl(var(--background))",
         foreground:          "hsl(var(--foreground))",
@@ -150,6 +143,26 @@ const config: Config = {
         wide:     "0.05em",
         wider:    "0.1em",
         widest:   "0.14em",
+      },
+
+      // ─── Keyframes (StickyBulkActionBar slide-up) ─────────────
+      // The bar slides up from off-screen bottom.
+      // translateX(-50%) is preserved because the element uses left:50%
+      // centering — without it the element snaps to the wrong position during
+      // the animation. Motion-safe guard is on the component class.
+      keyframes: {
+        slideUpIn: {
+          "0%":   { transform: "translateX(-50%) translateY(100%)", opacity: "0" },
+          "100%": { transform: "translateX(-50%) translateY(0)",     opacity: "1" },
+        },
+        slideDownOut: {
+          "0%":   { transform: "translateX(-50%) translateY(0)",     opacity: "1" },
+          "100%": { transform: "translateX(-50%) translateY(100%)", opacity: "0" },
+        },
+      },
+      animation: {
+        slideUpIn:   "slideUpIn 200ms ease-out both",
+        slideDownOut: "slideDownOut 200ms ease-in both",
       },
 
     },
