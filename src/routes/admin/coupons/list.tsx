@@ -1,18 +1,45 @@
 /**
- * CouponList — รายการคูปองทั้งหมด
+ * CouponList — รายการคูปองทั้งหมด (Wave 4 redesign — v2 template)
  *
- * Section B of admin-coupon-wireframes.md
- * - Filter bar (glass): type pills, status pill, campaign tag, search
- * - Desktop table + mobile card list
- * - Cursor-based pagination (Next/Prev stack from API next_cursor)
- * - Bulk select + Bulk revoke (max 100)
- * - Empty / Loading / Error states
+ * Spec: admin-wireframe-deltas-v2.md §5 + admin-page-template-mockup-b.md
+ *
+ * Changes from pre-Wave-4:
+ *  - PageHeader with 4 StatChips (คูปองทั้งหมด / ใช้งานได้ / หมดอายุ / ถูกยกเลิก)
+ *  - TableCard (glass sticky header + solid body) — dense h-12 rows
+ *  - StickyBulkActionBar (fixed bottom-6 / bottom-20, glass-shell rounded-full)
+ *  - EmptyState, LoadingSkeleton (coupon cellShapes), ErrorState primitives
+ *  - Removed: 'สร้างโดย' + 'วันที่สร้าง' columns (move to coupon detail DrawerPanel — later wave)
+ *  - Added: 'มูลค่า' (krub_amount) + 'หมดอายุ' (expires_at, nullable) columns per §5
+ *  - FORBID-list clean:
+ *      • TypeBadge: blue-900/blue-300 + purple-900/purple-300 → token-bound info/neutral
+ *      • Success banner: green-900/green-400 → --color-success token
+ *      • Revoke buttons: bg-red-600/red-700 → variant="destructive"
+ *      • Dropdown items: text-amber-400 / text-red-400 → --color-warning / --color-error tokens
+ *      • Inputs/selects: bg-[#0F172A] / focus:border-[#F25F2D] → --color-bg / accent CSS var
+ *      • Filter pills: #F25F2D literal → --color-accent token
+ *      • CTA header button: inline hex overrides removed, relies on variant="cta"
+ *      • Row height: py-3 → h-12 + py-0 (dense spec)
+ *      • No row-level onClick (view on row removed — v2 interaction model is dropdown-first)
+ *  - MobileCard removed — TableCard horizontal-scroll handles mobile per §3.7
+ *  - Stat-chip data: คูปองทั้งหมด wired to data.total; other 3 chips render "—"
+ *    because GET /api/admin/coupons does not return per-status aggregate counts.
+ *    Backend needs: counts: { active, expired, revoked } in list response (later phase).
+ *
+ * Preserved intact: CreateCoupon dropdown + modal, bulk-revoke flow + confirm,
+ * filter pills, search, cursor pagination, row selection, permission rules.
  */
 
 import { useState, useCallback, useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Search, Plus, Copy, MoreHorizontal, X } from "lucide-react";
+import {
+  Search,
+  Plus,
+  Copy,
+  MoreHorizontal,
+  X,
+  Ticket,
+} from "lucide-react";
 import {
   adminListCoupons,
   adminDisableCoupon,
@@ -45,7 +72,39 @@ import {
   DialogFooter,
   DialogClose,
 } from "@/components/ui/dialog";
+import { PageHeader } from "@/components/admin/PageHeader";
+import { StatChip } from "@/components/admin/StatChip";
+import { TableCard } from "@/components/admin/TableCard";
+import { StickyBulkActionBar } from "@/components/admin/StickyBulkActionBar";
+import { EmptyState } from "@/components/admin/EmptyState";
+import { LoadingSkeleton } from "@/components/admin/LoadingSkeleton";
+import { ErrorState } from "@/components/admin/ErrorState";
 import { cn } from "@/lib/utils";
+
+// ---------------------------------------------------------------------------
+// Column count constant — update here if columns change
+// ---------------------------------------------------------------------------
+
+/**
+ * Desktop table column count:
+ *   checkbox + CODE + ประเภท + มูลค่า + ใช้แล้ว/สูงสุด + หมดอายุ + สถานะ + actions = 8
+ */
+const COL_COUNT = 8;
+
+/**
+ * LoadingSkeleton cell shapes — coupon-shaped (no avatar column).
+ * Index order matches COL_COUNT above.
+ */
+const SKELETON_SHAPES = [
+  "checkbox",
+  "text-md",
+  "text-sm",
+  "number",
+  "number",
+  "text-md",
+  "text-sm",
+  "action",
+] as const;
 
 // ---------------------------------------------------------------------------
 // Types
@@ -69,6 +128,14 @@ interface BulkRevokeModalState {
 // Helpers
 // ---------------------------------------------------------------------------
 
+function copyToClipboard(text: string) {
+  void navigator.clipboard.writeText(text);
+}
+
+/**
+ * StatusBadge — dot + label per design-system-v2.md §5.
+ * Token-bound colors only — no saturated tailwind classes.
+ */
 function StatusBadge({ status }: { status: CouponStatus }) {
   const map: Record<CouponStatus, { dot: string; badge: string }> = {
     active:   { dot: "bg-[var(--color-success)]",   badge: "bg-[var(--color-success)]/15   text-[var(--color-success)]   border-[var(--color-success)]/20"   },
@@ -79,23 +146,35 @@ function StatusBadge({ status }: { status: CouponStatus }) {
   };
   const s = map[status];
   return (
-    <span className={cn("inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-ui border", s.badge)}>
-      <span className={cn("w-1.5 h-1.5 rounded-full shrink-0", s.dot)} />
+    <span
+      className={cn(
+        "inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-ui border",
+        s.badge,
+      )}
+    >
+      <span className={cn("w-1.5 h-1.5 rounded-full shrink-0", s.dot)} aria-hidden="true" />
       {STATUS_LABELS[status]}
     </span>
   );
 }
 
+/**
+ * TypeBadge — paid vs free label.
+ * Note: Coupon type is paid/free, not a "% or fixed" discount type.
+ * Mind's column header "ประเภทส่วนลด" maps to this paid/free axis.
+ * If a true discount-percentage field is added later, this badge can be extended.
+ * FORBID-fix: removed blue-900/blue-300 + purple-900/purple-300 → token-bound.
+ */
 function TypeBadge({ type }: { type: CouponType }) {
   return type === "paid" ? (
-    <span className="px-2 py-0.5 rounded bg-blue-900/30 text-blue-300 text-xs font-ui">จ่าย</span>
+    <span className="px-2 py-0.5 rounded bg-[var(--color-info)]/15 text-[var(--color-info)] text-xs font-ui">
+      จ่าย
+    </span>
   ) : (
-    <span className="px-2 py-0.5 rounded bg-purple-900/30 text-purple-300 text-xs font-ui">ฟรี</span>
+    <span className="px-2 py-0.5 rounded bg-[var(--color-fg-muted)]/15 text-[var(--color-fg-muted)] text-xs font-ui">
+      ฟรี
+    </span>
   );
-}
-
-function copyToClipboard(text: string) {
-  void navigator.clipboard.writeText(text);
 }
 
 // ---------------------------------------------------------------------------
@@ -132,15 +211,15 @@ function RevokeReasonModal({
           <DialogTitle>ยืนยัน Revoke คูปอง</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
-          <p className="font-mono text-sm text-foreground">{state.coupon?.code}</p>
+          <p className="font-mono text-sm text-[var(--color-fg)]">{state.coupon?.code}</p>
           <div>
-            <label className="font-ui text-xs text-muted-foreground uppercase tracking-wide block mb-1.5">
+            <label className="font-ui text-xs text-[var(--color-fg-muted)] uppercase tracking-wide block mb-1.5">
               เหตุผล *
             </label>
             <select
               value={reason}
               onChange={(e) => setReason(e.target.value as RevokeReason)}
-              className="w-full bg-[#0F172A] border border-white/10 rounded-lg px-3 py-2.5 font-ui text-sm text-foreground focus:border-[#F25F2D] focus:outline-none"
+              className="w-full bg-[var(--color-bg)] border border-white/10 rounded-lg px-3 py-2.5 font-ui text-sm text-[var(--color-fg)] focus:border-[var(--color-accent)] focus:outline-none"
             >
               <option value="fraud">Fraud</option>
               <option value="duplicate_slip">สลิปซ้ำ</option>
@@ -149,27 +228,27 @@ function RevokeReasonModal({
             </select>
           </div>
           <div>
-            <label className="font-ui text-xs text-muted-foreground uppercase tracking-wide block mb-1.5">
+            <label className="font-ui text-xs text-[var(--color-fg-muted)] uppercase tracking-wide block mb-1.5">
               หมายเหตุ (ไม่บังคับ)
             </label>
             <Input
               value={note}
               onChange={(e) => setNote(e.target.value)}
               placeholder="รายละเอียดเพิ่มเติม..."
-              className="bg-[#0F172A] border-white/10 text-foreground focus:border-[#F25F2D]"
+              className="bg-[var(--color-bg)] border-white/10 text-[var(--color-fg)] focus:border-[var(--color-accent)]"
             />
           </div>
         </div>
         <DialogFooter>
           <DialogClose asChild>
-            <Button variant="outline" className="border-white/20 text-muted-foreground hover:bg-white/5" onClick={onClose}>
+            <Button variant="outline" onClick={onClose}>
               ยกเลิก
             </Button>
           </DialogClose>
           <Button
+            variant="destructive"
             onClick={handleConfirm}
             disabled={loading}
-            className="bg-red-600 hover:bg-red-700 text-white"
           >
             {loading ? "กำลัง Revoke..." : "Revoke ✕"}
           </Button>
@@ -204,19 +283,19 @@ function BulkRevokeModal({
           <DialogTitle>⚠ ยืนยัน Revoke คูปอง {state.ids.length} รายการ</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
-          <div className="bg-[#0F172A] rounded-lg p-3 max-h-32 overflow-y-auto space-y-1">
+          <div className="bg-[var(--color-bg)] rounded-lg p-3 max-h-32 overflow-y-auto space-y-1">
             {state.codes.map((code) => (
-              <p key={code} className="font-mono text-xs text-muted-foreground">{code}</p>
+              <p key={code} className="font-mono text-xs text-[var(--color-fg-muted)]">{code}</p>
             ))}
           </div>
           <div>
-            <label className="font-ui text-xs text-muted-foreground uppercase tracking-wide block mb-1.5">
+            <label className="font-ui text-xs text-[var(--color-fg-muted)] uppercase tracking-wide block mb-1.5">
               เหตุผล *
             </label>
             <select
               value={reason}
               onChange={(e) => setReason(e.target.value as RevokeReason)}
-              className="w-full bg-[#0F172A] border border-white/10 rounded-lg px-3 py-2.5 font-ui text-sm text-foreground focus:border-[#F25F2D] focus:outline-none"
+              className="w-full bg-[var(--color-bg)] border border-white/10 rounded-lg px-3 py-2.5 font-ui text-sm text-[var(--color-fg)] focus:border-[var(--color-accent)] focus:outline-none"
             >
               <option value="fraud">Fraud</option>
               <option value="duplicate_slip">สลิปซ้ำ</option>
@@ -225,27 +304,27 @@ function BulkRevokeModal({
             </select>
           </div>
           <div>
-            <label className="font-ui text-xs text-muted-foreground uppercase tracking-wide block mb-1.5">
+            <label className="font-ui text-xs text-[var(--color-fg-muted)] uppercase tracking-wide block mb-1.5">
               หมายเหตุ (ไม่บังคับ)
             </label>
             <Input
               value={note}
               onChange={(e) => setNote(e.target.value)}
               placeholder="รายละเอียดเพิ่มเติม..."
-              className="bg-[#0F172A] border-white/10 text-foreground focus:border-[#F25F2D]"
+              className="bg-[var(--color-bg)] border-white/10 text-[var(--color-fg)] focus:border-[var(--color-accent)]"
             />
           </div>
         </div>
         <DialogFooter>
           <DialogClose asChild>
-            <Button variant="outline" className="border-white/20 text-muted-foreground hover:bg-white/5" onClick={onClose}>
+            <Button variant="outline" onClick={onClose}>
               ยกเลิก
             </Button>
           </DialogClose>
           <Button
+            variant="destructive"
             onClick={() => onConfirm(reason, note)}
             disabled={loading}
-            className="bg-red-600 hover:bg-red-700 text-white"
           >
             {loading ? "กำลัง Revoke..." : "Revoke ✕"}
           </Button>
@@ -260,7 +339,6 @@ function BulkRevokeModal({
 // ---------------------------------------------------------------------------
 
 export default function CouponList() {
-  const navigate = useNavigate();
   const location = useLocation();
   const { role } = useAdmin();
   const queryClient = useQueryClient();
@@ -274,9 +352,9 @@ export default function CouponList() {
     setCreateModalOpen(true);
   }
 
-  // Success banner — from modal onSuccess or from location state (legacy)
+  // Success banner — auto-dismiss 5s
   const [successCode, setSuccessCode] = useState<string | null>(
-    (location.state as { successCode?: string } | null)?.successCode ?? null
+    (location.state as { successCode?: string } | null)?.successCode ?? null,
   );
   useEffect(() => {
     if (!successCode) return;
@@ -414,10 +492,14 @@ export default function CouponList() {
 
   function openBulkRevoke() {
     const selected = items.filter((c) => selectedIds.has(c.id));
-    setBulkModal({ open: true, ids: selected.map((c) => c.id), codes: selected.map((c) => c.code) });
+    setBulkModal({
+      open: true,
+      ids: selected.map((c) => c.id),
+      codes: selected.map((c) => c.code),
+    });
   }
 
-  // Type pill filter list
+  // Filter pill definitions
   const TYPE_PILLS: { label: string; value: CouponType | "" }[] = [
     { label: "ทั้งหมด", value: "" },
     { label: "จ่าย", value: "paid" },
@@ -433,68 +515,259 @@ export default function CouponList() {
     { label: "หมดอายุ", value: "expired" },
   ];
 
-  return (
-    <div className="px-4 py-6 md:px-6 md:py-8 space-y-4">
-      {/* ── Page header ── */}
-      <div className="flex items-center justify-between">
-        <h1 className="font-display text-xl font-bold text-foreground">รายการคูปอง</h1>
+  // ---------------------------------------------------------------------------
+  // Stat chips — see data situation note in file header
+  // ---------------------------------------------------------------------------
+  const totalCount: number | null = data?.total ?? null;
+  const activeCount: number | null = null;    // not in list response
+  const expiredCount: number | null = null;   // not in list response
+  const revokedCount: number | null = null;   // not in list response
 
-        {/* Create dropdown */}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="cta" className="bg-[#F25F2D] hover:bg-[#C7461A] text-white h-10 gap-2">
-              <Plus className="w-4 h-4" />
-              สร้างคูปองใหม่
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => openCreateModal("paid")}>
-              คูปองแบบจ่ายเงิน
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() => { if (role === "owner") openCreateModal("free"); }}
-              className={cn(role !== "owner" && "opacity-40 cursor-not-allowed")}
-            >
-              คูปองแบบฟรี {role !== "owner" && "(owner เท่านั้น)"}
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+  // ---------------------------------------------------------------------------
+  // Pagination node — rendered in TableCard.pagination slot
+  // ---------------------------------------------------------------------------
+  const hasPrev = cursorStack.length > 0;
+  const hasNext = !!data?.next_cursor;
+  const page = cursorStack.length + 1;
+
+  // Pagination — only render when prev or next is available (mirrors users/list pattern)
+  const paginationNode = (hasPrev || hasNext) ? (
+    <div className="flex items-center justify-between px-4 py-3">
+      {/* Limit selector + total */}
+      <div className="flex items-center gap-2">
+        <span className="font-ui text-xs text-[var(--color-fg-subtle)]">แสดง</span>
+        <select
+          value={filters.limit}
+          onChange={handleLimitChange}
+          className="bg-[var(--color-bg)] border border-white/10 rounded px-2 py-1 font-ui text-xs text-[var(--color-fg-muted)]"
+        >
+          <option value={20}>20</option>
+          <option value={50}>50</option>
+          <option value={100}>100</option>
+        </select>
+        <span className="font-ui text-xs text-[var(--color-fg-subtle)]">รายการ</span>
+        {totalCount !== null && (
+          <span className="font-ui text-xs text-[var(--color-fg-subtle)] tabular-nums">
+            · รวม {totalCount.toLocaleString()} รายการ
+          </span>
+        )}
       </div>
+      {/* Page indicator + Prev/Next */}
+      <div className="flex items-center gap-2">
+        <span className="font-ui text-xs text-[var(--color-fg-subtle)] tabular-nums">
+          หน้า {page}
+        </span>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={goPrev}
+          disabled={!hasPrev}
+          className="border-white/10 text-[var(--color-fg-muted)] hover:bg-[var(--color-bg-raised)] h-8"
+        >
+          ← ก่อนหน้า
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={goNext}
+          disabled={!hasNext}
+          className="border-white/10 text-[var(--color-fg-muted)] hover:bg-[var(--color-bg-raised)] h-8"
+        >
+          ถัดไป →
+        </Button>
+      </div>
+    </div>
+  ) : null;
+
+  // ---------------------------------------------------------------------------
+  // Table head
+  // ---------------------------------------------------------------------------
+  const tableHead = (
+    <tr className="h-10">
+      {/* Checkbox */}
+      <th className="w-10 pl-4 pr-2">
+        <input
+          type="checkbox"
+          checked={allSelected}
+          onChange={toggleSelectAll}
+          disabled={items.length === 0}
+          style={{ accentColor: "var(--color-accent)" }}
+          className="w-4 h-4 cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+          aria-label="เลือกทั้งหมด"
+        />
+      </th>
+      {/* CODE */}
+      <th className="w-36 px-4 text-left">
+        <span className="font-ui text-xs text-[var(--color-fg-muted)] uppercase tracking-wide">Code</span>
+      </th>
+      {/* ประเภท */}
+      <th className="w-28 px-4 text-left">
+        <span className="font-ui text-xs text-[var(--color-fg-muted)] uppercase tracking-wide">ประเภท</span>
+      </th>
+      {/* มูลค่า */}
+      <th className="w-24 px-4 text-right">
+        <span className="font-ui text-xs text-[var(--color-fg-muted)] uppercase tracking-wide">มูลค่า</span>
+      </th>
+      {/* ใช้แล้ว / สูงสุด */}
+      <th className="w-28 px-4 text-right">
+        <span className="font-ui text-xs text-[var(--color-fg-muted)] uppercase tracking-wide">ใช้แล้ว&nbsp;/&nbsp;สูงสุด</span>
+      </th>
+      {/* หมดอายุ */}
+      <th className="w-32 px-4 text-left">
+        <span className="font-ui text-xs text-[var(--color-fg-muted)] uppercase tracking-wide">หมดอายุ</span>
+      </th>
+      {/* สถานะ */}
+      <th className="w-28 px-4 text-left">
+        <span className="font-ui text-xs text-[var(--color-fg-muted)] uppercase tracking-wide">สถานะ</span>
+      </th>
+      {/* Actions */}
+      <th className="w-16 px-4 text-right">
+        <span className="sr-only">Actions</span>
+      </th>
+    </tr>
+  );
+
+  // ---------------------------------------------------------------------------
+  // Table body
+  // ---------------------------------------------------------------------------
+  const hasFilters = !!(filters.coupon_type || filters.status || filters.q || filters.campaign_tag);
+
+  const tableBody = (
+    <>
+      {isLoading && (
+        <LoadingSkeleton
+          colCount={COL_COUNT}
+          cellShapes={[...SKELETON_SHAPES]}
+        />
+      )}
+
+      {isError && (
+        <ErrorState
+          colSpan={COL_COUNT}
+          title="โหลดรายการคูปองไม่สำเร็จ"
+          onRetry={() => void refetch()}
+        />
+      )}
+
+      {!isLoading && !isError && items.length === 0 && (
+        <EmptyState
+          icon={Ticket}
+          colSpan={COL_COUNT}
+          title={hasFilters ? "ไม่พบคูปองที่ตรงกับเงื่อนไข" : "ยังไม่มีคูปอง"}
+          body={hasFilters ? "ลองปรับหรือล้างตัวกรอง" : undefined}
+          action={
+            hasFilters ? (
+              <button
+                onClick={() => {
+                  setFilters((f) => ({ ...f, coupon_type: "", status: "", q: "", campaign_tag: "" }));
+                  setCurrentCursor(undefined);
+                  setCursorStack([]);
+                }}
+                className="font-ui text-sm text-[var(--color-accent)] hover:underline"
+              >
+                ล้างตัวกรอง
+              </button>
+            ) : (
+              <Button variant="cta" onClick={() => openCreateModal("paid")}>
+                เริ่มสร้างคูปองแรก →
+              </Button>
+            )
+          }
+        />
+      )}
+
+      {!isLoading && !isError && items.map((coupon) => (
+        <CouponRow
+          key={coupon.id}
+          coupon={coupon}
+          selected={selectedIds.has(coupon.id)}
+          onToggleSelect={() => toggleSelect(coupon.id)}
+          onDisable={() => disableMutation.mutate(coupon.id)}
+          onRevoke={() => setRevokeModal({ open: true, coupon })}
+        />
+      ))}
+    </>
+  );
+
+  return (
+    <div className="px-3 py-3 md:px-4 md:py-4 lg:px-6 lg:py-5 space-y-4">
+
+      {/* ── Page header ── */}
+      <PageHeader
+        title="รายการคูปอง"
+        chips={
+          <>
+            <StatChip label="คูปองทั้งหมด" value={totalCount} dot="neutral" />
+            <StatChip label="ใช้งานได้" value={activeCount} dot="success" />
+            <StatChip label="หมดอายุ" value={expiredCount} dot="neutral" />
+            <StatChip label="ถูกยกเลิก" value={revokedCount} dot="error" />
+          </>
+        }
+        cta={
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              {/* variant="cta" carries accent + glow per design-system §4 */}
+              <Button variant="cta" size="sm" className="gap-1.5">
+                <Plus className="w-4 h-4" aria-hidden="true" />
+                สร้างคูปองใหม่
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => openCreateModal("paid")} className="font-ui text-sm cursor-pointer">
+                คูปองแบบจ่ายเงิน
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                disabled={role !== "owner"}
+                onClick={() => openCreateModal("free")}
+                className="font-ui text-sm cursor-pointer"
+              >
+                คูปองแบบฟรี {role !== "owner" && "(owner เท่านั้น)"}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        }
+      />
 
       {/* ── Success banner (auto-dismiss 5s) ── */}
       {successCode && (
-        <div className="flex items-center justify-between gap-3 px-4 py-3 bg-green-900/30 border border-green-500/30 rounded-xl">
-          <p className="font-ui text-sm text-green-400">
+        <div className="flex items-center justify-between gap-3 px-4 py-3 bg-[var(--color-success)]/15 border border-[var(--color-success)]/30 rounded-xl">
+          <p className="font-ui text-sm text-[var(--color-success)]">
             สร้างคูปอง <span className="font-mono font-bold">{successCode}</span> เรียบร้อยแล้ว
           </p>
           <button
             onClick={() => setSuccessCode(null)}
-            className="shrink-0 p-1 rounded text-green-400/60 hover:text-green-400 hover:bg-green-900/40 transition-colors"
+            className="shrink-0 p-1 rounded text-[var(--color-success)]/60 hover:text-[var(--color-success)] hover:bg-[var(--color-success)]/10 motion-safe:transition-colors duration-150"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
       )}
 
-      {/* ── Filter bar (glass) ── */}
-      <div className="flex flex-wrap items-center gap-2 p-3 bg-[var(--color-bg-muted)] rounded-xl border border-white/8">
+      {/* ── Filter bar (glass — template §5) ── */}
+      <div
+        className={cn(
+          "flex flex-wrap items-center gap-2 px-4 py-3 mb-4",
+          "bg-[rgba(15,23,42,0.70)] backdrop-blur-sm",
+          "border border-white/[0.08] rounded-xl",
+        )}
+      >
         {/* Type pills */}
         {TYPE_PILLS.map((p) => (
           <button
             key={p.value}
             onClick={() => setTypeFilter(p.value)}
             className={cn(
-              "px-3 py-1.5 rounded-full font-ui text-xs cursor-pointer transition-colors",
+              "px-3 py-1.5 rounded-full font-ui text-xs cursor-pointer motion-safe:transition-colors duration-150",
               filters.coupon_type === p.value
-                ? "bg-[#F25F2D]/20 text-[#F25F2D] border border-[#F25F2D]/40"
-                : "bg-secondary text-muted-foreground hover:bg-[var(--color-bg-raised)] hover:text-foreground"
+                ? "bg-[var(--color-accent)]/20 text-[var(--color-accent)] border border-[var(--color-accent)]/40"
+                : "bg-secondary text-[var(--color-fg-muted)] border border-transparent hover:bg-[var(--color-bg-raised)] hover:text-[var(--color-fg)]",
             )}
           >
             {p.label}
           </button>
         ))}
 
-        <div className="w-px h-5 bg-white/10 mx-1 hidden md:block" />
+        <div className="w-px h-5 bg-white/10 mx-1 hidden md:block" aria-hidden="true" />
 
         {/* Status pills */}
         {STATUS_PILLS.map((p) => (
@@ -502,10 +775,10 @@ export default function CouponList() {
             key={p.value}
             onClick={() => setStatusFilter(p.value)}
             className={cn(
-              "px-3 py-1.5 rounded-full font-ui text-xs cursor-pointer transition-colors",
+              "px-3 py-1.5 rounded-full font-ui text-xs cursor-pointer motion-safe:transition-colors duration-150",
               filters.status === p.value
-                ? "bg-[#F25F2D]/20 text-[#F25F2D] border border-[#F25F2D]/40"
-                : "bg-secondary text-muted-foreground hover:bg-[var(--color-bg-raised)] hover:text-foreground"
+                ? "bg-[var(--color-accent)]/20 text-[var(--color-accent)] border border-[var(--color-accent)]/40"
+                : "bg-secondary text-[var(--color-fg-muted)] border border-transparent hover:bg-[var(--color-bg-raised)] hover:text-[var(--color-fg)]",
             )}
           >
             {p.label}
@@ -514,154 +787,32 @@ export default function CouponList() {
 
         {/* Search */}
         <div className="relative flex-1 min-w-[180px]">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-fg-subtle" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[var(--color-fg-subtle)]" aria-hidden="true" />
           <Input
             value={filters.q}
             onChange={handleSearchChange}
             placeholder="ค้นหาด้วย code..."
-            className="pl-8 bg-[#0F172A] border-white/10 text-foreground placeholder:text-fg-subtle focus:border-[#F25F2D] h-8 text-sm"
+            className="pl-8 bg-[var(--color-bg)] border-white/10 text-[var(--color-fg)] placeholder:text-[var(--color-fg-subtle)] focus:border-[var(--color-accent)] h-8 text-sm"
           />
         </div>
       </div>
 
-      {/* ── Bulk actions bar ── */}
-      {selectedIds.size > 0 && (
-        <div className="fixed bottom-20 md:bottom-6 left-1/2 -translate-x-1/2 z-40 flex items-center gap-3 px-4 py-2.5 bg-slate-900/95 backdrop-blur-md border border-white/10 rounded-full shadow-2xl whitespace-nowrap">
-          <span className="font-ui text-sm text-foreground">เลือกแล้ว {selectedIds.size} รายการ</span>
-          <Button
-            size="sm"
-            onClick={openBulkRevoke}
-            className="bg-red-600 hover:bg-red-700 text-white h-8"
-          >
-            Revoke ที่เลือก
-          </Button>
-          <button
-            onClick={() => setSelectedIds(new Set())}
-            className="flex items-center justify-center w-7 h-7 rounded-full hover:bg-white/10 text-muted-foreground transition-colors"
-          >
-            <X className="w-4 h-4" />
-          </button>
-        </div>
-      )}
+      {/* ── TableCard (desktop + horizontal-scroll mobile) ── */}
+      <TableCard
+        head={tableHead}
+        body={tableBody}
+        pagination={paginationNode}
+      />
 
-      {/* ── Table / Cards ── */}
-      {isLoading && <LoadingSkeleton />}
+      {/* ── StickyBulkActionBar ── */}
+      <StickyBulkActionBar
+        count={selectedIds.size}
+        primaryLabel="Revoke ที่เลือก"
+        onPrimary={openBulkRevoke}
+        onClear={() => setSelectedIds(new Set())}
+      />
 
-      {isError && (
-        <div className="rounded-xl border border-red-500/30 bg-red-900/20 p-4 flex items-center justify-between">
-          <p className="font-ui text-sm text-red-400">โหลดข้อมูลล้มเหลว</p>
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => void refetch()}
-            className="border-red-500/30 text-red-400 hover:bg-red-900/20"
-          >
-            ลองใหม่
-          </Button>
-        </div>
-      )}
-
-      {!isLoading && !isError && items.length === 0 && (
-        <div className="rounded-xl border border-white/8 bg-card py-16 flex flex-col items-center gap-4">
-          <p className="font-display text-lg text-fg-subtle">ยังไม่มีคูปอง</p>
-          <Button
-            variant="cta"
-            onClick={() => openCreateModal("paid")}
-            className="bg-[#F25F2D] hover:bg-[#C7461A] text-white"
-          >
-            เริ่มสร้างคูปองแรก →
-          </Button>
-        </div>
-      )}
-
-      {/* Desktop table */}
-      {!isLoading && !isError && items.length > 0 && (
-        <>
-          <div className="hidden md:block bg-card rounded-xl overflow-hidden border border-white/8">
-            <table className="w-full">
-              <thead className="glass-table-header sticky top-0 z-10">
-                <tr>
-                  <th className="px-4 py-3 w-10">
-                    <input
-                      type="checkbox"
-                      checked={allSelected}
-                      onChange={toggleSelectAll}
-                      className="w-4 h-4 rounded border-white/20 bg-[#0F172A] accent-[#F25F2D]"
-                    />
-                  </th>
-                  <th className="px-4 py-3 font-ui text-xs text-muted-foreground uppercase tracking-wide text-left">Code</th>
-                  <th className="px-4 py-3 font-ui text-xs text-muted-foreground uppercase tracking-wide text-left">ประเภท</th>
-                  <th className="px-4 py-3 font-ui text-xs text-muted-foreground uppercase tracking-wide text-right">krub</th>
-                  <th className="px-4 py-3 font-ui text-xs text-muted-foreground uppercase tracking-wide text-right">ใช้/สูงสุด</th>
-                  <th className="px-4 py-3 font-ui text-xs text-muted-foreground uppercase tracking-wide text-left">สถานะ</th>
-                  <th className="px-4 py-3 font-ui text-xs text-muted-foreground uppercase tracking-wide text-left">สร้างโดย</th>
-                  <th className="px-4 py-3 font-ui text-xs text-muted-foreground uppercase tracking-wide text-left">วันที่สร้าง</th>
-                  <th className="px-4 py-3 w-10" />
-                </tr>
-              </thead>
-              <tbody>
-                {items.map((coupon) => (
-                  <DesktopRow
-                    key={coupon.id}
-                    coupon={coupon}
-                    selected={selectedIds.has(coupon.id)}
-                    onToggleSelect={() => toggleSelect(coupon.id)}
-                    onView={() => navigate(`/coupons/${coupon.id}`)}
-                    onDisable={() => disableMutation.mutate(coupon.id)}
-                    onRevoke={() => setRevokeModal({ open: true, coupon })}
-                  />
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Mobile cards */}
-          <div className="md:hidden space-y-3">
-            {items.map((coupon) => (
-              <MobileCard
-                key={coupon.id}
-                coupon={coupon}
-                onView={() => navigate(`/coupons/${coupon.id}`)}
-                onRevoke={() => setRevokeModal({ open: true, coupon })}
-              />
-            ))}
-          </div>
-
-          {/* Pagination */}
-          <div className="flex items-center justify-between mt-4 px-2">
-            <div className="flex items-center gap-2">
-              <span className="font-ui text-xs text-fg-subtle">แสดง</span>
-              <select
-                value={filters.limit}
-                onChange={handleLimitChange}
-                className="bg-[#0F172A] border border-white/10 rounded px-2 py-1 font-ui text-xs text-muted-foreground"
-              >
-                <option value={20}>20</option>
-                <option value={50}>50</option>
-                <option value={100}>100</option>
-              </select>
-              <span className="font-ui text-xs text-fg-subtle">รายการ</span>
-            </div>
-            <div className="flex items-center gap-2">
-              {cursorStack.length > 0 && (
-                <Button size="sm" variant="outline" onClick={goPrev} className="border-white/20 text-muted-foreground hover:bg-white/5 h-8 text-xs">
-                  ← ก่อนหน้า
-                </Button>
-              )}
-              {data?.next_cursor && (
-                <Button size="sm" variant="outline" onClick={goNext} className="border-white/20 text-muted-foreground hover:bg-white/5 h-8 text-xs">
-                  ถัดไป →
-                </Button>
-              )}
-              {data?.total != null && (
-                <span className="font-ui text-xs text-fg-subtle">รวม {data.total} รายการ</span>
-              )}
-            </div>
-          </div>
-        </>
-      )}
-
-      {/* Revoke modal (single) */}
+      {/* ── Revoke modal (single) ── */}
       <RevokeReasonModal
         state={revokeModal}
         onClose={() => setRevokeModal({ open: false, coupon: null })}
@@ -672,7 +823,7 @@ export default function CouponList() {
         loading={revokeMutation.isPending}
       />
 
-      {/* Bulk revoke modal */}
+      {/* ── Bulk revoke modal ── */}
       <BulkRevokeModal
         state={bulkModal}
         onClose={() => setBulkModal({ open: false, ids: [], codes: [] })}
@@ -680,7 +831,7 @@ export default function CouponList() {
         loading={bulkRevokeMutation.isPending}
       />
 
-      {/* Create coupon modal (Wave 4.3 pivot) */}
+      {/* ── Create coupon modal ── */}
       <CreateCouponModal
         open={createModalOpen}
         initialType={createModalType}
@@ -695,74 +846,116 @@ export default function CouponList() {
 }
 
 // ---------------------------------------------------------------------------
-// Desktop table row
+// Coupon table row — dense h-12, no row-level onClick (v2 interaction model)
 // ---------------------------------------------------------------------------
 
-interface DesktopRowProps {
+interface CouponRowProps {
   coupon: Coupon;
   selected: boolean;
   onToggleSelect: () => void;
-  onView: () => void;
   onDisable: () => void;
   onRevoke: () => void;
 }
 
-function DesktopRow({ coupon, selected, onToggleSelect, onView, onDisable, onRevoke }: DesktopRowProps) {
+function CouponRow({ coupon, selected, onToggleSelect, onDisable, onRevoke }: CouponRowProps) {
   return (
     <tr
       className={cn(
-        "border-t border-white/5 hover:bg-white/5 transition-colors group cursor-pointer",
-        selected && "bg-[rgba(242,95,45,0.12)] border-l-2 border-l-[var(--color-accent)]"
+        "h-12 border-t border-white/[0.05] motion-safe:transition-colors duration-150",
+        selected
+          ? "bg-[rgba(242,95,45,0.12)] border-l-2 border-l-[var(--color-accent)]"
+          : "hover:bg-[var(--color-bg-raised)]",
       )}
-      onClick={onView}
     >
-      <td className="px-4 py-3" onClick={(e) => { e.stopPropagation(); onToggleSelect(); }}>
+      {/* Checkbox */}
+      <td
+        className="w-10 pl-4 pr-2 py-0"
+        onClick={(e) => { e.stopPropagation(); onToggleSelect(); }}
+      >
         <input
           type="checkbox"
           checked={selected}
           onChange={onToggleSelect}
-          className="w-4 h-4 rounded border-white/20 bg-[#0F172A] accent-[#F25F2D]"
+          style={{ accentColor: "var(--color-accent)" }}
+          className="w-4 h-4 cursor-pointer"
           onClick={(e) => e.stopPropagation()}
         />
       </td>
-      <td className="px-4 py-3">
-        <div className="flex items-center gap-1.5">
-          <span className="font-mono text-xs text-foreground tabular-nums">{coupon.code}</span>
+
+      {/* CODE — monospace 12px, uppercase */}
+      <td className="w-36 px-4 py-0">
+        <div className="flex items-center gap-1.5 group">
+          <span className="font-mono text-xs text-[var(--color-fg)] uppercase tabular-nums">
+            {coupon.code}
+          </span>
           <button
-            className="p-0.5 rounded text-fg-subtle hover:text-[#F25F2D] opacity-0 group-hover:opacity-100 transition-opacity"
+            className="p-0.5 rounded text-[var(--color-fg-subtle)] hover:text-[var(--color-accent)] opacity-0 group-hover:opacity-100 motion-safe:transition-opacity duration-150"
             onClick={(e) => { e.stopPropagation(); copyToClipboard(coupon.code); }}
             title="copy code"
+            aria-label={`คัดลอก ${coupon.code}`}
           >
             <Copy className="w-3.5 h-3.5" />
           </button>
         </div>
       </td>
-      <td className="px-4 py-3"><TypeBadge type={coupon.coupon_type} /></td>
-      <td className="px-4 py-3 text-right font-mono text-sm text-foreground tabular-nums">{coupon.krub_amount}</td>
-      <td className="px-4 py-3 text-right font-content text-sm text-muted-foreground tabular-nums">{coupon.used_count}/{coupon.max_uses}</td>
-      <td className="px-4 py-3"><StatusBadge status={coupon.status} /></td>
-      <td className="px-4 py-3 font-content text-sm text-muted-foreground">{coupon.created_by}</td>
-      <td className="px-4 py-3 font-mono text-xs text-fg-subtle tabular-nums">{formatDateTime(coupon.created_at)}</td>
-      <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
+
+      {/* ประเภทส่วนลด — paid/free badge (see TypeBadge note in header) */}
+      <td className="w-28 px-4 py-0">
+        <TypeBadge type={coupon.coupon_type} />
+      </td>
+
+      {/* มูลค่า — right-aligned tabular-nums */}
+      <td className="w-24 px-4 py-0 text-right font-mono text-sm text-[var(--color-fg)] tabular-nums">
+        {coupon.krub_amount.toLocaleString()}
+      </td>
+
+      {/* ใช้แล้ว / สูงสุด — "3 / 10" format per spec §5 */}
+      <td className="w-28 px-4 py-0 text-right font-content text-sm text-[var(--color-fg-muted)] tabular-nums">
+        {coupon.used_count} / {coupon.max_uses}
+      </td>
+
+      {/* หมดอายุ — nullable: show "—" when null */}
+      <td className="w-32 px-4 py-0 font-mono text-xs text-[var(--color-fg-muted)] tabular-nums">
+        {coupon.expires_at ? formatDateTime(coupon.expires_at) : "—"}
+      </td>
+
+      {/* สถานะ */}
+      <td className="w-28 px-4 py-0">
+        <StatusBadge status={coupon.status} />
+      </td>
+
+      {/* Actions — dropdown, w-16 */}
+      <td className="w-16 px-4 py-0 text-right" onClick={(e) => e.stopPropagation()}>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <button className="flex items-center justify-center w-8 h-8 rounded-md text-fg-subtle hover:text-foreground hover:bg-white/8 transition-colors">
+            <button
+              className="flex items-center justify-center w-8 h-8 rounded-md text-[var(--color-fg-subtle)] hover:text-[var(--color-fg)] hover:bg-white/[0.08] motion-safe:transition-colors duration-150"
+              aria-label="เมนู"
+            >
               <MoreHorizontal className="w-4 h-4" />
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="min-w-[160px]">
-            <DropdownMenuItem onClick={() => copyToClipboard(coupon.code)}>
-              <Copy className="w-4 h-4 mr-2" /> copy code
+            <DropdownMenuItem
+              onClick={() => copyToClipboard(coupon.code)}
+              className="font-ui text-sm cursor-pointer"
+            >
+              <Copy className="w-4 h-4 mr-2" aria-hidden="true" /> copy code
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={onView}>ดูรายละเอียด</DropdownMenuItem>
             <DropdownMenuSeparator />
             {coupon.status === "active" && (
-              <DropdownMenuItem onClick={onDisable} className="text-amber-400">
+              <DropdownMenuItem
+                onClick={onDisable}
+                className="font-ui text-sm cursor-pointer text-[var(--color-warning)] focus:text-[var(--color-warning)]"
+              >
                 ปิดใช้งาน
               </DropdownMenuItem>
             )}
             {(coupon.status === "active" || coupon.status === "disabled") && (
-              <DropdownMenuItem onClick={onRevoke} className="text-red-400">
+              <DropdownMenuItem
+                onClick={onRevoke}
+                className="font-ui text-sm cursor-pointer text-[var(--color-error)] focus:text-[var(--color-error)]"
+              >
                 ยกเลิก (Revoke)
               </DropdownMenuItem>
             )}
@@ -770,64 +963,5 @@ function DesktopRow({ coupon, selected, onToggleSelect, onView, onDisable, onRev
         </DropdownMenu>
       </td>
     </tr>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Mobile card
-// ---------------------------------------------------------------------------
-
-function MobileCard({ coupon, onView, onRevoke }: { coupon: Coupon; onView: () => void; onRevoke: () => void }) {
-  return (
-    <div className="bg-card rounded-xl border border-white/8 p-4 space-y-2">
-      <div className="flex items-start justify-between gap-2">
-        <div className="flex items-center gap-2 flex-wrap">
-          <StatusBadge status={coupon.status} />
-          <TypeBadge type={coupon.coupon_type} />
-        </div>
-        <button
-          onClick={() => copyToClipboard(coupon.code)}
-          className="shrink-0 p-1.5 rounded-lg text-fg-subtle hover:text-[#F25F2D] hover:bg-white/5 transition-colors"
-        >
-          <Copy className="w-4 h-4" />
-        </button>
-      </div>
-      <p className="font-mono text-sm text-foreground tabular-nums">{coupon.code}</p>
-      <p className="font-content text-sm text-muted-foreground">
-        {coupon.krub_amount} krub · ใช้แล้ว {coupon.used_count}/{coupon.max_uses}
-      </p>
-      <p className="font-mono text-xs text-fg-subtle tabular-nums">{formatDateTime(coupon.created_at)} · {coupon.created_by}</p>
-      <div className="flex items-center gap-2 pt-1">
-        <Button size="sm" variant="outline" onClick={onView} className="flex-1 border-white/20 text-muted-foreground hover:bg-white/5 h-9">
-          ดูรายละเอียด
-        </Button>
-        {(coupon.status === "active" || coupon.status === "disabled") && (
-          <Button size="sm" onClick={onRevoke} className="bg-red-600/20 border border-red-500/30 text-red-400 hover:bg-red-900/40 h-9">
-            Revoke
-          </Button>
-        )}
-      </div>
-    </div>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Loading skeleton
-// ---------------------------------------------------------------------------
-
-function LoadingSkeleton() {
-  return (
-    <div className="bg-card rounded-xl border border-white/8 overflow-hidden">
-      {Array.from({ length: 5 }).map((_, i) => (
-        <div key={i} className="border-t border-white/5 first:border-t-0 px-4 py-3 flex items-center gap-4">
-          <div className="h-4 w-4 rounded bg-white/5 animate-pulse shrink-0" />
-          <div className="h-4 rounded bg-white/5 animate-pulse" style={{ width: `${100 + (i * 30) % 80}px` }} />
-          <div className="h-4 w-10 rounded bg-white/5 animate-pulse" />
-          <div className="h-4 w-16 rounded bg-white/5 animate-pulse ml-auto" />
-          <div className="h-4 w-20 rounded bg-white/5 animate-pulse" />
-          <div className="h-4 w-24 rounded bg-white/5 animate-pulse" />
-        </div>
-      ))}
-    </div>
   );
 }
