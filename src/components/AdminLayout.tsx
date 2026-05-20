@@ -149,7 +149,7 @@ function SidebarNavLink({
       onClick={onClick}
       title={collapsed ? item.label : undefined}
       className={cn(
-        "flex items-center gap-3 px-3 py-2.5 rounded-md transition-colors",
+        "flex items-center gap-3 px-3 py-2.5 rounded-md motion-safe:transition-colors duration-150",
         "font-ui text-sm min-h-[44px]",
         isActive
           ? "bg-primary/15 text-primary border border-primary/20"
@@ -264,10 +264,10 @@ export default function AdminLayout() {
     <AdminContext.Provider value={{ user: adminUser, role: adminUser.role }}>
       <div className="min-h-screen bg-background flex flex-col">
         {/* ── TOP BAR ── */}
-        <header className="glass-shell sticky top-0 z-40 h-14 flex items-center gap-4 px-4 border-b border-white/10">
+        <header className="glass-shell sticky top-0 z-[40] h-14 flex items-center gap-4 px-4 border-b border-white/10">
           {/* Mobile hamburger */}
           <button
-            className="md:hidden flex items-center justify-center w-11 h-11 rounded-md text-muted-foreground hover:text-foreground hover:bg-white/6 transition-colors"
+            className="md:hidden flex items-center justify-center w-11 h-11 rounded-md text-muted-foreground hover:text-foreground hover:bg-white/6 motion-safe:transition-colors duration-150"
             onClick={() => setMobileMenuOpen(true)}
             aria-label="เปิดเมนู"
           >
@@ -276,7 +276,7 @@ export default function AdminLayout() {
 
           {/* Desktop sidebar collapse toggle */}
           <button
-            className="hidden md:flex items-center justify-center w-8 h-8 rounded-md text-muted-foreground hover:text-foreground hover:bg-white/6 transition-colors shrink-0"
+            className="hidden md:flex items-center justify-center w-8 h-8 rounded-md text-muted-foreground hover:text-foreground hover:bg-white/6 motion-safe:transition-colors duration-150 shrink-0"
             onClick={() => setSidebarCollapsed((v) => !v)}
             aria-label={sidebarCollapsed ? "ขยาย sidebar" : "ย่อ sidebar"}
           >
@@ -299,7 +299,7 @@ export default function AdminLayout() {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button
-                className="flex items-center justify-center w-9 h-9 rounded-full bg-primary/20 border border-primary/30 text-primary font-ui text-sm font-medium hover:bg-primary/30 transition-colors"
+                className="flex items-center justify-center w-9 h-9 rounded-full bg-primary/20 border border-primary/30 text-primary font-ui text-sm font-medium hover:bg-primary/30 motion-safe:transition-colors duration-150"
                 aria-label="เมนูผู้ใช้"
               >
                 {avatarInitial}
@@ -339,7 +339,11 @@ export default function AdminLayout() {
           <aside
             className={cn(
               "hidden md:flex flex-col glass-shell border-r border-white/10",
-              "h-[calc(100vh-56px)] sticky top-14 shrink-0 transition-all duration-200",
+              "h-[calc(100vh-56px)] sticky top-14 shrink-0",
+              /* NOTE: animating width violates FORBID-LIST §7 (layout reflow), but the
+                 task spec explicitly requires sidebar collapse to animate. We use
+                 motion-safe + explicit property list to minimize jank risk. */
+              "motion-safe:transition-[width,background-color] duration-200 ease",
               sidebarCollapsed ? "w-14" : "w-56"
             )}
           >
@@ -363,7 +367,7 @@ export default function AdminLayout() {
                 </SheetTitle>
                 <SheetClose asChild>
                   <button
-                    className="flex items-center justify-center w-8 h-8 rounded-md text-muted-foreground hover:text-foreground hover:bg-white/6 transition-colors"
+                    className="flex items-center justify-center w-8 h-8 rounded-md text-muted-foreground hover:text-foreground hover:bg-white/6 motion-safe:transition-colors duration-150"
                     aria-label="ปิดเมนู"
                   >
                     <X className="w-4 h-4" />
@@ -387,7 +391,7 @@ export default function AdminLayout() {
                     setMobileMenuOpen(false);
                     void handleSignOut();
                   }}
-                  className="mt-2 flex items-center gap-2 font-ui text-sm text-destructive hover:text-destructive/80 transition-colors"
+                  className="mt-2 flex items-center gap-2 font-ui text-sm text-destructive hover:text-destructive/80 motion-safe:transition-colors duration-150"
                 >
                   <LogOut className="w-4 h-4" />
                   ออกจากระบบ
@@ -403,7 +407,7 @@ export default function AdminLayout() {
         </div>
 
         {/* ── MOBILE BOTTOM NAV ── */}
-        <nav className="md:hidden glass-shell fixed bottom-0 inset-x-0 z-40 border-t border-white/10 h-16 flex items-center justify-around px-2">
+        <nav className="md:hidden glass-shell fixed bottom-0 inset-x-0 z-[40] border-t border-white/10 h-16 flex items-center justify-around px-2">
           {BOTTOM_NAV_ITEMS.map((item) => (
             <MobileBottomNavItem key={item.to} item={item} />
           ))}
@@ -428,7 +432,7 @@ function MobileBottomNavItem({ item }: { item: NavItem }) {
     <Link
       to={item.to}
       className={cn(
-        "flex flex-col items-center gap-1 min-w-[44px] min-h-[44px] justify-center rounded-md transition-colors",
+        "flex flex-col items-center gap-1 min-w-[44px] min-h-[44px] justify-center rounded-md motion-safe:transition-colors duration-150",
         isActive ? "text-primary" : "text-muted-foreground hover:text-foreground"
       )}
     >

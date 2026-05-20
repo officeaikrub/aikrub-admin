@@ -82,9 +82,9 @@ export function SoftDeleteUserModal({
 
   return (
     <Dialog open={open} onOpenChange={(o) => { if (!o) handleClose(); }}>
-      <DialogContent className="bg-[#1E293B] border-white/8 max-w-sm">
+      <DialogContent className="bg-card border-white/8 max-w-sm">
         <DialogHeader>
-          <DialogTitle className="font-ui text-[#F1F5F9]">
+          <DialogTitle className="font-ui text-foreground">
             {step === 1 ? "🗑 ลบบัญชี (Soft Delete)" : "ยืนยันการลบบัญชี — ขั้นตอนสุดท้าย"}
           </DialogTitle>
         </DialogHeader>
@@ -112,9 +112,9 @@ export function SoftDeleteUserModal({
                   onChange={(e) => setChecked(e.target.checked)}
                   className="mt-0.5 accent-[#F25F2D]"
                 />
-                <span className="font-content text-sm text-[#F1F5F9]">
+                <span className="font-content text-sm text-foreground">
                   ฉันยืนยันว่าต้องการลบบัญชีของ{" "}
-                  <span className="font-mono text-[#94A3B8]">{displayEmail}</span>
+                  <span className="font-mono text-muted-foreground">{displayEmail}</span>
                 </span>
               </label>
             </div>
@@ -122,7 +122,7 @@ export function SoftDeleteUserModal({
             <DialogFooter>
               <Button
                 variant="outline"
-                className="border-white/20 text-[#94A3B8] hover:bg-white/5"
+                className="border-white/20 text-muted-foreground hover:bg-white/5"
                 onClick={handleClose}
               >
                 ยกเลิก
@@ -146,7 +146,7 @@ export function SoftDeleteUserModal({
         {step === 2 && (
           <>
             <div className="space-y-4 py-2">
-              <p className="font-ui text-sm text-[#F1F5F9]">
+              <p className="font-ui text-sm text-foreground">
                 พิมพ์{" "}
                 <span className="font-mono font-bold text-red-400">DELETE</span>
                 {" "}เพื่อยืนยัน
@@ -159,7 +159,7 @@ export function SoftDeleteUserModal({
                 placeholder="พิมพ์ DELETE"
                 autoFocus
                 className={cn(
-                  "w-full bg-[#0F172A] border rounded-lg px-3 py-2.5 font-mono text-sm text-[#F1F5F9] focus:outline-none transition-colors",
+                  "w-full bg-[#0F172A] border rounded-lg px-3 py-2.5 font-mono text-sm text-foreground focus:outline-none transition-colors",
                   isDeleteConfirmed
                     ? "border-green-500/50 bg-green-900/10"
                     : "border-white/10 focus:border-[#F25F2D]",
@@ -176,7 +176,7 @@ export function SoftDeleteUserModal({
             <DialogFooter>
               <Button
                 variant="outline"
-                className="border-white/20 text-[#94A3B8] hover:bg-white/5"
+                className="border-white/20 text-muted-foreground hover:bg-white/5"
                 onClick={() => setStep(1)}
                 disabled={mutation.isPending}
               >

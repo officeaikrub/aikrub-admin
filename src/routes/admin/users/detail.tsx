@@ -56,14 +56,14 @@ function truncateId(id: string): string {
 // ---------------------------------------------------------------------------
 
 function UserStatusBadge({ status }: { status: AdminUserRow["status"] }) {
-  const map: Record<AdminUserRow["status"], { dot: string; bg: string; text: string; label: string }> = {
-    active:       { dot: "bg-green-400",  bg: "bg-green-900/30",  text: "text-green-400",  label: "เปิดใช้งาน" },
-    suspended:    { dot: "bg-amber-400",  bg: "bg-amber-900/30",  text: "text-amber-400",  label: "ระงับ"       },
-    soft_deleted: { dot: "bg-red-400",    bg: "bg-red-900/30",    text: "text-red-400",    label: "ลบแล้ว"      },
+  const map: Record<AdminUserRow["status"], { dot: string; badge: string; label: string }> = {
+    active:       { dot: "bg-[var(--color-success)]",   badge: "bg-[var(--color-success)]/15   text-[var(--color-success)]   border-[var(--color-success)]/20",   label: "เปิดใช้งาน" },
+    suspended:    { dot: "bg-[var(--color-warning)]",   badge: "bg-[var(--color-warning)]/15   text-[var(--color-warning)]   border-[var(--color-warning)]/20",   label: "ระงับ"       },
+    soft_deleted: { dot: "bg-[var(--color-error)]",     badge: "bg-[var(--color-error)]/15     text-[var(--color-error)]     border-[var(--color-error)]/20",     label: "ลบแล้ว"      },
   };
   const s = map[status];
   return (
-    <span className={cn("inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-ui", s.bg, s.text)}>
+    <span className={cn("inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-ui border", s.badge)}>
       <span className={cn("w-1.5 h-1.5 rounded-full shrink-0", s.dot)} />
       {s.label}
     </span>
@@ -113,17 +113,17 @@ function HeroCard({ user, balance }: { user: AdminUserRow; balance: number }) {
     : null;
 
   return (
-    <div className="bg-[#1E293B] rounded-xl border border-white/8 p-6 mb-4">
+    <div className="bg-card rounded-xl border border-white/8 p-6 mb-4">
       {/* Identity */}
       <div className="flex items-start gap-4">
-        <div className="w-[4.5rem] h-[4.5rem] rounded-full bg-slate-700 flex items-center justify-center text-2xl font-display text-[#94A3B8] flex-shrink-0">
+        <div className="w-[4.5rem] h-[4.5rem] rounded-full bg-slate-700 flex items-center justify-center text-2xl font-display text-muted-foreground flex-shrink-0">
           {user.display_name ? user.display_name[0]?.toUpperCase() : "?"}
         </div>
         <div className="flex-1 min-w-0">
-          <h2 className="font-display text-xl text-[#F1F5F9] truncate">
+          <h2 className="font-display text-xl text-foreground truncate">
             {user.display_name ?? "—"}
           </h2>
-          <p className="font-content text-sm text-[#94A3B8] mt-0.5 truncate">
+          <p className="font-content text-sm text-muted-foreground mt-0.5 truncate">
             {user.email ?? "—"}
           </p>
           <div className="flex items-center gap-1.5 mt-2 flex-wrap">
@@ -135,30 +135,30 @@ function HeroCard({ user, balance }: { user: AdminUserRow; balance: number }) {
 
       {/* Balance */}
       <div className="mt-4">
-        <p className="font-ui text-xs text-[#475569] uppercase tracking-wide mb-1">ยอดปัจจุบัน</p>
-        <p className="font-display text-3xl text-[#F1F5F9]">{balance} krub</p>
+        <p className="font-ui text-xs text-fg-subtle uppercase tracking-wide mb-1">ยอดปัจจุบัน</p>
+        <p className="font-display text-3xl text-foreground">{balance} krub</p>
       </div>
 
       {/* Info grid */}
       <div className="grid grid-cols-3 gap-3 mt-4 text-xs">
         <div>
-          <p className="font-ui text-[#475569] uppercase tracking-wide text-[10px] mb-1">UUID</p>
+          <p className="font-ui text-fg-subtle uppercase tracking-wide text-[10px] mb-1">UUID</p>
           <div className="flex items-center gap-1">
-            <span className="font-mono text-[#94A3B8] tabular-nums">{truncateId(user.id)}</span>
-            <button onClick={copyId} className="text-[#475569] hover:text-[#F25F2D] transition-colors">
+            <span className="font-mono text-muted-foreground tabular-nums">{truncateId(user.id)}</span>
+            <button onClick={copyId} className="text-fg-subtle hover:text-[#F25F2D] transition-colors">
               <Copy className="w-3 h-3" />
             </button>
           </div>
         </div>
         <div>
-          <p className="font-ui text-[#475569] uppercase tracking-wide text-[10px] mb-1">สมัคร</p>
-          <p className="font-mono text-[#94A3B8] tabular-nums">
+          <p className="font-ui text-fg-subtle uppercase tracking-wide text-[10px] mb-1">สมัคร</p>
+          <p className="font-mono text-muted-foreground tabular-nums">
             {user.created_at ? formatDateTime(user.created_at).slice(0, 10) : "—"}
           </p>
         </div>
         <div>
-          <p className="font-ui text-[#475569] uppercase tracking-wide text-[10px] mb-1">อัปเดต</p>
-          <p className="font-mono text-[#94A3B8] tabular-nums">
+          <p className="font-ui text-fg-subtle uppercase tracking-wide text-[10px] mb-1">อัปเดต</p>
+          <p className="font-mono text-muted-foreground tabular-nums">
             {user.suspended_at ? formatDateTime(user.suspended_at).slice(0, 10) : "—"}
           </p>
         </div>
@@ -218,7 +218,7 @@ function TabsPanel({ data, viewerRole }: { data: AdminUserDetail; viewerRole: "a
   const [activeTab, setActiveTab] = useState<TabId>("generations");
 
   return (
-    <div className="bg-[#1E293B] rounded-xl border border-white/8 mb-4">
+    <div className="bg-card rounded-xl border border-white/8 mb-4">
       {/* Tab bar */}
       <div className="flex border-b border-white/8 overflow-x-auto scrollbar-none">
         {TAB_LABELS.map((t) => (
@@ -228,8 +228,8 @@ function TabsPanel({ data, viewerRole }: { data: AdminUserDetail; viewerRole: "a
             className={cn(
               "px-4 py-2.5 font-ui text-sm whitespace-nowrap transition-colors",
               activeTab === t.id
-                ? "text-[#F1F5F9] border-b-2 border-[#F25F2D]"
-                : "text-[#94A3B8] hover:text-[#F1F5F9]",
+                ? "text-foreground border-b-2 border-[#F25F2D]"
+                : "text-muted-foreground hover:text-foreground",
             )}
           >
             {t.label}
@@ -242,22 +242,22 @@ function TabsPanel({ data, viewerRole }: { data: AdminUserDetail; viewerRole: "a
         {activeTab === "generations" && (
           <div className="space-y-3">
             {data.recent_generations.length === 0 && (
-              <p className="font-content text-sm text-[#475569] text-center py-4">ยังไม่มีประวัติการสร้าง</p>
+              <p className="font-content text-sm text-fg-subtle text-center py-4">ยังไม่มีประวัติการสร้าง</p>
             )}
             {data.recent_generations.map((g) => (
               <div key={g.id} className="border border-white/5 rounded-lg p-3 space-y-1">
                 <div className="flex items-center justify-between">
-                  <span className="font-mono text-xs text-[#94A3B8]">#{g.id.slice(0, 10)}</span>
+                  <span className="font-mono text-xs text-muted-foreground">#{g.id.slice(0, 10)}</span>
                   <GenerationStatusBadge status={g.status} />
                 </div>
-                <p className="font-ui text-xs text-[#475569]">
+                <p className="font-ui text-xs text-fg-subtle">
                   {g.model} · {g.provider}
                 </p>
                 <div className="flex items-center justify-between">
-                  <span className="font-mono text-xs text-[#475569] tabular-nums">
+                  <span className="font-mono text-xs text-fg-subtle tabular-nums">
                     {formatDateTime(g.created_at)}
                   </span>
-                  <span className="font-mono text-xs text-[#94A3B8] tabular-nums">
+                  <span className="font-mono text-xs text-muted-foreground tabular-nums">
                     {g.cost} krub
                   </span>
                 </div>
@@ -269,20 +269,20 @@ function TabsPanel({ data, viewerRole }: { data: AdminUserDetail; viewerRole: "a
         {activeTab === "krub" && (
           <div className="overflow-x-auto">
             {data.recent_redemptions.length === 0 ? (
-              <p className="font-content text-sm text-[#475569] text-center py-4">ยังไม่มีประวัติ krub</p>
+              <p className="font-content text-sm text-fg-subtle text-center py-4">ยังไม่มีประวัติ krub</p>
             ) : (
               <table className="w-full">
                 <thead>
                   <tr>
-                    <th className="px-2 py-2 font-ui text-xs text-[#94A3B8] text-left uppercase tracking-wide">วันที่</th>
-                    <th className="px-2 py-2 font-ui text-xs text-[#94A3B8] text-left uppercase tracking-wide">ประเภท</th>
-                    <th className="px-2 py-2 font-ui text-xs text-[#94A3B8] text-right uppercase tracking-wide">krub</th>
+                    <th className="px-2 py-2 font-ui text-xs text-muted-foreground text-left uppercase tracking-wide">วันที่</th>
+                    <th className="px-2 py-2 font-ui text-xs text-muted-foreground text-left uppercase tracking-wide">ประเภท</th>
+                    <th className="px-2 py-2 font-ui text-xs text-muted-foreground text-right uppercase tracking-wide">krub</th>
                   </tr>
                 </thead>
                 <tbody>
                   {data.recent_redemptions.map((r) => (
                     <tr key={r.coupon_id + r.redeemed_at} className="border-t border-white/5">
-                      <td className="px-2 py-2 font-mono text-xs text-[#475569] tabular-nums">
+                      <td className="px-2 py-2 font-mono text-xs text-fg-subtle tabular-nums">
                         {formatDateTime(r.redeemed_at)}
                       </td>
                       <td className="px-2 py-2">
@@ -302,23 +302,23 @@ function TabsPanel({ data, viewerRole }: { data: AdminUserDetail; viewerRole: "a
         {activeTab === "coupons" && (
           <div className="overflow-x-auto">
             {data.recent_redemptions.length === 0 ? (
-              <p className="font-content text-sm text-[#475569] text-center py-4">ยังไม่มีประวัติคูปอง</p>
+              <p className="font-content text-sm text-fg-subtle text-center py-4">ยังไม่มีประวัติคูปอง</p>
             ) : (
               <table className="w-full">
                 <thead>
                   <tr>
-                    <th className="px-2 py-2 font-ui text-xs text-[#94A3B8] text-left uppercase tracking-wide">วันที่ Redeem</th>
-                    <th className="px-2 py-2 font-ui text-xs text-[#94A3B8] text-left uppercase tracking-wide">Coupon ID</th>
-                    <th className="px-2 py-2 font-ui text-xs text-[#94A3B8] text-right uppercase tracking-wide">krub ที่ได้</th>
+                    <th className="px-2 py-2 font-ui text-xs text-muted-foreground text-left uppercase tracking-wide">วันที่ Redeem</th>
+                    <th className="px-2 py-2 font-ui text-xs text-muted-foreground text-left uppercase tracking-wide">Coupon ID</th>
+                    <th className="px-2 py-2 font-ui text-xs text-muted-foreground text-right uppercase tracking-wide">krub ที่ได้</th>
                   </tr>
                 </thead>
                 <tbody>
                   {data.recent_redemptions.map((r) => (
                     <tr key={r.coupon_id + r.redeemed_at} className="border-t border-white/5">
-                      <td className="px-2 py-2 font-mono text-xs text-[#475569] tabular-nums">
+                      <td className="px-2 py-2 font-mono text-xs text-fg-subtle tabular-nums">
                         {formatDateTime(r.redeemed_at)}
                       </td>
-                      <td className="px-2 py-2 font-mono text-xs text-[#94A3B8]">
+                      <td className="px-2 py-2 font-mono text-xs text-muted-foreground">
                         {r.coupon_id.slice(0, 12)}…
                       </td>
                       <td className="px-2 py-2 font-mono text-sm text-right text-green-400 tabular-nums">
@@ -376,7 +376,7 @@ function ActionsPanel({
   // Self-target rule: replace entire panel
   if (isSelf) {
     return (
-      <div className="text-xs text-[#475569] p-4">
+      <div className="text-xs text-fg-subtle p-4">
         ไม่สามารถดำเนินการกับบัญชีตัวเองได้
       </div>
     );
@@ -385,7 +385,7 @@ function ActionsPanel({
   // Hard-purged: all actions hidden
   if (user.status === ("hard_purged" as AdminUserRow["status"])) {
     return (
-      <div className="text-xs text-[#475569] p-4">read-only — บัญชีนี้ถูกลบถาวรแล้ว</div>
+      <div className="text-xs text-fg-subtle p-4">read-only — บัญชีนี้ถูกลบถาวรแล้ว</div>
     );
   }
 
@@ -395,8 +395,8 @@ function ActionsPanel({
   const gracePeriodExpired = isSoftDeleted && !isInGracePeriod(user.deleted_at);
 
   return (
-    <div className="bg-[#1E293B] rounded-xl border border-white/8 p-4 space-y-2">
-      <p className="font-ui text-xs text-[#94A3B8] uppercase tracking-wide mb-3">การดำเนินการ</p>
+    <div className="bg-card rounded-xl border border-white/8 p-4 space-y-2">
+      <p className="font-ui text-xs text-muted-foreground uppercase tracking-wide mb-3">การดำเนินการ</p>
 
       {/* ปรับยอด krub */}
       <button
@@ -440,8 +440,8 @@ function ActionsPanel({
               className={cn(
                 "w-full h-10 px-4 rounded-lg border font-ui text-sm transition-colors",
                 isPeerAdminBlock
-                  ? "opacity-40 cursor-not-allowed border-white/20 text-[#94A3B8]"
-                  : "border-white/20 text-[#94A3B8] hover:bg-white/5",
+                  ? "opacity-40 cursor-not-allowed border-white/20 text-muted-foreground"
+                  : "border-white/20 text-muted-foreground hover:bg-white/5",
               )}
             >
               {isUnsuspending ? "กำลังยกเลิก..." : "◎ ยกเลิกการระงับ"}
@@ -461,7 +461,7 @@ function ActionsPanel({
       )}
 
       {gracePeriodExpired && (
-        <p className="text-xs text-[#475569] font-content">
+        <p className="text-xs text-fg-subtle font-content">
           grace period หมดแล้ว — บัญชีนี้จะถูกลบโดย pg_cron
         </p>
       )}
@@ -489,18 +489,18 @@ function ActionsPanel({
 function AuditTrailCard({ trail }: { trail: AdminUserDetail["audit_trail"] }) {
   if (trail.length === 0) {
     return (
-      <div className="bg-[#1E293B] rounded-xl border border-white/8 p-4 mt-4">
-        <p className="font-ui text-sm text-[#94A3B8] uppercase tracking-wide mb-3">
+      <div className="bg-card rounded-xl border border-white/8 p-4 mt-4">
+        <p className="font-ui text-sm text-muted-foreground uppercase tracking-wide mb-3">
           ประวัติการดำเนินการของแอดมิน
         </p>
-        <p className="font-content text-sm text-[#475569] text-center py-2">ยังไม่มีประวัติ</p>
+        <p className="font-content text-sm text-fg-subtle text-center py-2">ยังไม่มีประวัติ</p>
       </div>
     );
   }
 
   return (
-    <div className="bg-[#1E293B] rounded-xl border border-white/8 p-4 mt-4">
-      <p className="font-ui text-sm text-[#94A3B8] uppercase tracking-wide mb-3">
+    <div className="bg-card rounded-xl border border-white/8 p-4 mt-4">
+      <p className="font-ui text-sm text-muted-foreground uppercase tracking-wide mb-3">
         ประวัติการดำเนินการของแอดมิน (10 รายการล่าสุด)
       </p>
       <div className="space-y-0">
@@ -508,16 +508,16 @@ function AuditTrailCard({ trail }: { trail: AdminUserDetail["audit_trail"] }) {
           const detail = JSON.stringify(row.payload).slice(1, -1).replace(/"/g, "").slice(0, 50);
           return (
             <div key={row.id} className="flex gap-3 py-2 border-t border-white/5 text-xs">
-              <span className="font-mono text-[#475569] tabular-nums shrink-0 w-[140px]">
+              <span className="font-mono text-fg-subtle tabular-nums shrink-0 w-[140px]">
                 {formatDateTime(row.created_at)}
               </span>
-              <span className="font-ui text-[#94A3B8] shrink-0 w-[60px] truncate">
+              <span className="font-ui text-muted-foreground shrink-0 w-[60px] truncate">
                 {row.actor_role}
               </span>
-              <span className="font-mono text-[#F1F5F9] shrink-0 w-[140px] truncate">
+              <span className="font-mono text-foreground shrink-0 w-[140px] truncate">
                 {row.action}
               </span>
-              <span className="font-content text-[#475569] truncate">{detail}</span>
+              <span className="font-content text-fg-subtle truncate">{detail}</span>
             </div>
           );
         })}
@@ -558,7 +558,7 @@ export default function UserDetail() {
     return (
       <div className="p-4 md:p-6 space-y-4 animate-pulse">
         <div className="h-6 w-32 bg-white/5 rounded" />
-        <div className="bg-[#1E293B] rounded-xl border border-white/8 p-6">
+        <div className="bg-card rounded-xl border border-white/8 p-6">
           <div className="flex gap-4">
             <div className="w-[4.5rem] h-[4.5rem] rounded-full bg-white/5" />
             <div className="space-y-2 flex-1">
@@ -604,7 +604,7 @@ export default function UserDetail() {
       {/* Back nav */}
       <button
         onClick={() => navigate("/users")}
-        className="flex items-center gap-1.5 text-[#94A3B8] hover:text-[#F1F5F9] font-ui text-sm mb-4 transition-colors"
+        className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground font-ui text-sm mb-4 transition-colors"
       >
         <ChevronLeft className="w-4 h-4" />
         กลับ

@@ -121,9 +121,9 @@ export function AdjustKrubModal({
 
   return (
     <Dialog open={open} onOpenChange={(o) => { if (!o) handleClose(); }}>
-      <DialogContent className="bg-[#1E293B] border-white/8 max-w-sm">
+      <DialogContent className="border-white/8 max-w-sm">
         <DialogHeader>
-          <DialogTitle className="font-ui text-[#F1F5F9]">
+          <DialogTitle className="font-ui text-foreground">
             ปรับยอด krub — {displayName}
           </DialogTitle>
         </DialogHeader>
@@ -131,17 +131,17 @@ export function AdjustKrubModal({
         <div className="space-y-4 py-2">
           {/* Current balance */}
           <div>
-            <p className="font-ui text-xs text-[#475569] uppercase tracking-wide mb-1.5">
+            <p className="font-ui text-xs text-fg-subtle uppercase tracking-wide mb-1.5">
               ยอดปัจจุบัน
             </p>
-            <div className="font-display text-2xl text-[#F1F5F9] bg-[#0F172A] rounded-lg px-4 py-3 cursor-not-allowed select-none">
+            <div className="font-display text-2xl text-foreground bg-[#0F172A] rounded-lg px-4 py-3 cursor-not-allowed select-none">
               {balance} krub
             </div>
           </div>
 
           {/* Direction radio */}
           <div>
-            <p className="font-ui text-xs text-[#475569] uppercase tracking-wide mb-2">
+            <p className="font-ui text-xs text-fg-subtle uppercase tracking-wide mb-2">
               ประเภท
             </p>
             <div className="flex gap-4">
@@ -155,7 +155,7 @@ export function AdjustKrubModal({
                     onChange={() => { setDirection(d); setIsDirty(true); }}
                     className="accent-[#F25F2D]"
                   />
-                  <span className="font-ui text-sm text-[#F1F5F9]">
+                  <span className="font-ui text-sm text-foreground">
                     {d === "add" ? "เพิ่ม krub" : "ลด krub"}
                   </span>
                 </label>
@@ -165,7 +165,7 @@ export function AdjustKrubModal({
 
           {/* Amount input */}
           <div>
-            <p className="font-ui text-xs text-[#475569] uppercase tracking-wide mb-1.5">
+            <p className="font-ui text-xs text-fg-subtle uppercase tracking-wide mb-1.5">
               จำนวน (krub) *
             </p>
             <input
@@ -175,7 +175,7 @@ export function AdjustKrubModal({
               onChange={(e) => { setAmountStr(e.target.value); setIsDirty(true); }}
               placeholder="0"
               className={cn(
-                "w-full bg-[#0F172A] border rounded-lg px-3 py-2.5 font-mono text-lg text-[#F1F5F9] tabular-nums focus:outline-none transition-colors",
+                "w-full bg-[#0F172A] border rounded-lg px-3 py-2.5 font-mono text-lg text-foreground tabular-nums focus:outline-none transition-colors",
                 balanceError ? "border-red-500/50" : "border-white/10 focus:border-[#F25F2D]",
               )}
             />
@@ -187,7 +187,7 @@ export function AdjustKrubModal({
           {/* New balance preview */}
           {newBalance !== null && !balanceError && (
             <div>
-              <p className="font-ui text-xs text-[#475569] uppercase tracking-wide mb-1.5">
+              <p className="font-ui text-xs text-fg-subtle uppercase tracking-wide mb-1.5">
                 ยอดใหม่จะเป็น
               </p>
               <div
@@ -212,7 +212,7 @@ export function AdjustKrubModal({
 
           {/* Note / reason */}
           <div>
-            <p className="font-ui text-xs text-[#475569] uppercase tracking-wide mb-1.5">
+            <p className="font-ui text-xs text-fg-subtle uppercase tracking-wide mb-1.5">
               เหตุผล *
             </p>
             <textarea
@@ -221,7 +221,7 @@ export function AdjustKrubModal({
               placeholder="ระบุเหตุผลการปรับ krub..."
               rows={3}
               className={cn(
-                "w-full bg-[#0F172A] border rounded-lg px-3 py-2.5 font-content text-sm text-[#F1F5F9] min-h-[80px] resize-none focus:outline-none transition-colors",
+                "w-full bg-[#0F172A] border rounded-lg px-3 py-2.5 font-content text-sm text-foreground min-h-[80px] resize-none focus:outline-none transition-colors",
                 noteError ? "border-red-500/50" : "border-white/10 focus:border-[#F25F2D]",
               )}
             />
@@ -244,13 +244,14 @@ export function AdjustKrubModal({
         <DialogFooter>
           <Button
             variant="outline"
-            className="border-white/20 text-[#94A3B8] hover:bg-white/5"
+            className="border-white/20 text-muted-foreground hover:bg-white/5"
             onClick={handleClose}
             disabled={mutation.isPending}
           >
             ยกเลิก
           </Button>
           <Button
+            variant="cta"
             onClick={() => mutation.mutate()}
             disabled={!canSubmit || mutation.isPending}
             className="bg-[#F25F2D] hover:bg-[#C7461A] text-white font-ui"

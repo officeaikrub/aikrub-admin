@@ -4,12 +4,20 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-sm font-ui text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50",
+  /* Base: explicit transition-colors (not transition-all) + motion-safe guard.
+     Focus ring: global :focus-visible in index.css handles the 2px accent outline
+     uniformly across ALL interactive elements — no per-element ring-* needed here.
+     Per spec §8: single source of truth for focus indicators. */
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-sm font-ui text-sm font-medium motion-safe:transition-colors duration-150 disabled:pointer-events-none disabled:opacity-50",
   {
     variants: {
       variant: {
+        /* Neutral primary — no glow. Use for secondary actions, pagination, cancel-adjacent confirms. */
         default:
-          "bg-primary text-primary-foreground hover:bg-primary/90",
+          "bg-primary text-primary-foreground hover:bg-[var(--color-accent-deep)]",
+        /* Primary CTA — accent glow on hover (only place glow is allowed per spec §4). */
+        cta:
+          "bg-primary text-primary-foreground hover:bg-[var(--color-accent-deep)] hover:shadow-[0_0_16px_rgba(242,95,45,0.25)]",
         ghost:
           "hover:bg-white/5 text-foreground",
         outline:

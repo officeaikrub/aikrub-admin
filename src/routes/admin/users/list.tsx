@@ -71,14 +71,14 @@ function isInGracePeriod(deletedAt: string | null): boolean {
 // ---------------------------------------------------------------------------
 
 function UserStatusBadge({ status }: { status: UserStatus }) {
-  const map: Record<UserStatus, { dot: string; bg: string; text: string; label: string }> = {
-    active:       { dot: "bg-green-400",  bg: "bg-green-900/30",  text: "text-green-400",  label: "เปิดใช้งาน" },
-    suspended:    { dot: "bg-amber-400",  bg: "bg-amber-900/30",  text: "text-amber-400",  label: "ระงับ"       },
-    soft_deleted: { dot: "bg-red-400",    bg: "bg-red-900/30",    text: "text-red-400",    label: "ลบแล้ว"      },
+  const map: Record<UserStatus, { dot: string; badge: string; label: string }> = {
+    active:       { dot: "bg-[var(--color-success)]",   badge: "bg-[var(--color-success)]/15   text-[var(--color-success)]   border-[var(--color-success)]/20",   label: "เปิดใช้งาน" },
+    suspended:    { dot: "bg-[var(--color-warning)]",   badge: "bg-[var(--color-warning)]/15   text-[var(--color-warning)]   border-[var(--color-warning)]/20",   label: "ระงับ"       },
+    soft_deleted: { dot: "bg-[var(--color-error)]",     badge: "bg-[var(--color-error)]/15     text-[var(--color-error)]     border-[var(--color-error)]/20",     label: "ลบแล้ว"      },
   };
   const s = map[status];
   return (
-    <span className={cn("inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-ui", s.bg, s.text)}>
+    <span className={cn("inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-ui border", s.badge)}>
       <span className={cn("w-1.5 h-1.5 rounded-full shrink-0", s.dot)} />
       {s.label}
     </span>
@@ -142,7 +142,7 @@ function BulkResultBanner({ result, onDismiss }: BulkResultBannerProps) {
   }, [onDismiss]);
 
   return (
-    <div className="bg-[#1E293B] border border-white/8 rounded-xl px-4 py-3 flex items-center gap-4 flex-wrap">
+    <div className="bg-card border border-white/8 rounded-xl px-4 py-3 flex items-center gap-4 flex-wrap">
       {suspendedCount > 0 && (
         <span className="font-ui text-sm text-green-400">
           ✓ ระงับแล้ว {suspendedCount} คน
@@ -154,11 +154,11 @@ function BulkResultBanner({ result, onDismiss }: BulkResultBannerProps) {
         </span>
       )}
       {suspendedCount === 0 && failedCount === 0 && (
-        <span className="font-ui text-sm text-[#94A3B8]">ไม่มีการดำเนินการ</span>
+        <span className="font-ui text-sm text-muted-foreground">ไม่มีการดำเนินการ</span>
       )}
       <button
         onClick={onDismiss}
-        className="ml-auto font-ui text-xs text-[#475569] hover:text-[#94A3B8] transition-colors"
+        className="ml-auto font-ui text-xs text-fg-subtle hover:text-muted-foreground transition-colors"
       >
         ✕
       </button>
@@ -369,8 +369,8 @@ export default function UserList() {
 
       {/* Page header */}
       <div className="flex items-center justify-between">
-        <h1 className="font-display text-xl text-[#F1F5F9]">จัดการผู้ใช้</h1>
-        <span className="font-ui text-sm text-[#475569]">รวม {total.toLocaleString()} คน</span>
+        <h1 className="font-display text-xl text-foreground">จัดการผู้ใช้</h1>
+        <span className="font-ui text-sm text-fg-subtle">รวม {total.toLocaleString()} คน</span>
       </div>
 
       {/* PII access banner */}
@@ -403,13 +403,13 @@ export default function UserList() {
       )}
 
       {/* Desktop table */}
-      <div className="hidden md:block bg-[#1E293B] rounded-xl border border-white/8 overflow-hidden">
+      <div className="hidden md:block bg-card rounded-xl border border-white/8 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
               <tr className="border-b border-white/8">
                 {/* Checkbox column */}
-                <th className="w-[40px] px-2 py-3 sticky left-0 z-10 bg-[#1E293B]">
+                <th className="w-[40px] px-2 py-3 sticky left-0 z-10 bg-card">
                   <input
                     ref={headerCheckboxRef}
                     type="checkbox"
@@ -424,14 +424,14 @@ export default function UserList() {
                 <th className="w-[4%] px-2 py-3">
                   <span className="sr-only">avatar</span>
                 </th>
-                <th className="w-[22%] px-3 py-3 font-ui text-xs text-[#94A3B8] uppercase tracking-wide text-left">Email</th>
-                <th className="w-[12%] px-3 py-3 font-ui text-xs text-[#94A3B8] uppercase tracking-wide text-left">ชื่อ</th>
-                <th className="w-[7%] px-3 py-3 font-ui text-xs text-[#94A3B8] uppercase tracking-wide text-left">Role</th>
-                <th className="w-[9%] px-3 py-3 font-ui text-xs text-[#94A3B8] uppercase tracking-wide text-right">krub</th>
-                <th className="w-[9%] px-3 py-3 font-ui text-xs text-[#94A3B8] uppercase tracking-wide text-left">สถานะ</th>
-                <th className="w-[10%] px-3 py-3 font-ui text-xs text-[#94A3B8] uppercase tracking-wide text-left">สมัคร</th>
-                <th className="w-[9%] px-3 py-3 font-ui text-xs text-[#94A3B8] uppercase tracking-wide text-left">Login ล่าสุด</th>
-                <th className="w-[8%] px-3 py-3 font-ui text-xs text-[#94A3B8] uppercase tracking-wide text-right">Actions</th>
+                <th className="w-[22%] px-3 py-3 font-ui text-xs text-muted-foreground uppercase tracking-wide text-left">Email</th>
+                <th className="w-[12%] px-3 py-3 font-ui text-xs text-muted-foreground uppercase tracking-wide text-left">ชื่อ</th>
+                <th className="w-[7%] px-3 py-3 font-ui text-xs text-muted-foreground uppercase tracking-wide text-left">Role</th>
+                <th className="w-[9%] px-3 py-3 font-ui text-xs text-muted-foreground uppercase tracking-wide text-right">krub</th>
+                <th className="w-[9%] px-3 py-3 font-ui text-xs text-muted-foreground uppercase tracking-wide text-left">สถานะ</th>
+                <th className="w-[10%] px-3 py-3 font-ui text-xs text-muted-foreground uppercase tracking-wide text-left">สมัคร</th>
+                <th className="w-[9%] px-3 py-3 font-ui text-xs text-muted-foreground uppercase tracking-wide text-left">Login ล่าสุด</th>
+                <th className="w-[8%] px-3 py-3 font-ui text-xs text-muted-foreground uppercase tracking-wide text-right">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -439,7 +439,7 @@ export default function UserList() {
 
               {!isLoading && items.length === 0 && (
                 <tr>
-                  <td colSpan={10} className="px-4 py-12 text-center font-content text-sm text-[#475569]">
+                  <td colSpan={10} className="px-4 py-12 text-center font-content text-sm text-fg-subtle">
                     ยังไม่มีผู้ใช้ที่ตรงกับเงื่อนไข
                     {(filters.role || filters.status || filters.q) && (
                       <>
@@ -464,7 +464,7 @@ export default function UserList() {
                     key={user.id}
                     className={cn(
                       "border-t border-white/5 transition-colors",
-                      isSelected ? "bg-amber-900/10" : "hover:bg-white/[0.02]",
+                      isSelected ? "bg-[rgba(242,95,45,0.12)] border-l-2 border-l-[var(--color-accent)]" : "hover:bg-white/[0.02]",
                     )}
                   >
                     {/* Checkbox */}
@@ -486,20 +486,20 @@ export default function UserList() {
 
                     {/* Avatar */}
                     <td className="px-2 py-3">
-                      <div className="w-7 h-7 rounded-full bg-slate-700 flex items-center justify-center text-[10px] font-ui text-[#94A3B8]">
+                      <div className="w-7 h-7 rounded-full bg-slate-700 flex items-center justify-center text-[10px] font-ui text-muted-foreground">
                         {user.display_name ? user.display_name[0]?.toUpperCase() : "?"}
                       </div>
                     </td>
 
                     {/* Email */}
                     <td className="px-3 py-3">
-                      <span className="font-content text-sm text-[#94A3B8] truncate max-w-[180px] block">
+                      <span className="font-content text-sm text-muted-foreground truncate max-w-[180px] block">
                         {user.email ?? "—"}
                       </span>
                     </td>
 
                     {/* Name */}
-                    <td className="px-3 py-3 font-ui text-sm text-[#F1F5F9]">
+                    <td className="px-3 py-3 font-ui text-sm text-foreground">
                       {user.display_name ?? "—"}
                     </td>
 
@@ -509,7 +509,7 @@ export default function UserList() {
                     </td>
 
                     {/* krub balance — no separate fetch for list; show N/A */}
-                    <td className="px-3 py-3 font-mono text-sm text-right text-[#94A3B8] tabular-nums">
+                    <td className="px-3 py-3 font-mono text-sm text-right text-muted-foreground tabular-nums">
                       —
                     </td>
 
@@ -519,12 +519,12 @@ export default function UserList() {
                     </td>
 
                     {/* Created at */}
-                    <td className="px-3 py-3 font-mono text-xs text-[#475569] tabular-nums">
+                    <td className="px-3 py-3 font-mono text-xs text-fg-subtle tabular-nums">
                       {user.created_at ? formatDateTime(user.created_at).slice(0, 10) : "—"}
                     </td>
 
                     {/* Last login (not in list response — omit) */}
-                    <td className="px-3 py-3 font-mono text-xs text-[#475569] tabular-nums">
+                    <td className="px-3 py-3 font-mono text-xs text-fg-subtle tabular-nums">
                       —
                     </td>
 
@@ -535,18 +535,18 @@ export default function UserList() {
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="h-7 w-7 p-0 text-[#475569] hover:text-[#F1F5F9] hover:bg-white/5"
+                            className="h-7 w-7 p-0 text-fg-subtle hover:text-foreground hover:bg-white/5"
                           >
                             <MoreHorizontal className="w-4 h-4" />
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent
                           align="end"
-                          className="bg-slate-900/95 backdrop-blur-md border-white/10 min-w-[200px]"
+                          className="min-w-[200px]"
                         >
                           <DropdownMenuItem
                             onClick={() => navigate(`/users/${user.id}`)}
-                            className="font-ui text-sm text-[#F1F5F9] cursor-pointer"
+                            className="font-ui text-sm text-foreground cursor-pointer"
                           >
                             👁 ดูรายละเอียด
                           </DropdownMenuItem>
@@ -557,7 +557,7 @@ export default function UserList() {
                               {canAdjustKrub(user) && (
                                 <DropdownMenuItem
                                   onClick={() => openModal("adjust", user)}
-                                  className="font-ui text-sm text-[#F1F5F9] cursor-pointer"
+                                  className="font-ui text-sm text-foreground cursor-pointer"
                                 >
                                   ⚡ ปรับ krub
                                 </DropdownMenuItem>
@@ -575,7 +575,7 @@ export default function UserList() {
                                   onClick={() => {
                                     void unsuspendMutation.mutateAsync(user.id);
                                   }}
-                                  className="font-ui text-sm text-[#94A3B8] cursor-pointer"
+                                  className="font-ui text-sm text-muted-foreground cursor-pointer"
                                 >
                                   ◎ ยกเลิกการระงับ
                                 </DropdownMenuItem>
@@ -607,7 +607,7 @@ export default function UserList() {
         {/* Pagination */}
         {(hasNext || hasPrev) && (
           <div className="flex items-center justify-between px-4 py-3 border-t border-white/8">
-            <span className="font-ui text-xs text-[#475569]">
+            <span className="font-ui text-xs text-fg-subtle">
               หน้า {page} · รวม {total.toLocaleString()} ผู้ใช้
             </span>
             <div className="flex gap-2">
@@ -616,7 +616,7 @@ export default function UserList() {
                 size="sm"
                 onClick={goPrev}
                 disabled={!hasPrev}
-                className="border-white/10 text-[#94A3B8] hover:bg-white/5 h-8"
+                className="border-white/10 text-muted-foreground hover:bg-white/5 h-8"
               >
                 <ChevronLeft className="w-4 h-4" />
               </Button>
@@ -625,7 +625,7 @@ export default function UserList() {
                 size="sm"
                 onClick={goNext}
                 disabled={!hasNext}
-                className="border-white/10 text-[#94A3B8] hover:bg-white/5 h-8"
+                className="border-white/10 text-muted-foreground hover:bg-white/5 h-8"
               >
                 <ChevronRight className="w-4 h-4" />
               </Button>
@@ -639,7 +639,7 @@ export default function UserList() {
         {isLoading && (
           <div className="space-y-3">
             {[...Array(4)].map((_, i) => (
-              <div key={i} className="bg-[#1E293B] rounded-xl border border-white/8 p-4 space-y-2 animate-pulse">
+              <div key={i} className="bg-card rounded-xl border border-white/8 p-4 space-y-2 animate-pulse">
                 <div className="h-4 w-32 bg-white/5 rounded" />
                 <div className="h-3 w-48 bg-white/5 rounded" />
                 <div className="h-3 w-24 bg-white/5 rounded" />
@@ -649,7 +649,7 @@ export default function UserList() {
         )}
 
         {!isLoading && items.length === 0 && (
-          <div className="py-12 text-center font-content text-sm text-[#475569]">
+          <div className="py-12 text-center font-content text-sm text-fg-subtle">
             ยังไม่มีผู้ใช้ที่ตรงกับเงื่อนไข
           </div>
         )}
@@ -657,14 +657,14 @@ export default function UserList() {
         {!isLoading && items.map((user) => (
           <div
             key={user.id}
-            className="bg-[#1E293B] rounded-xl border border-white/8 p-4 space-y-2"
+            className="bg-card rounded-xl border border-white/8 p-4 space-y-2"
           >
             <div className="flex items-start justify-between">
               <div>
-                <p className="font-ui text-sm text-[#F1F5F9]">
+                <p className="font-ui text-sm text-foreground">
                   {user.display_name ?? "—"}
                 </p>
-                <p className="font-content text-xs text-[#94A3B8] mt-0.5">
+                <p className="font-content text-xs text-muted-foreground mt-0.5">
                   {user.email ?? "—"}
                 </p>
               </div>
@@ -673,7 +673,7 @@ export default function UserList() {
                 <UserStatusBadge status={user.status} />
               </div>
             </div>
-            <p className="font-mono text-xs text-[#475569]">
+            <p className="font-mono text-xs text-fg-subtle">
               สมัคร {user.created_at ? formatDateTime(user.created_at).slice(0, 10) : "—"}
               {user.status === "soft_deleted" && user.deleted_at && (
                 <> · ลบแล้ว ({daysUntilPurge(user.deleted_at)} วัน เหลือ)</>
@@ -683,7 +683,7 @@ export default function UserList() {
               variant="outline"
               size="sm"
               onClick={() => navigate(`/users/${user.id}`)}
-              className="w-full border-white/10 text-[#94A3B8] hover:bg-white/5 h-8 text-xs"
+              className="w-full border-white/10 text-muted-foreground hover:bg-white/5 h-8 text-xs"
             >
               ดูรายละเอียด
             </Button>
@@ -698,7 +698,7 @@ export default function UserList() {
               size="sm"
               onClick={goPrev}
               disabled={!hasPrev}
-              className="flex-1 border-white/10 text-[#94A3B8] hover:bg-white/5"
+              className="flex-1 border-white/10 text-muted-foreground hover:bg-white/5"
             >
               ← ก่อนหน้า
             </Button>
@@ -707,7 +707,7 @@ export default function UserList() {
               size="sm"
               onClick={goNext}
               disabled={!hasNext}
-              className="flex-1 border-white/10 text-[#94A3B8] hover:bg-white/5"
+              className="flex-1 border-white/10 text-muted-foreground hover:bg-white/5"
             >
               ถัดไป →
             </Button>
@@ -717,9 +717,9 @@ export default function UserList() {
 
       {/* Sticky action bar — desktop only, slides in when ≥1 selected */}
       {selectedIds.size >= 1 && (
-        <div className="hidden md:flex sticky bottom-4 z-20 items-center gap-3 bg-[#1E293B] border border-amber-500/30 rounded-xl px-4 py-3 transition-all">
+        <div className="hidden md:flex sticky bottom-4 z-20 items-center gap-3 bg-card border border-amber-500/30 rounded-xl px-4 py-3 transition-colors">
           <span className="text-[#F25F2D] font-ui text-sm">⊘</span>
-          <span className="font-ui text-sm text-[#F1F5F9]">
+          <span className="font-ui text-sm text-foreground">
             {selectedIds.size} user เลือก
           </span>
           <div className="flex-1" />
@@ -738,7 +738,7 @@ export default function UserList() {
           </button>
           <button
             onClick={() => setSelectedIds(new Set())}
-            className="font-ui text-sm text-[#94A3B8] hover:text-[#F1F5F9] underline transition-colors"
+            className="font-ui text-sm text-muted-foreground hover:text-foreground underline transition-colors"
           >
             ล้างการเลือก
           </button>

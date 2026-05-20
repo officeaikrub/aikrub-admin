@@ -91,8 +91,8 @@ export function UserListFilters({
             className={cn(
               "px-4 py-2.5 font-ui text-sm whitespace-nowrap shrink-0 transition-colors",
               filters.role === tab.value
-                ? "text-[#F1F5F9] border-b-2 border-[#F25F2D]"
-                : "text-[#94A3B8] hover:text-[#F1F5F9]",
+                ? "text-foreground border-b-2 border-[#F25F2D]"
+                : "text-muted-foreground hover:text-foreground",
             )}
           >
             {tab.label}
@@ -101,12 +101,12 @@ export function UserListFilters({
       </div>
 
       {/* Filter row (glass) */}
-      <div className="flex flex-wrap gap-2 items-center p-3 rounded-lg bg-white/5 backdrop-blur-md border border-white/10">
+      <div className="flex flex-wrap gap-2 items-center p-3 rounded-lg bg-[var(--color-bg-muted)] border border-white/10">
         {/* Status dropdown */}
         <select
           value={filters.status}
           onChange={handleStatusChange}
-          className="h-8 bg-[#0F172A] border border-white/10 rounded-lg px-3 font-ui text-sm text-[#F1F5F9] focus:border-[#F25F2D] focus:outline-none"
+          className="h-8 bg-[#0F172A] border border-white/10 rounded-lg px-3 font-ui text-sm text-foreground focus:border-[#F25F2D] focus:outline-none"
         >
           {STATUS_OPTIONS.map((o) => (
             <option key={o.value} value={o.value}>
@@ -117,13 +117,13 @@ export function UserListFilters({
 
         {/* Search */}
         <div className="relative flex-1 min-w-[200px]">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#475569] pointer-events-none" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-fg-subtle pointer-events-none" />
           <input
             type="text"
             value={filters.q}
             onChange={handleQChange}
             placeholder="ค้นหา email, ชื่อ หรือ UUID..."
-            className="w-full h-8 bg-[#0F172A] border border-white/10 rounded-lg pl-8 pr-3 font-ui text-sm text-[#F1F5F9] placeholder:text-[#475569] focus:border-[#F25F2D] focus:outline-none"
+            className="w-full h-8 bg-[#0F172A] border border-white/10 rounded-lg pl-8 pr-3 font-ui text-sm text-foreground placeholder:text-fg-subtle focus:border-[#F25F2D] focus:outline-none"
           />
         </div>
 
@@ -131,7 +131,7 @@ export function UserListFilters({
         {hasActiveFilter && (
           <button
             onClick={onReset}
-            className="flex items-center gap-1.5 h-8 px-3 rounded-lg border border-white/10 font-ui text-xs text-[#94A3B8] hover:bg-white/5 transition-colors"
+            className="flex items-center gap-1.5 h-8 px-3 rounded-lg border border-white/10 font-ui text-xs text-muted-foreground hover:bg-white/5 transition-colors"
           >
             <X className="w-3 h-3" />
             ล้างตัวกรอง

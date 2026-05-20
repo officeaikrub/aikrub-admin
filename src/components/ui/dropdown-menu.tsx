@@ -19,8 +19,14 @@ const DropdownMenuContent = React.forwardRef<
       ref={ref}
       sideOffset={sideOffset}
       className={cn(
-        "z-50 min-w-[160px] overflow-hidden rounded-md",
-        "bg-[#1E293B] border border-white/10 shadow-xl",
+        /* z-[45]: between sidebar (40) and modal (50).
+           Radix portals to body root — spec §9 puts overlays at z-30 (content-area
+           dropdowns) but top-bar anchor requires z > sidebar (40). Using z-45 here;
+           flagged to Mind — §9 doesn't account for sidebar-anchored overlays. */
+        "z-[45] min-w-[160px] overflow-hidden rounded-md",
+        /* surface-3 derived: solid card bg + elevated shadow (spec §1, surface-3 note) */
+        "bg-card border border-white/10",
+        "shadow-[0_8px_24px_rgba(0,0,0,0.40)]",
         "data-[state=open]:animate-in data-[state=closed]:animate-out",
         "data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
         "data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
@@ -40,7 +46,7 @@ const DropdownMenuItem = React.forwardRef<
     ref={ref}
     className={cn(
       "relative flex cursor-pointer select-none items-center gap-2 px-3 py-2",
-      "font-ui text-sm text-foreground outline-none transition-colors",
+      "font-ui text-sm text-foreground outline-none motion-safe:transition-colors duration-150",
       "hover:bg-white/8 focus:bg-white/8",
       "data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
       className

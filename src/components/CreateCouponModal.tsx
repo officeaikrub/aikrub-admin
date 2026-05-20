@@ -82,7 +82,7 @@ function FieldLabel({
   required?: boolean;
 }) {
   return (
-    <label className="font-ui text-xs text-[#94A3B8] uppercase tracking-wide block mb-1.5">
+    <label className="font-ui text-xs text-muted-foreground uppercase tracking-wide block mb-1.5">
       {children}
       {required && <span className="text-red-400 ml-1">*</span>}
     </label>
@@ -148,7 +148,7 @@ function PrefixModePicker({
                 "flex-1 py-2 font-ui text-xs text-center transition-colors",
                 isActive
                   ? "text-[#F25F2D] bg-[#F25F2D]/10 border-b-2 border-[#F25F2D]"
-                  : "text-[#94A3B8] bg-[#0F172A] hover:bg-[#334155]",
+                  : "text-muted-foreground bg-[#0F172A] hover:bg-secondary",
                 isDisabled && "opacity-30 cursor-not-allowed hover:bg-[#0F172A]",
               )}
               title={
@@ -165,8 +165,8 @@ function PrefixModePicker({
 
       {/* Mode A — show derived prefix hint */}
       {mode === "auto" && (
-        <p className="font-ui text-xs text-[#475569] mt-1">
-          prefix ดึงจาก channel: <span className="text-[#94A3B8] font-mono">{CHANNEL_PREFIX_MAP[channel] ?? "PROMO"}</span>
+        <p className="font-ui text-xs text-fg-subtle mt-1">
+          prefix ดึงจาก channel: <span className="text-muted-foreground font-mono">{CHANNEL_PREFIX_MAP[channel] ?? "PROMO"}</span>
         </p>
       )}
 
@@ -185,7 +185,7 @@ function PrefixModePicker({
               maxLength={12}
               placeholder="เช่น SUMMER, BIRTHDAY"
               className={cn(
-                "w-32 bg-[#0F172A] border border-white/10 rounded-lg px-2 py-1.5 font-mono text-xs text-[#F1F5F9] uppercase focus:border-[#F25F2D] focus:outline-none",
+                "w-32 bg-[#0F172A] border border-white/10 rounded-lg px-2 py-1.5 font-mono text-xs text-foreground uppercase focus:border-[#F25F2D] focus:outline-none",
                 prefixError && "border-red-500",
               )}
             />
@@ -196,7 +196,7 @@ function PrefixModePicker({
                   key={t}
                   type="button"
                   onClick={() => onPrefixChange(t)}
-                  className="px-2 py-1 rounded bg-[#334155] text-[#94A3B8] font-mono text-xs cursor-pointer hover:bg-[#475569] transition-colors"
+                  className="px-2 py-1 rounded bg-secondary text-muted-foreground font-mono text-xs cursor-pointer hover:bg-[var(--color-bg-raised)] transition-colors"
                 >
                   {t}-
                 </button>
@@ -206,7 +206,7 @@ function PrefixModePicker({
 
           {/* Auto-suggest dropdown */}
           {showSuggest && suggestions.length > 0 && (
-            <ul className="absolute top-full left-0 z-10 mt-1 w-40 bg-slate-900/95 backdrop-blur-md border border-white/10 rounded-lg shadow-xl overflow-hidden">
+            <ul className="absolute top-full left-0 z-10 mt-1 w-40 bg-[var(--color-bg)] border border-white/10 rounded-lg shadow-[0_8px_24px_rgba(0,0,0,0.40)] overflow-hidden">
               {suggestions.map((s) => (
                 <li key={s}>
                   <button
@@ -215,7 +215,7 @@ function PrefixModePicker({
                       onPrefixChange(s);
                       setShowSuggest(false);
                     }}
-                    className="w-full px-3 py-1.5 text-left font-mono text-xs text-[#94A3B8] hover:bg-[#334155] hover:text-[#F1F5F9] transition-colors"
+                    className="w-full px-3 py-1.5 text-left font-mono text-xs text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
                   >
                     {s}
                   </button>
@@ -227,7 +227,7 @@ function PrefixModePicker({
           {prefixError && (
             <p className="font-content text-xs text-red-400 mt-1">{prefixError}</p>
           )}
-          <p className="font-content text-xs text-[#475569] mt-0.5">
+          <p className="font-content text-xs text-fg-subtle mt-0.5">
             A-Z, 0-9, _ ได้ | ไม่เกิน 12 ตัว
           </p>
         </div>
@@ -255,13 +255,13 @@ function DiscardGuardDialog({ open, onStay, onDiscard }: DiscardGuardProps) {
         <DialogHeader>
           <DialogTitle>ทิ้งข้อมูลที่กรอกไว้?</DialogTitle>
         </DialogHeader>
-        <p className="font-content text-sm text-[#94A3B8]">
+        <p className="font-content text-sm text-muted-foreground">
           ข้อมูลที่กรอกจะหายไปถ้าปิดตอนนี้
         </p>
         <DialogFooter className="justify-between">
           <Button
             onClick={onDiscard}
-            className="border border-red-500/40 text-[#EF4444] bg-transparent hover:bg-red-900/20 h-9 px-4 font-ui text-sm"
+            className="border border-red-500/40 text-error bg-transparent hover:bg-red-900/20 h-9 px-4 font-ui text-sm"
           >
             ทิ้ง
           </Button>
@@ -320,27 +320,27 @@ function ConfirmModal({
         <div className="space-y-2 text-sm">
           {/* Code row — labelled as preview */}
           <div className="flex justify-between gap-4">
-            <span className="font-ui text-xs text-[#94A3B8] shrink-0">CODE</span>
-            <span className="font-mono tabular-nums text-[#F1F5F9] text-right">
+            <span className="font-ui text-xs text-muted-foreground shrink-0">CODE</span>
+            <span className="font-mono tabular-nums text-foreground text-right">
               {codePreview}{" "}
-              <span className="text-[#475569] text-xs">(ตัวอย่าง)</span>
+              <span className="text-fg-subtle text-xs">(ตัวอย่าง)</span>
             </span>
           </div>
           <div className="flex justify-between gap-4">
-            <span className="font-ui text-xs text-[#94A3B8] shrink-0">ประเภท</span>
-            <span className="font-content text-[#F1F5F9] text-right">
+            <span className="font-ui text-xs text-muted-foreground shrink-0">ประเภท</span>
+            <span className="font-content text-foreground text-right">
               {couponType === "paid" ? "คูปองแบบจ่ายเงิน" : "คูปองแบบฟรี"}
             </span>
           </div>
           {rows.map((r) => (
             <div key={r.label} className="flex justify-between gap-4">
-              <span className="font-ui text-xs text-[#94A3B8] shrink-0">{r.label}</span>
-              <span className="font-content text-[#F1F5F9] text-right">{r.value}</span>
+              <span className="font-ui text-xs text-muted-foreground shrink-0">{r.label}</span>
+              <span className="font-content text-foreground text-right">{r.value}</span>
             </div>
           ))}
           {slipPreviewUrl && (
             <div className="flex justify-between gap-4">
-              <span className="font-ui text-xs text-[#94A3B8] shrink-0">Slip</span>
+              <span className="font-ui text-xs text-muted-foreground shrink-0">Slip</span>
               <img
                 src={slipPreviewUrl}
                 alt="slip preview"
@@ -367,7 +367,7 @@ function ConfirmModal({
           <DialogClose asChild>
             <Button
               variant="outline"
-              className="border-white/20 text-[#94A3B8] hover:bg-white/5"
+              className="border-white/20 text-muted-foreground hover:bg-white/5"
               disabled={loading}
               onClick={onCancel}
             >
@@ -375,6 +375,7 @@ function ConfirmModal({
             </Button>
           </DialogClose>
           <Button
+            variant="cta"
             onClick={onConfirm}
             disabled={loading}
             className="bg-[#F25F2D] hover:bg-[#C7461A] text-white"
@@ -492,7 +493,7 @@ function PaidFormBody({
         <select
           value={form.channel}
           onChange={(e) => onChannelChange(e.target.value as CouponChannel)}
-          className="w-full bg-[#0F172A] border border-white/10 rounded-lg px-3 py-2.5 font-ui text-sm text-[#F1F5F9] focus:border-[#F25F2D] focus:outline-none"
+          className="w-full bg-[#0F172A] border border-white/10 rounded-lg px-3 py-2.5 font-ui text-sm text-foreground focus:border-[#F25F2D] focus:outline-none"
         >
           {(Object.entries(CHANNEL_LABELS) as [CouponChannel, string][]).map(
             ([val, label]) => (
@@ -532,14 +533,14 @@ function PaidFormBody({
                   onFieldChange("code", sanitizeManualCode(e.target.value))
                 }
                 className={cn(
-                  "bg-[#0F172A] border-white/10 text-[#F1F5F9] font-mono uppercase focus:border-[#F25F2D]",
+                  "bg-[#0F172A] border-white/10 text-foreground font-mono uppercase focus:border-[#F25F2D]",
                   errors.code && "border-red-500",
                 )}
                 placeholder="WELCOME2026"
                 maxLength={64}
               />
             </div>
-            <p className="font-content text-xs text-[#F59E0B] mt-1 flex items-center gap-1">
+            <p className="font-content text-xs text-warning mt-1 flex items-center gap-1">
               <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
               อย่างน้อย 8 ตัว ผสมตัวเลข+ตัวอักษร ห้ามใช้ I L O U
             </p>
@@ -549,7 +550,7 @@ function PaidFormBody({
             <button
               type="button"
               onClick={onManualCodeToggle}
-              className="text-xs text-[#94A3B8] underline cursor-pointer mt-1 inline-flex items-center gap-1 hover:text-[#F1F5F9] transition-colors"
+              className="text-xs text-muted-foreground underline cursor-pointer mt-1 inline-flex items-center gap-1 hover:text-foreground transition-colors"
             >
               <RotateCcw className="w-3 h-3" />
               สุ่มอัตโนมัติ
@@ -558,13 +559,13 @@ function PaidFormBody({
         ) : (
           <>
             <div className="flex items-center gap-2 bg-[#0F172A] border border-white/10 rounded-lg px-3 py-2.5">
-              <span className="flex-1 font-mono text-sm text-[#F1F5F9] tabular-nums truncate">
+              <span className="flex-1 font-mono text-sm text-foreground tabular-nums truncate">
                 {codePreview}
               </span>
               <button
                 type="button"
                 onClick={onReshuffle}
-                className="shrink-0 px-3 py-1.5 rounded-md bg-[#334155] text-[#94A3B8] font-ui text-xs hover:bg-[#475569] hover:text-[#F1F5F9] flex items-center gap-1 transition-colors"
+                className="shrink-0 px-3 py-1.5 rounded-md bg-secondary text-muted-foreground font-ui text-xs hover:bg-[var(--color-bg-raised)] hover:text-foreground flex items-center gap-1 transition-colors"
               >
                 <RefreshCw className="w-3 h-3" />
                 สุ่มใหม่
@@ -592,7 +593,7 @@ function PaidFormBody({
             value={form.krub_amount}
             onChange={(e) => onKrubChange(e.target.value)}
             className={cn(
-              "bg-[#0F172A] border-white/10 text-[#F1F5F9] font-mono tabular-nums focus:border-[#F25F2D]",
+              "bg-[#0F172A] border-white/10 text-foreground font-mono tabular-nums focus:border-[#F25F2D]",
               errors.krub_amount && "border-red-500",
             )}
             placeholder="200"
@@ -611,12 +612,12 @@ function PaidFormBody({
               min={1}
               value={form.payment_thb}
               readOnly
-              className="bg-[#0F172A] border-white/10 text-[#F1F5F9] font-mono tabular-nums cursor-not-allowed opacity-70 pr-10"
+              className="bg-[#0F172A] border-white/10 text-foreground font-mono tabular-nums cursor-not-allowed opacity-70 pr-10"
               placeholder="auto-sync"
             />
-            <Lock className="w-4 h-4 text-[#475569] absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <Lock className="w-4 h-4 text-fg-subtle absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
           </div>
-          <p className="font-content text-xs text-[#475569] mt-1">
+          <p className="font-content text-xs text-fg-subtle mt-1">
             auto-link: ยอด THB = krub (1:1)
           </p>
         </div>
@@ -628,7 +629,7 @@ function PaidFormBody({
         <Input
           value={form.slip_ref}
           onChange={(e) => onFieldChange("slip_ref", e.target.value)}
-          className="bg-[#0F172A] border-white/10 text-[#F1F5F9] focus:border-[#F25F2D]"
+          className="bg-[#0F172A] border-white/10 text-foreground focus:border-[#F25F2D]"
           placeholder="REF20260518..."
         />
       </div>
@@ -651,8 +652,8 @@ function PaidFormBody({
               onDrop={onDrop}
               onClick={() => document.getElementById("slip-input-modal")?.click()}
             >
-              <Upload className="w-6 h-6 text-[#475569]" />
-              <p className="font-content text-sm text-[#94A3B8]">
+              <Upload className="w-6 h-6 text-fg-subtle" />
+              <p className="font-content text-sm text-muted-foreground">
                 ลากไฟล์มาวาง หรือ คลิกเพื่อเลือกไฟล์
               </p>
               <input
@@ -665,7 +666,7 @@ function PaidFormBody({
             </div>
             {/* Mobile */}
             <div className="md:hidden space-y-2">
-              <label className="flex items-center gap-2 w-full px-4 py-3 bg-[#1E293B] rounded-lg font-ui text-sm text-[#F1F5F9] border border-white/8 active:bg-[#334155] cursor-pointer min-h-[44px]">
+              <label className="flex items-center gap-2 w-full px-4 py-3 bg-card rounded-lg font-ui text-sm text-foreground border border-white/8 active:bg-secondary cursor-pointer min-h-[44px]">
                 <Upload className="w-4 h-4" />
                 ถ่ายรูปสลิป
                 <input
@@ -676,7 +677,7 @@ function PaidFormBody({
                   onChange={handleFileInput}
                 />
               </label>
-              <label className="flex items-center gap-2 w-full px-4 py-3 bg-[#1E293B] rounded-lg font-ui text-sm text-[#F1F5F9] border border-white/8 active:bg-[#334155] cursor-pointer min-h-[44px]">
+              <label className="flex items-center gap-2 w-full px-4 py-3 bg-card rounded-lg font-ui text-sm text-foreground border border-white/8 active:bg-secondary cursor-pointer min-h-[44px]">
                 <Upload className="w-4 h-4" />
                 เลือกจากคลัง
                 <input
@@ -725,7 +726,7 @@ function PaidFormBody({
         <Input
           value={form.contact_info}
           onChange={(e) => onFieldChange("contact_info", e.target.value)}
-          className="bg-[#0F172A] border-white/10 text-[#F1F5F9] focus:border-[#F25F2D]"
+          className="bg-[#0F172A] border-white/10 text-foreground focus:border-[#F25F2D]"
           placeholder="@lineid หรือ ชื่อ-นามสกุล"
         />
       </div>
@@ -738,7 +739,7 @@ function PaidFormBody({
             type="date"
             value={form.expires_at}
             onChange={(e) => onFieldChange("expires_at", e.target.value)}
-            className="bg-[#0F172A] border-white/10 text-[#F1F5F9] font-mono focus:border-[#F25F2D]"
+            className="bg-[#0F172A] border-white/10 text-foreground font-mono focus:border-[#F25F2D]"
           />
         </div>
         <div>
@@ -748,9 +749,9 @@ function PaidFormBody({
             min={1}
             value={form.max_uses}
             onChange={(e) => onFieldChange("max_uses", e.target.value)}
-            className="bg-[#0F172A] border-white/10 text-[#F1F5F9] font-mono tabular-nums focus:border-[#F25F2D]"
+            className="bg-[#0F172A] border-white/10 text-foreground font-mono tabular-nums focus:border-[#F25F2D]"
           />
-          <p className="font-content text-xs text-[#475569] mt-1">
+          <p className="font-content text-xs text-fg-subtle mt-1">
             default 1 — ตั้งมากกว่า 1 สำหรับ campaign
           </p>
         </div>
@@ -763,7 +764,7 @@ function PaidFormBody({
           value={form.note}
           onChange={(e) => onFieldChange("note", e.target.value)}
           rows={3}
-          className="w-full bg-[#0F172A] border border-white/10 rounded-lg px-3 py-2.5 font-content text-sm text-[#F1F5F9] focus:border-[#F25F2D] focus:outline-none resize-none"
+          className="w-full bg-[#0F172A] border border-white/10 rounded-lg px-3 py-2.5 font-content text-sm text-foreground focus:border-[#F25F2D] focus:outline-none resize-none"
           placeholder="บันทึกภายใน..."
         />
       </div>
@@ -862,14 +863,14 @@ function FreeFormBody({
                   onFieldChange("code", sanitizeManualCode(e.target.value))
                 }
                 className={cn(
-                  "bg-[#0F172A] border-white/10 text-[#F1F5F9] font-mono uppercase focus:border-[#F25F2D]",
+                  "bg-[#0F172A] border-white/10 text-foreground font-mono uppercase focus:border-[#F25F2D]",
                   errors.code && "border-red-500",
                 )}
                 placeholder="WELCOME2026"
                 maxLength={64}
               />
             </div>
-            <p className="font-content text-xs text-[#F59E0B] mt-1 flex items-center gap-1">
+            <p className="font-content text-xs text-warning mt-1 flex items-center gap-1">
               <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
               อย่างน้อย 8 ตัว ผสมตัวเลข+ตัวอักษร ห้ามใช้ I L O U
             </p>
@@ -879,7 +880,7 @@ function FreeFormBody({
             <button
               type="button"
               onClick={onManualCodeToggle}
-              className="text-xs text-[#94A3B8] underline cursor-pointer mt-1 inline-flex items-center gap-1 hover:text-[#F1F5F9] transition-colors"
+              className="text-xs text-muted-foreground underline cursor-pointer mt-1 inline-flex items-center gap-1 hover:text-foreground transition-colors"
             >
               <RotateCcw className="w-3 h-3" />
               สุ่มอัตโนมัติ
@@ -888,13 +889,13 @@ function FreeFormBody({
         ) : (
           <>
             <div className="flex items-center gap-2 bg-[#0F172A] border border-white/10 rounded-lg px-3 py-2.5">
-              <span className="flex-1 font-mono text-sm text-[#F1F5F9] tabular-nums truncate">
+              <span className="flex-1 font-mono text-sm text-foreground tabular-nums truncate">
                 {codePreview}
               </span>
               <button
                 type="button"
                 onClick={onReshuffle}
-                className="shrink-0 px-3 py-1.5 rounded-md bg-[#334155] text-[#94A3B8] font-ui text-xs hover:bg-[#475569] hover:text-[#F1F5F9] flex items-center gap-1 transition-colors"
+                className="shrink-0 px-3 py-1.5 rounded-md bg-secondary text-muted-foreground font-ui text-xs hover:bg-[var(--color-bg-raised)] hover:text-foreground flex items-center gap-1 transition-colors"
               >
                 <RefreshCw className="w-3 h-3" />
                 สุ่มใหม่
@@ -921,7 +922,7 @@ function FreeFormBody({
           value={form.krub_amount}
           onChange={(e) => onFieldChange("krub_amount", e.target.value)}
           className={cn(
-            "bg-[#0F172A] border-white/10 text-[#F1F5F9] font-mono tabular-nums focus:border-[#F25F2D]",
+            "bg-[#0F172A] border-white/10 text-foreground font-mono tabular-nums focus:border-[#F25F2D]",
             errors.krub_amount && "border-red-500",
           )}
           placeholder="50"
@@ -940,7 +941,7 @@ function FreeFormBody({
           value={form.purpose}
           onChange={(e) => onFieldChange("purpose", e.target.value as CouponPurpose)}
           className={cn(
-            "w-full bg-[#0F172A] border border-white/10 rounded-lg px-3 py-2.5 font-ui text-sm text-[#F1F5F9] focus:border-[#F25F2D] focus:outline-none",
+            "w-full bg-[#0F172A] border border-white/10 rounded-lg px-3 py-2.5 font-ui text-sm text-foreground focus:border-[#F25F2D] focus:outline-none",
             errors.purpose && "border-red-500",
           )}
         >
@@ -963,10 +964,10 @@ function FreeFormBody({
         <Input
           value={form.campaign_tag}
           onChange={(e) => onFieldChange("campaign_tag", e.target.value)}
-          className="bg-[#0F172A] border-white/10 text-[#F1F5F9] focus:border-[#F25F2D]"
+          className="bg-[#0F172A] border-white/10 text-foreground focus:border-[#F25F2D]"
           placeholder="launch-may-2026"
         />
-        <p className="font-content text-xs text-[#475569] mt-1">
+        <p className="font-content text-xs text-fg-subtle mt-1">
           groups this batch in reports
         </p>
       </div>
@@ -979,7 +980,7 @@ function FreeFormBody({
             type="date"
             value={form.expires_at}
             onChange={(e) => onFieldChange("expires_at", e.target.value)}
-            className="bg-[#0F172A] border-white/10 text-[#F1F5F9] font-mono focus:border-[#F25F2D]"
+            className="bg-[#0F172A] border-white/10 text-foreground font-mono focus:border-[#F25F2D]"
           />
         </div>
         <div>
@@ -989,9 +990,9 @@ function FreeFormBody({
             min={1}
             value={form.max_uses}
             onChange={(e) => onFieldChange("max_uses", e.target.value)}
-            className="bg-[#0F172A] border-white/10 text-[#F1F5F9] font-mono tabular-nums focus:border-[#F25F2D]"
+            className="bg-[#0F172A] border-white/10 text-foreground font-mono tabular-nums focus:border-[#F25F2D]"
           />
-          <p className="font-content text-xs text-[#475569] mt-1">
+          <p className="font-content text-xs text-fg-subtle mt-1">
             default 1 — ตั้งมากกว่า 1 สำหรับ campaign
           </p>
         </div>
@@ -1004,7 +1005,7 @@ function FreeFormBody({
           value={form.note}
           onChange={(e) => onFieldChange("note", e.target.value)}
           rows={3}
-          className="w-full bg-[#0F172A] border border-white/10 rounded-lg px-3 py-2.5 font-content text-sm text-[#F1F5F9] focus:border-[#F25F2D] focus:outline-none resize-none"
+          className="w-full bg-[#0F172A] border border-white/10 rounded-lg px-3 py-2.5 font-content text-sm text-foreground focus:border-[#F25F2D] focus:outline-none resize-none"
           placeholder="บันทึกภายใน..."
         />
       </div>
@@ -1451,13 +1452,13 @@ export function CreateCouponModal({
       >
         <DialogPrimitive.Portal>
           {/* Backdrop */}
-          <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
+          <DialogPrimitive.Overlay className="fixed inset-0 z-[50] bg-black/50 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
 
           {/* Dialog content — custom layout */}
           <DialogPrimitive.Content
             className={cn(
               // Mobile: full-screen
-              "fixed inset-0 z-50 flex flex-col bg-[#1E293B]",
+              "fixed inset-0 z-50 flex flex-col bg-card overflow-hidden",
               // Desktop: centered modal
               "md:inset-auto md:left-1/2 md:top-[7.5vh] md:-translate-x-1/2",
               "md:w-full md:max-w-[640px] md:max-h-[85dvh] md:rounded-xl",
@@ -1468,13 +1469,13 @@ export function CreateCouponModal({
             )}
           >
             {/* Sticky header */}
-            <div className="sticky top-0 bg-[#1E293B] flex items-center justify-between px-6 py-4 border-b border-white/8 z-10 shrink-0">
-              <h2 className="font-display text-base font-bold text-[#F1F5F9]">
+            <div className="sticky top-0 bg-card flex items-center justify-between px-6 py-4 border-b border-white/8 z-10 shrink-0">
+              <h2 className="font-display text-base font-bold text-foreground">
                 สร้างคูปอง
               </h2>
               <DialogPrimitive.Close asChild>
                 <button
-                  className="w-8 h-8 rounded-lg flex items-center justify-center text-[#94A3B8] hover:text-[#F1F5F9] hover:bg-white/8 transition-colors"
+                  className="w-8 h-8 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-white/8 transition-colors"
                   aria-label="ปิด"
                 >
                   <X className="w-4 h-4" />
@@ -1490,8 +1491,8 @@ export function CreateCouponModal({
                 className={cn(
                   "px-4 py-2.5 font-ui text-sm transition-colors",
                   activeTab === "paid"
-                    ? "text-[#F1F5F9] border-b-2 border-[#F25F2D]"
-                    : "text-[#94A3B8] hover:text-[#F1F5F9]",
+                    ? "text-foreground border-b-2 border-[#F25F2D]"
+                    : "text-muted-foreground hover:text-foreground",
                 )}
               >
                 คูปองแบบจ่ายเงิน
@@ -1505,16 +1506,16 @@ export function CreateCouponModal({
                 className={cn(
                   "px-4 py-2.5 font-ui text-sm transition-colors flex items-center gap-1",
                   activeTab === "free"
-                    ? "text-[#F1F5F9] border-b-2 border-[#F25F2D]"
+                    ? "text-foreground border-b-2 border-[#F25F2D]"
                     : role === "owner"
-                      ? "text-[#94A3B8] hover:text-[#F1F5F9]"
-                      : "text-[#475569] cursor-not-allowed",
+                      ? "text-muted-foreground hover:text-foreground"
+                      : "text-fg-subtle cursor-not-allowed",
                 )}
                 title={role !== "owner" ? "owner เท่านั้น" : undefined}
               >
                 คูปองแบบฟรี ★
                 {role !== "owner" && (
-                  <span className="text-[#475569] text-xs">(owner)</span>
+                  <span className="text-fg-subtle text-xs">(owner)</span>
                 )}
               </button>
             </div>
@@ -1559,10 +1560,10 @@ export function CreateCouponModal({
                 <div className="py-8 flex flex-col items-center gap-4 text-center">
                   <ShieldAlert className="w-12 h-12 text-amber-400" />
                   <div>
-                    <h3 className="font-display text-lg font-bold text-[#F1F5F9] mb-1">
+                    <h3 className="font-display text-lg font-bold text-foreground mb-1">
                       ฟีเจอร์นี้สำหรับ owner เท่านั้น
                     </h3>
-                    <p className="font-content text-sm text-[#94A3B8]">
+                    <p className="font-content text-sm text-muted-foreground">
                       การสร้างคูปองแบบฟรีต้องใช้สิทธิ์ owner เนื่องจากไม่มีการตรวจสอบการชำระเงิน
                     </p>
                   </div>
@@ -1586,17 +1587,18 @@ export function CreateCouponModal({
             </div>
 
             {/* Sticky footer */}
-            <div className="sticky bottom-0 bg-[#1E293B] flex justify-between items-center px-6 py-4 border-t border-white/8 shrink-0">
+            <div className="sticky bottom-0 bg-card flex justify-between items-center px-6 py-4 border-t border-white/8 shrink-0">
               <Button
                 type="button"
                 variant="outline"
                 onClick={handleReset}
-                className="border-white/20 text-[#94A3B8] hover:bg-white/5 h-11 px-4"
+                className="border-white/20 text-muted-foreground hover:bg-white/5 h-11 px-4"
               >
                 ล้างฟอร์ม
               </Button>
               <Button
                 type="button"
+                variant="cta"
                 onClick={handleSubmitClick}
                 disabled={createMutation.isPending || uploadMutation.isPending}
                 className="bg-[#F25F2D] hover:bg-[#C7461A] text-white h-11 px-6 font-ui text-sm"

@@ -197,15 +197,15 @@ function ResolutionSection({ form, errors, readonly, onChange }: ResolutionSecti
   ];
 
   return (
-    <div className="bg-[#1E293B] rounded-xl border border-white/8 p-5 space-y-3">
-      <p className="font-ui text-xs text-[#94A3B8] uppercase tracking-wide mb-4">
+    <div className="bg-card rounded-xl border border-white/8 p-5 space-y-3">
+      <p className="font-ui text-xs text-muted-foreground uppercase tracking-wide mb-4">
         ราคา krub ตาม resolution
       </p>
       {rows.map((r) => {
         const err = errors[r.key];
         return (
           <div key={r.key} className="flex items-center gap-3">
-            <span className="font-mono text-sm text-[#94A3B8] w-8 shrink-0">{r.label}</span>
+            <span className="font-mono text-sm text-muted-foreground w-8 shrink-0">{r.label}</span>
             <div className="relative flex items-center gap-2 flex-1">
               <Input
                 type="number"
@@ -217,10 +217,10 @@ function ResolutionSection({ form, errors, readonly, onChange }: ResolutionSecti
                 onChange={(e) => onChange(r.key, e.target.value)}
                 className={cn(
                   "w-24 font-mono tabular-nums",
-                  err && "border-red-500 focus-visible:ring-red-500"
+                  err && "border-red-500"
                 )}
               />
-              <span className="font-ui text-sm text-[#475569]">krub</span>
+              <span className="font-ui text-sm text-fg-subtle">krub</span>
             </div>
             {err && (
               <span className="font-ui text-xs text-red-400">{err}</span>
@@ -256,16 +256,16 @@ function PacksSection({
   onChange,
 }: PacksSectionProps) {
   return (
-    <div className="bg-[#1E293B] rounded-xl border border-white/8 p-5">
-      <p className="font-ui text-xs text-[#94A3B8] uppercase tracking-wide mb-4">
+    <div className="bg-card rounded-xl border border-white/8 p-5">
+      <p className="font-ui text-xs text-muted-foreground uppercase tracking-wide mb-4">
         Packs ราคาเติม
       </p>
 
       {/* Column headers */}
       <div className="flex items-center gap-3 mb-2">
-        <span className="font-ui text-xs text-[#475569] uppercase tracking-wide w-8 shrink-0" />
-        <span className="font-ui text-xs text-[#94A3B8] uppercase tracking-wide w-28">THB</span>
-        <span className="font-ui text-xs text-[#94A3B8] uppercase tracking-wide w-28">KRUB</span>
+        <span className="font-ui text-xs text-fg-subtle uppercase tracking-wide w-8 shrink-0" />
+        <span className="font-ui text-xs text-muted-foreground uppercase tracking-wide w-28">THB</span>
+        <span className="font-ui text-xs text-muted-foreground uppercase tracking-wide w-28">KRUB</span>
       </div>
 
       <div className="space-y-2">
@@ -273,7 +273,7 @@ function PacksSection({
           const pe = errors[idx] ?? {};
           return (
             <div key={pack._key} className="flex items-center gap-3">
-              <span className="font-mono text-xs text-[#475569] w-8 shrink-0 tabular-nums">
+              <span className="font-mono text-xs text-fg-subtle w-8 shrink-0 tabular-nums">
                 {idx + 1}
               </span>
               <div className="flex flex-col">
@@ -288,7 +288,7 @@ function PacksSection({
                   placeholder="50"
                   className={cn(
                     "w-28 font-mono tabular-nums",
-                    pe.thb && "border-red-500 focus-visible:ring-red-500"
+                    pe.thb && "border-red-500"
                   )}
                 />
                 {pe.thb && (
@@ -307,7 +307,7 @@ function PacksSection({
                   placeholder="50"
                   className={cn(
                     "w-28 font-mono tabular-nums",
-                    pe.krub && "border-red-500 focus-visible:ring-red-500"
+                    pe.krub && "border-red-500"
                   )}
                 />
                 {pe.krub && (
@@ -322,8 +322,8 @@ function PacksSection({
                   className={cn(
                     "flex items-center justify-center w-8 h-8 rounded-md transition-colors",
                     packs.length <= 1
-                      ? "opacity-30 cursor-not-allowed text-[#475569]"
-                      : "text-[#475569] hover:text-red-400 hover:bg-red-900/20"
+                      ? "opacity-30 cursor-not-allowed text-fg-subtle"
+                      : "text-fg-subtle hover:text-red-400 hover:bg-red-900/20"
                   )}
                 >
                   <X className="w-3.5 h-3.5" />
@@ -387,15 +387,15 @@ function ConfirmModal({
           {/* Changed resolution rows */}
           {changedRes.length > 0 && (
             <div className="space-y-1">
-              <p className="font-ui text-xs text-[#94A3B8] uppercase tracking-wide">
+              <p className="font-ui text-xs text-muted-foreground uppercase tracking-wide">
                 Resolution ที่เปลี่ยน
               </p>
               {changedRes.map((d) => {
                 const delta = d.to - d.from;
                 return (
                   <div key={d.label} className="flex items-center justify-between py-1 px-3 rounded-md bg-white/4 font-mono text-sm">
-                    <span className="text-[#94A3B8]">{d.label}</span>
-                    <span className="text-[#F1F5F9]">
+                    <span className="text-muted-foreground">{d.label}</span>
+                    <span className="text-foreground">
                       {d.from} → {d.to}
                     </span>
                     <span className={cn(
@@ -412,13 +412,13 @@ function ConfirmModal({
 
           {/* Pack change summary */}
           {packChanged && (
-            <div className="py-1 px-3 rounded-md bg-white/4 font-ui text-sm text-[#94A3B8]">
+            <div className="py-1 px-3 rounded-md bg-white/4 font-ui text-sm text-muted-foreground">
               Packs เปลี่ยนแปลง ({original.packs.length} → {form.packs.length} รายการ)
             </div>
           )}
 
           {changedRes.length === 0 && !packChanged && (
-            <p className="font-content text-sm text-[#475569] text-center py-2">
+            <p className="font-content text-sm text-fg-subtle text-center py-2">
               ไม่มีการเปลี่ยนแปลง
             </p>
           )}
@@ -439,6 +439,7 @@ function ConfirmModal({
             </Button>
           </DialogClose>
           <Button
+            variant="cta"
             onClick={onConfirm}
             disabled={isSaving || (changedRes.length === 0 && !packChanged)}
             className="bg-[#F25F2D] hover:bg-[#C7461A] text-white"
@@ -475,7 +476,7 @@ function ToggleSwitch({ checked, disabled, onChange, id }: ToggleSwitchProps) {
         "transition-colors duration-200 ease-in-out",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F25F2D] focus-visible:ring-offset-2",
         "disabled:cursor-not-allowed disabled:opacity-40",
-        checked ? "bg-[#F25F2D]" : "bg-[#334155]"
+        checked ? "bg-[#F25F2D]" : "bg-secondary"
       )}
     >
       <span
@@ -534,7 +535,7 @@ function NotificationSettingsSection({ isOwner }: NotificationSettingsSectionPro
 
   if (isLoading) {
     return (
-      <div className="bg-[#1E293B] rounded-xl border border-white/8 p-5 animate-pulse">
+      <div className="bg-card rounded-xl border border-white/8 p-5 animate-pulse">
         <div className="h-4 w-36 bg-white/5 rounded mb-4" />
         {Array.from({ length: 5 }, (_, i) => (
           <div key={i} className="h-9 bg-white/3 rounded mb-2" />
@@ -545,8 +546,8 @@ function NotificationSettingsSection({ isOwner }: NotificationSettingsSectionPro
 
   if (isError) {
     return (
-      <div className="bg-[#1E293B] rounded-xl border border-white/8 p-5">
-        <p className="font-ui text-xs text-[#94A3B8] uppercase tracking-wide mb-3">
+      <div className="bg-card rounded-xl border border-white/8 p-5">
+        <p className="font-ui text-xs text-muted-foreground uppercase tracking-wide mb-3">
           การแจ้งเตือน — ระบบ
         </p>
         <div className="flex items-center justify-between p-3 rounded-lg bg-red-900/20 border border-red-500/30 text-red-300 text-sm font-ui">
@@ -567,16 +568,16 @@ function NotificationSettingsSection({ isOwner }: NotificationSettingsSectionPro
   const items = data ?? [];
 
   return (
-    <div className="bg-[#1E293B] rounded-xl border border-white/8 p-5">
-      <p className="font-ui text-xs text-[#94A3B8] uppercase tracking-wide mb-4">
+    <div className="bg-card rounded-xl border border-white/8 p-5">
+      <p className="font-ui text-xs text-muted-foreground uppercase tracking-wide mb-4">
         การแจ้งเตือน — ระบบ
       </p>
 
       {/* Column headers */}
       <div className="grid grid-cols-[1fr_auto_auto] gap-3 mb-2 px-1">
-        <span className="font-ui text-xs text-[#475569] uppercase tracking-wide">ประเภท</span>
-        <span className="font-ui text-xs text-[#475569] uppercase tracking-wide w-20 text-center">Severity</span>
-        <span className="font-ui text-xs text-[#475569] uppercase tracking-wide w-16 text-center">เปิด</span>
+        <span className="font-ui text-xs text-fg-subtle uppercase tracking-wide">ประเภท</span>
+        <span className="font-ui text-xs text-fg-subtle uppercase tracking-wide w-20 text-center">Severity</span>
+        <span className="font-ui text-xs text-fg-subtle uppercase tracking-wide w-16 text-center">เปิด</span>
       </div>
 
       <div className="space-y-1">
@@ -595,9 +596,9 @@ function NotificationSettingsSection({ isOwner }: NotificationSettingsSectionPro
               {/* Label */}
               <div className="flex items-center gap-2 min-w-0">
                 {isLocked && (
-                  <span aria-hidden="true" className="text-[#94A3B8] text-xs shrink-0">🔒</span>
+                  <span aria-hidden="true" className="text-muted-foreground text-xs shrink-0">🔒</span>
                 )}
-                <span className={`font-ui text-sm truncate ${isLocked ? "text-[#64748B]" : "text-[#E2E8F0]"}`}>
+                <span className={`font-ui text-sm truncate ${isLocked ? "text-fg-subtle" : "text-foreground"}`}>
                   {row.label}
                 </span>
               </div>
@@ -613,7 +614,7 @@ function NotificationSettingsSection({ isOwner }: NotificationSettingsSectionPro
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <span className="font-ui text-xs text-[#64748B] cursor-default select-none">
+                        <span className="font-ui text-xs text-fg-subtle cursor-default select-none">
                           ส่งเสมอ
                         </span>
                       </TooltipTrigger>
@@ -808,8 +809,8 @@ export default function SystemPricing() {
     return (
       <div className="p-4 md:p-6 space-y-4 animate-pulse">
         <div className="h-6 w-48 bg-white/5 rounded" />
-        <div className="h-[140px] bg-[#1E293B] rounded-xl border border-white/8" />
-        <div className="h-[220px] bg-[#1E293B] rounded-xl border border-white/8" />
+        <div className="h-[140px] bg-card rounded-xl border border-white/8" />
+        <div className="h-[220px] bg-card rounded-xl border border-white/8" />
       </div>
     );
   }
@@ -844,7 +845,7 @@ export default function SystemPricing() {
     <TooltipProvider>
       <div className="p-4 md:p-6 space-y-4 max-w-2xl">
         {/* Page title */}
-        <h1 className="font-display text-xl font-bold text-[#F1F5F9]">
+        <h1 className="font-display text-xl font-bold text-foreground">
           ตั้งค่าระบบ
         </h1>
 
@@ -908,6 +909,7 @@ export default function SystemPricing() {
         <div className="flex items-center gap-3 pt-2">
           {isOwner ? (
             <Button
+              variant="cta"
               onClick={handleSaveClick}
               disabled={saveMutation.isPending}
               className="bg-[#F25F2D] hover:bg-[#C7461A] text-white"
@@ -938,7 +940,7 @@ export default function SystemPricing() {
             ยกเลิก
           </Button>
 
-          <p className="font-ui text-xs text-[#475569] ml-2">
+          <p className="font-ui text-xs text-fg-subtle ml-2">
             ⚠ การเปลี่ยนราคามีผลทันทีสำหรับการสร้างใหม่
           </p>
         </div>

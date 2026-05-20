@@ -131,10 +131,10 @@ function BulkPreviewStack({ users }: { users: AdminUserRow[] }) {
     <div className="bg-[#0F172A] rounded-lg border border-white/8 divide-y divide-white/5 max-h-[180px] overflow-y-auto">
       {shown.map((u) => (
         <div key={u.id} className="flex items-center gap-3 px-3 py-2">
-          <div className="w-7 h-7 rounded-full bg-slate-700 flex items-center justify-center text-xs font-display text-[#94A3B8] shrink-0">
+          <div className="w-7 h-7 rounded-full bg-slate-700 flex items-center justify-center text-xs font-display text-muted-foreground shrink-0">
             {userInitial(u)}
           </div>
-          <span className="font-content text-xs text-[#94A3B8] flex-1 truncate min-w-0">
+          <span className="font-content text-xs text-muted-foreground flex-1 truncate min-w-0">
             {u.email ?? u.id.slice(0, 8)}
           </span>
           <span className={cn(
@@ -149,7 +149,7 @@ function BulkPreviewStack({ users }: { users: AdminUserRow[] }) {
       ))}
       {overflow > 0 && (
         <div className="px-3 py-2">
-          <span className="font-content text-xs text-[#475569]">
+          <span className="font-content text-xs text-fg-subtle">
             และอีก {overflow} คน
           </span>
         </div>
@@ -263,11 +263,11 @@ export function SuspendUserModal({
   return (
     <Dialog open={open} onOpenChange={(o) => { if (!o) handleClose(); }}>
       <DialogContent className={cn(
-        "bg-[#1E293B] border-white/8",
+        "bg-card border-white/8",
         isBulk ? "max-w-md" : "max-w-sm",
       )}>
         <DialogHeader>
-          <DialogTitle className="font-ui text-[#F1F5F9]">
+          <DialogTitle className="font-ui text-foreground">
             {title}
           </DialogTitle>
         </DialogHeader>
@@ -288,7 +288,7 @@ export function SuspendUserModal({
 
           {/* Reason dropdown */}
           <div>
-            <label className="font-ui text-xs text-[#475569] uppercase tracking-wide block mb-1.5">
+            <label className="font-ui text-xs text-fg-subtle uppercase tracking-wide block mb-1.5">
               เหตุผล *
             </label>
             {isBulk ? (
@@ -296,7 +296,7 @@ export function SuspendUserModal({
                 value={bulkReason}
                 onChange={(e) => setBulkReason(e.target.value as BulkSuspendReason)}
                 disabled={isPending}
-                className="w-full bg-[#0F172A] border border-white/10 rounded-lg px-3 py-2.5 font-ui text-sm text-[#F1F5F9] focus:border-[#F25F2D] focus:outline-none disabled:opacity-50"
+                className="w-full bg-[#0F172A] border border-white/10 rounded-lg px-3 py-2.5 font-ui text-sm text-foreground focus:border-[#F25F2D] focus:outline-none disabled:opacity-50"
               >
                 {BULK_REASON_OPTIONS.map((o) => (
                   <option key={o.value} value={o.value}>{o.label}</option>
@@ -307,7 +307,7 @@ export function SuspendUserModal({
                 value={singleReason}
                 onChange={(e) => setSingleReason(e.target.value as SuspendReason)}
                 disabled={isPending}
-                className="w-full bg-[#0F172A] border border-white/10 rounded-lg px-3 py-2.5 font-ui text-sm text-[#F1F5F9] focus:border-[#F25F2D] focus:outline-none disabled:opacity-50"
+                className="w-full bg-[#0F172A] border border-white/10 rounded-lg px-3 py-2.5 font-ui text-sm text-foreground focus:border-[#F25F2D] focus:outline-none disabled:opacity-50"
               >
                 {SINGLE_REASON_OPTIONS.map((o) => (
                   <option key={o.value} value={o.value}>{o.label}</option>
@@ -318,7 +318,7 @@ export function SuspendUserModal({
 
           {/* Optional note */}
           <div>
-            <label className="font-ui text-xs text-[#475569] uppercase tracking-wide block mb-1.5">
+            <label className="font-ui text-xs text-fg-subtle uppercase tracking-wide block mb-1.5">
               บันทึกเพิ่มเติม (ไม่บังคับ)
             </label>
             <textarea
@@ -328,13 +328,13 @@ export function SuspendUserModal({
               placeholder="รายละเอียดเพิ่มเติม..."
               rows={2}
               maxLength={500}
-              className="w-full bg-[#0F172A] border border-white/10 rounded-lg px-3 py-2.5 font-content text-sm text-[#F1F5F9] placeholder:text-[#475569] min-h-[60px] resize-none focus:border-[#F25F2D] focus:outline-none disabled:opacity-50"
+              className="w-full bg-[#0F172A] border border-white/10 rounded-lg px-3 py-2.5 font-content text-sm text-foreground placeholder:text-fg-subtle min-h-[60px] resize-none focus:border-[#F25F2D] focus:outline-none disabled:opacity-50"
             />
           </div>
 
           {/* Duration radio */}
           <div>
-            <p className="font-ui text-xs text-[#475569] uppercase tracking-wide mb-2">
+            <p className="font-ui text-xs text-fg-subtle uppercase tracking-wide mb-2">
               ระยะเวลา
             </p>
             <div className="flex flex-wrap gap-2">
@@ -348,7 +348,7 @@ export function SuspendUserModal({
                     "rounded-lg px-3 py-1.5 text-sm font-ui border transition-colors",
                     duration === opt.value
                       ? "border-amber-500 bg-amber-900/20 text-amber-300"
-                      : "border-white/10 text-[#94A3B8] hover:border-white/30",
+                      : "border-white/10 text-muted-foreground hover:border-white/30",
                     "disabled:opacity-50 disabled:cursor-not-allowed",
                   )}
                 >
@@ -361,9 +361,9 @@ export function SuspendUserModal({
           {/* Suspend-until preview */}
           <div className="rounded-lg border border-white/10 bg-[#0F172A]/60 px-3 py-2.5">
             {suspendUntil !== null ? (
-              <p className="font-content text-xs text-[#94A3B8]">
+              <p className="font-content text-xs text-muted-foreground">
                 user จะถูกปลด suspend อัตโนมัติเมื่อ{" "}
-                <span className="font-mono text-[#F1F5F9]">{formatSuspendUntil(suspendUntil)}</span>
+                <span className="font-mono text-foreground">{formatSuspendUntil(suspendUntil)}</span>
               </p>
             ) : (
               <p className="font-content text-xs text-amber-400">
@@ -383,10 +383,10 @@ export function SuspendUserModal({
               className="mt-0.5 w-4 h-4 shrink-0 disabled:opacity-50"
             />
             <span className="space-y-0.5">
-              <span className="font-ui text-sm text-[#F1F5F9] block">
+              <span className="font-ui text-sm text-foreground block">
                 แจ้ง user ทาง in-app notification
               </span>
-              <span className="font-content text-xs text-[#475569] block">
+              <span className="font-content text-xs text-fg-subtle block">
                 user จะเห็น notification ในแอปทันที
               </span>
             </span>
@@ -405,7 +405,7 @@ export function SuspendUserModal({
         <DialogFooter>
           <Button
             variant="outline"
-            className="border-white/20 text-[#94A3B8] hover:bg-white/5"
+            className="border-white/20 text-muted-foreground hover:bg-white/5"
             onClick={handleClose}
             disabled={isPending}
           >

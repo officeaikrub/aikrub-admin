@@ -18,7 +18,8 @@ const DialogOverlay = React.forwardRef<
   <DialogPrimitive.Overlay
     ref={ref}
     className={cn(
-      "fixed inset-0 z-50 bg-black/60 backdrop-blur-sm",
+      /* Scrim: rgba(0,0,0,0.50) + backdrop-blur-sm per design-system §11 */
+      "fixed inset-0 z-[50] bg-black/50 backdrop-blur-sm",
       "data-[state=open]:animate-in data-[state=closed]:animate-out",
       "data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
       className
@@ -37,12 +38,13 @@ const DialogContent = React.forwardRef<
     <DialogPrimitive.Content
       ref={ref}
       className={cn(
-        "fixed left-1/2 top-[15vh] z-50 w-full max-w-md -translate-x-1/2",
-        "bg-[#1E293B] border border-white/8 rounded-xl p-6 shadow-2xl",
+        "fixed left-1/2 top-[15vh] z-[50] w-full max-w-md -translate-x-1/2",
+        /* glass-modal: blur(8px), hsl(var(--card)/0.95), shadow per design-system §2A */
+        "glass-modal border border-white/8 rounded-xl p-6",
+        "max-h-[85dvh] overflow-y-auto",
         "data-[state=open]:animate-in data-[state=closed]:animate-out",
         "data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
-        "data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
-        "data-[state=closed]:slide-out-to-left-1/2 data-[state=open]:slide-in-from-left-1/2",
+        "data-[state=open]:slide-in-from-bottom-2 data-[state=closed]:slide-out-to-bottom-1",
         className
       )}
       {...props}

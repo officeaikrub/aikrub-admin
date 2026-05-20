@@ -72,20 +72,20 @@ export function ClawbackRowModal({
 
   return (
     <Dialog open={open} onOpenChange={(v) => { if (!v) handleClose(); }}>
-      <DialogContent className="bg-[#1E293B] border-white/8 max-w-sm">
+      <DialogContent className="border-white/8 max-w-sm">
         <DialogHeader>
-          <DialogTitle className="font-display text-base text-[#F1F5F9]">
+          <DialogTitle className="font-display text-base text-foreground">
             ↩ ดึงคืน Krub
           </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4 py-2">
           {/* Question */}
-          <p className="font-content text-sm text-[#F1F5F9]">
+          <p className="font-content text-sm text-foreground">
             ดึงคืน{" "}
             <span className="font-mono text-amber-300">{krubAmount} Krub</span>{" "}
             จาก{" "}
-            <span className="font-mono text-[#94A3B8]">{userEmail}</span>?
+            <span className="font-mono text-muted-foreground">{userEmail}</span>?
           </p>
 
           {/* Warning banner */}
@@ -106,7 +106,7 @@ export function ClawbackRowModal({
 
           {/* Reason dropdown */}
           <div className="space-y-1.5">
-            <label className="font-ui text-xs text-[#94A3B8] uppercase tracking-wide">
+            <label className="font-ui text-xs text-muted-foreground uppercase tracking-wide">
               เหตุผล *
             </label>
             <select
@@ -115,7 +115,7 @@ export function ClawbackRowModal({
               disabled={mutation.isPending}
               className={cn(
                 "w-full bg-[#0F172A] border border-white/10 rounded-lg px-3 py-2",
-                "font-ui text-sm text-[#F1F5F9]",
+                "font-ui text-sm text-foreground",
                 "focus:outline-none focus:border-[#F25F2D]/60",
                 "disabled:opacity-50",
               )}
@@ -130,7 +130,7 @@ export function ClawbackRowModal({
 
           {/* Note textarea */}
           <div className="space-y-1.5">
-            <label className="font-ui text-xs text-[#94A3B8] uppercase tracking-wide">
+            <label className="font-ui text-xs text-muted-foreground uppercase tracking-wide">
               บันทึก (ไม่บังคับ)
             </label>
             <textarea
@@ -141,7 +141,7 @@ export function ClawbackRowModal({
               rows={2}
               className={cn(
                 "w-full bg-[#0F172A] border border-white/10 rounded-lg px-3 py-2",
-                "font-content text-sm text-[#F1F5F9] placeholder:text-[#475569]",
+                "font-content text-sm text-foreground placeholder:text-fg-subtle",
                 "focus:outline-none focus:border-[#F25F2D]/60 resize-none",
                 "disabled:opacity-50",
               )}
@@ -165,7 +165,7 @@ export function ClawbackRowModal({
             size="sm"
             onClick={handleClose}
             disabled={mutation.isPending}
-            className="border-white/20 text-[#94A3B8] hover:bg-white/5"
+            className="border-white/20 text-muted-foreground hover:bg-white/5"
           >
             ยกเลิก
           </Button>

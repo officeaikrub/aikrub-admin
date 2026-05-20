@@ -32,8 +32,8 @@ export function PiiAccessLogTable({ rows, viewerRole }: PiiAccessLogTableProps) 
   if (rows.length === 0) {
     return (
       <div className="py-8 text-center space-y-1">
-        <p className="font-content text-sm text-[#475569]">ยังไม่มีการเข้าถึง PII</p>
-        <p className="font-ui text-xs text-[#475569]">
+        <p className="font-content text-sm text-fg-subtle">ยังไม่มีการเข้าถึง PII</p>
+        <p className="font-ui text-xs text-fg-subtle">
           การเข้าถึงข้อมูลส่วนตัวของผู้ใช้จะถูกบันทึกที่นี่
         </p>
       </div>
@@ -45,16 +45,16 @@ export function PiiAccessLogTable({ rows, viewerRole }: PiiAccessLogTableProps) 
       <table className="w-full">
         <thead>
           <tr>
-            <th className="px-2 py-2 font-ui text-xs text-[#94A3B8] text-left uppercase tracking-wide">
+            <th className="px-2 py-2 font-ui text-xs text-muted-foreground text-left uppercase tracking-wide">
               Admin
             </th>
-            <th className="px-2 py-2 font-ui text-xs text-[#94A3B8] text-left uppercase tracking-wide">
+            <th className="px-2 py-2 font-ui text-xs text-muted-foreground text-left uppercase tracking-wide">
               Field
             </th>
-            <th className="px-2 py-2 font-ui text-xs text-[#94A3B8] text-left uppercase tracking-wide">
+            <th className="px-2 py-2 font-ui text-xs text-muted-foreground text-left uppercase tracking-wide">
               เวลา
             </th>
-            <th className="px-2 py-2 font-ui text-xs text-[#94A3B8] text-left uppercase tracking-wide">
+            <th className="px-2 py-2 font-ui text-xs text-muted-foreground text-left uppercase tracking-wide">
               IP
             </th>
           </tr>
@@ -74,7 +74,7 @@ export function PiiAccessLogTable({ rows, viewerRole }: PiiAccessLogTableProps) 
               >
                 <td className={cn(
                   "px-2 py-2 text-xs font-mono max-w-[180px] truncate",
-                  viewerRole === "owner" ? "text-[#94A3B8]" : "text-[#475569] italic",
+                  viewerRole === "owner" ? "text-muted-foreground" : "text-fg-subtle italic",
                 )}>
                   <span title={viewerRole === "owner" ? row.admin_email : undefined}>
                     {displayEmail}
@@ -85,10 +85,10 @@ export function PiiAccessLogTable({ rows, viewerRole }: PiiAccessLogTableProps) 
                     {fieldLabel(row.viewed_field)}
                   </span>
                 </td>
-                <td className="px-2 py-2 font-mono text-xs text-[#475569] tabular-nums whitespace-nowrap">
+                <td className="px-2 py-2 font-mono text-xs text-fg-subtle tabular-nums whitespace-nowrap">
                   {formatDateTime(row.viewed_at)}
                 </td>
-                <td className="px-2 py-2 font-mono text-xs text-[#475569] tabular-nums">
+                <td className="px-2 py-2 font-mono text-xs text-fg-subtle tabular-nums">
                   {row.ip_address ?? "—"}
                 </td>
               </tr>
@@ -96,7 +96,7 @@ export function PiiAccessLogTable({ rows, viewerRole }: PiiAccessLogTableProps) 
           })}
         </tbody>
       </table>
-      <p className="px-2 py-2 font-ui text-xs text-[#475569] text-right">
+      <p className="px-2 py-2 font-ui text-xs text-fg-subtle text-right">
         แสดง {rows.length} รายการล่าสุด
       </p>
     </div>

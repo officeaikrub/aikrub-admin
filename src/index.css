@@ -15,10 +15,15 @@
   --font-ui:       "Anuphan", ui-sans-serif, system-ui, sans-serif;
   --font-content:  "Anuphan", ui-sans-serif, system-ui, sans-serif;
 
-  /* Dark surface — admin default */
-  --color-bg:         #0F172A;
-  --color-bg-muted:   #1E2A3D;
-  --color-bg-raised:  #2A3952;
+  /* ── Surface scale (v2) ─────────────────────────────────────
+     surface-0: page background / shell behind sidebar
+     surface-1: cards, table body, form fields, modal body
+     surface-2: hover-row (solid), selected-row (solid), active filter pill bg
+     surface-3: derived via box-shadow — popover, dropdown, tooltip
+  ─────────────────────────────────────────────────────────────── */
+  --color-bg:         #0F172A;   /* surface-0 */
+  --color-bg-muted:   #1E2A3D;   /* surface-1 */
+  --color-bg-raised:  #2A3952;   /* surface-2 */
 
   /* Dark text */
   --color-fg:         #F5F1E8;
@@ -64,6 +69,28 @@
   --input:                 217 32% 24%;   /* #2A3952 */
   --ring:                  15 88% 56%;    /* #F25F2D */
   --radius:                0.5rem;
+
+  /* ── Motion tokens (v2) ──────────────────────────────────────
+     Use these in component styles — never hardcode durations.
+  ─────────────────────────────────────────────────────────────── */
+  --duration-fast:      150ms;  /* hover color, opacity, focus ring */
+  --duration-standard:  200ms;  /* sidebar collapse, tab switch */
+  --duration-entrance:  300ms;  /* modal appear, drawer slide, toast */
+  --easing-default:     ease;
+  --easing-entrance:    cubic-bezier(0.16, 1, 0.32, 1);  /* spring-like entry */
+  --easing-exit:        ease-in;
+
+  /* ── Z-index scale (v2) ──────────────────────────────────────
+     Never use arbitrary z values outside this scale.
+  ─────────────────────────────────────────────────────────────── */
+  --z-base:      0;   /* page content, table body */
+  --z-raised:    10;  /* sticky table header */
+  --z-sticky:    20;  /* sticky bulk-action bar */
+  --z-overlay:   30;  /* dropdown menus, tooltips, popovers */
+  --z-sidebar:   40;  /* top bar, left sidebar, bottom nav */
+  --z-modal:     50;  /* modal dialog, drawer/sheet */
+  --z-lightbox:  60;  /* slip image full-screen viewer */
+  --z-toast:     70;  /* toast notifications */
 
   /* Spacing */
   --space-1:   0.25rem;
@@ -129,31 +156,75 @@ body {
 @tailwind components;
 @tailwind utilities;
 
-/* ─── Glass shell utility ─────────────────────────────────────
-   ใช้สำหรับ sidebar, nav panel, filter drawer, modal shell.
-   ห้ามใช้กับ data table body — ตาม research doc (glass shell + utility core pattern).
+/* ─── Glass utilities (v2 — Premium Dark Glass) ──────────────
+   ALLOW LIST (ref: admin-design-system-v2.md §2A):
+   .glass-shell  → top bar, sidebar, bulk-action bar, mobile bottom nav
+   .glass-modal  → dialog shell, drawer/sheet shell
+   .glass-table-header → sticky table header only
+
+   FORBID: do NOT apply any glass class to <tr>, <td>, <tbody>,
+   hover states, selected rows, code blocks, PII log tables.
    Reference: docs/research/admin-design-glassmorphism-utility-2026.md
 ─────────────────────────────────────────────────────────────── */
 @layer components {
+  /* ── Primary glass: top bar, sidebar, mobile bottom nav ─── */
   .glass-shell {
-    background-color: hsl(var(--background) / 0.8);
+    background-color: hsl(var(--background) / 0.80);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.10);
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.20);
+    /* Inner top-highlight (frosted pane edge) + outer shadow */
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.06),
+      0 1px 3px rgba(0, 0, 0, 0.20);
   }
 
-  /* supports-[backdrop-filter] fallback — เพิ่ม opacity เมื่อ browser ไม่ support blur */
+  /* ── Modal/drawer glass: dialog shell, sheet shell ──────── */
+  /* Tighter blur (8px) + heavier bg opacity for legibility */
+  .glass-modal {
+    background-color: hsl(var(--card) / 0.95);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.06),
+      0 8px 40px rgba(0, 0, 0, 0.50);
+  }
+
+  /* supports-[backdrop-filter] fallback — increase opacity when blur unsupported */
   @supports not (backdrop-filter: blur(1px)) {
     .glass-shell {
       background-color: hsl(var(--background) / 0.95);
     }
+    .glass-modal {
+      background-color: hsl(var(--card) / 1);
+    }
   }
 
-  /* Sticky table header ที่ใช้ glass ได้ (เล็กพอ — ไม่กระทบ readability ของ data row) */
+  /* ── Sticky table header — lightest glass (4px blur) ────── */
   .glass-table-header {
     background-color: hsl(var(--background) / 0.95);
     backdrop-filter: blur(4px);
     -webkit-backdrop-filter: blur(4px);
   }
+
+  /* ── Focus ring (v2) ──────────────────────────────────────
+     Applied globally via :focus-visible below.
+     Tailwind equivalent on interactive elements:
+     focus-visible:ring-2 focus-visible:ring-accent
+     focus-visible:ring-offset-2 focus-visible:ring-offset-[#0F172A]
+  ─────────────────────────────────────────────────────────── */
+}
+
+/* ─── Global focus ring spec (v2) ───────────────────────────
+   Accent ring on keyboard focus, hidden on pointer focus.
+   Must contrast ≥3:1 against surface-0 (#0F172A) and surface-1 (#1E2A3D).
+   #F25F2D on #0F172A = sufficient contrast.
+─────────────────────────────────────────────────────────────── */
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+  border-radius: inherit;
+}
+
+:focus:not(:focus-visible) {
+  outline: none;
 }

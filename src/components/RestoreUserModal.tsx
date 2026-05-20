@@ -70,17 +70,17 @@ export function RestoreUserModal({
 
   return (
     <Dialog open={open} onOpenChange={(o) => { if (!o) handleClose(); }}>
-      <DialogContent className="bg-[#1E293B] border-white/8 max-w-sm">
+      <DialogContent className="bg-card border-white/8 max-w-sm">
         <DialogHeader>
-          <DialogTitle className="font-ui text-[#F1F5F9]">
+          <DialogTitle className="font-ui text-foreground">
             ↩ กู้คืนบัญชี
           </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4 py-2">
-          <p className="font-content text-sm text-[#F1F5F9]">
+          <p className="font-content text-sm text-foreground">
             คุณต้องการกู้คืนบัญชีของ{" "}
-            <span className="font-mono text-[#94A3B8] text-xs">{anonEmail}</span>
+            <span className="font-mono text-muted-foreground text-xs">{anonEmail}</span>
             {" "}กลับมาสู่สถานะ active?
           </p>
 
@@ -91,12 +91,12 @@ export function RestoreUserModal({
           </div>
 
           {/* Warning about email */}
-          <div className="space-y-1 text-xs text-[#94A3B8] font-content">
-            <p className="font-ui text-[#94A3B8] text-xs font-medium">⚠ หมายเหตุ:</p>
+          <div className="space-y-1 text-xs text-muted-foreground font-content">
+            <p className="font-ui text-muted-foreground text-xs font-medium">⚠ หมายเหตุ:</p>
             <ul className="space-y-1 pl-2">
               <li>
                 • email ที่ anonymize แล้วจะยังคงเป็น{" "}
-                <span className="font-mono text-[#475569]">{anonEmail}</span>
+                <span className="font-mono text-fg-subtle">{anonEmail}</span>
               </li>
               <li>• Pete ต้องแก้ email จริงให้ผู้ใช้ผ่าน Supabase Auth admin update</li>
             </ul>
@@ -113,7 +113,7 @@ export function RestoreUserModal({
         <DialogFooter>
           <Button
             variant="outline"
-            className="border-white/20 text-[#94A3B8] hover:bg-white/5"
+            className="border-white/20 text-muted-foreground hover:bg-white/5"
             onClick={handleClose}
             disabled={mutation.isPending}
           >

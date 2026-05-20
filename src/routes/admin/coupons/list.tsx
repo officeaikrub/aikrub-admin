@@ -70,16 +70,16 @@ interface BulkRevokeModalState {
 // ---------------------------------------------------------------------------
 
 function StatusBadge({ status }: { status: CouponStatus }) {
-  const map: Record<CouponStatus, { dot: string; bg: string; text: string }> = {
-    active:   { dot: "bg-green-400",  bg: "bg-green-900/30",  text: "text-green-400"  },
-    disabled: { dot: "bg-amber-400",  bg: "bg-amber-900/30",  text: "text-amber-400"  },
-    revoked:  { dot: "bg-red-400",    bg: "bg-red-900/30",    text: "text-red-400"    },
-    used:     { dot: "bg-slate-400",  bg: "bg-slate-700/60",  text: "text-slate-400"  },
-    expired:  { dot: "bg-orange-400", bg: "bg-orange-900/30", text: "text-orange-400" },
+  const map: Record<CouponStatus, { dot: string; badge: string }> = {
+    active:   { dot: "bg-[var(--color-success)]",   badge: "bg-[var(--color-success)]/15   text-[var(--color-success)]   border-[var(--color-success)]/20"   },
+    disabled: { dot: "bg-[var(--color-warning)]",   badge: "bg-[var(--color-warning)]/15   text-[var(--color-warning)]   border-[var(--color-warning)]/20"   },
+    revoked:  { dot: "bg-[var(--color-error)]",     badge: "bg-[var(--color-error)]/15     text-[var(--color-error)]     border-[var(--color-error)]/20"     },
+    used:     { dot: "bg-[var(--color-fg-subtle)]", badge: "bg-[var(--color-fg-subtle)]/15 text-[var(--color-fg-subtle)] border-[var(--color-fg-subtle)]/20" },
+    expired:  { dot: "bg-[var(--color-warning)]",   badge: "bg-[var(--color-warning)]/15   text-[var(--color-warning)]   border-[var(--color-warning)]/20"   },
   };
   const s = map[status];
   return (
-    <span className={cn("inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-ui", s.bg, s.text)}>
+    <span className={cn("inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-ui border", s.badge)}>
       <span className={cn("w-1.5 h-1.5 rounded-full shrink-0", s.dot)} />
       {STATUS_LABELS[status]}
     </span>
@@ -132,15 +132,15 @@ function RevokeReasonModal({
           <DialogTitle>ยืนยัน Revoke คูปอง</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
-          <p className="font-mono text-sm text-[#F1F5F9]">{state.coupon?.code}</p>
+          <p className="font-mono text-sm text-foreground">{state.coupon?.code}</p>
           <div>
-            <label className="font-ui text-xs text-[#94A3B8] uppercase tracking-wide block mb-1.5">
+            <label className="font-ui text-xs text-muted-foreground uppercase tracking-wide block mb-1.5">
               เหตุผล *
             </label>
             <select
               value={reason}
               onChange={(e) => setReason(e.target.value as RevokeReason)}
-              className="w-full bg-[#0F172A] border border-white/10 rounded-lg px-3 py-2.5 font-ui text-sm text-[#F1F5F9] focus:border-[#F25F2D] focus:outline-none"
+              className="w-full bg-[#0F172A] border border-white/10 rounded-lg px-3 py-2.5 font-ui text-sm text-foreground focus:border-[#F25F2D] focus:outline-none"
             >
               <option value="fraud">Fraud</option>
               <option value="duplicate_slip">สลิปซ้ำ</option>
@@ -149,20 +149,20 @@ function RevokeReasonModal({
             </select>
           </div>
           <div>
-            <label className="font-ui text-xs text-[#94A3B8] uppercase tracking-wide block mb-1.5">
+            <label className="font-ui text-xs text-muted-foreground uppercase tracking-wide block mb-1.5">
               หมายเหตุ (ไม่บังคับ)
             </label>
             <Input
               value={note}
               onChange={(e) => setNote(e.target.value)}
               placeholder="รายละเอียดเพิ่มเติม..."
-              className="bg-[#0F172A] border-white/10 text-[#F1F5F9] focus:border-[#F25F2D]"
+              className="bg-[#0F172A] border-white/10 text-foreground focus:border-[#F25F2D]"
             />
           </div>
         </div>
         <DialogFooter>
           <DialogClose asChild>
-            <Button variant="outline" className="border-white/20 text-[#94A3B8] hover:bg-white/5" onClick={onClose}>
+            <Button variant="outline" className="border-white/20 text-muted-foreground hover:bg-white/5" onClick={onClose}>
               ยกเลิก
             </Button>
           </DialogClose>
@@ -206,17 +206,17 @@ function BulkRevokeModal({
         <div className="space-y-4">
           <div className="bg-[#0F172A] rounded-lg p-3 max-h-32 overflow-y-auto space-y-1">
             {state.codes.map((code) => (
-              <p key={code} className="font-mono text-xs text-[#94A3B8]">{code}</p>
+              <p key={code} className="font-mono text-xs text-muted-foreground">{code}</p>
             ))}
           </div>
           <div>
-            <label className="font-ui text-xs text-[#94A3B8] uppercase tracking-wide block mb-1.5">
+            <label className="font-ui text-xs text-muted-foreground uppercase tracking-wide block mb-1.5">
               เหตุผล *
             </label>
             <select
               value={reason}
               onChange={(e) => setReason(e.target.value as RevokeReason)}
-              className="w-full bg-[#0F172A] border border-white/10 rounded-lg px-3 py-2.5 font-ui text-sm text-[#F1F5F9] focus:border-[#F25F2D] focus:outline-none"
+              className="w-full bg-[#0F172A] border border-white/10 rounded-lg px-3 py-2.5 font-ui text-sm text-foreground focus:border-[#F25F2D] focus:outline-none"
             >
               <option value="fraud">Fraud</option>
               <option value="duplicate_slip">สลิปซ้ำ</option>
@@ -225,20 +225,20 @@ function BulkRevokeModal({
             </select>
           </div>
           <div>
-            <label className="font-ui text-xs text-[#94A3B8] uppercase tracking-wide block mb-1.5">
+            <label className="font-ui text-xs text-muted-foreground uppercase tracking-wide block mb-1.5">
               หมายเหตุ (ไม่บังคับ)
             </label>
             <Input
               value={note}
               onChange={(e) => setNote(e.target.value)}
               placeholder="รายละเอียดเพิ่มเติม..."
-              className="bg-[#0F172A] border-white/10 text-[#F1F5F9] focus:border-[#F25F2D]"
+              className="bg-[#0F172A] border-white/10 text-foreground focus:border-[#F25F2D]"
             />
           </div>
         </div>
         <DialogFooter>
           <DialogClose asChild>
-            <Button variant="outline" className="border-white/20 text-[#94A3B8] hover:bg-white/5" onClick={onClose}>
+            <Button variant="outline" className="border-white/20 text-muted-foreground hover:bg-white/5" onClick={onClose}>
               ยกเลิก
             </Button>
           </DialogClose>
@@ -437,12 +437,12 @@ export default function CouponList() {
     <div className="px-4 py-6 md:px-6 md:py-8 space-y-4">
       {/* ── Page header ── */}
       <div className="flex items-center justify-between">
-        <h1 className="font-display text-xl font-bold text-[#F1F5F9]">รายการคูปอง</h1>
+        <h1 className="font-display text-xl font-bold text-foreground">รายการคูปอง</h1>
 
         {/* Create dropdown */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button className="bg-[#F25F2D] hover:bg-[#C7461A] text-white h-10 gap-2">
+            <Button variant="cta" className="bg-[#F25F2D] hover:bg-[#C7461A] text-white h-10 gap-2">
               <Plus className="w-4 h-4" />
               สร้างคูปองใหม่
             </Button>
@@ -477,7 +477,7 @@ export default function CouponList() {
       )}
 
       {/* ── Filter bar (glass) ── */}
-      <div className="flex flex-wrap items-center gap-2 p-3 bg-slate-900/70 backdrop-blur-sm rounded-xl border border-white/8">
+      <div className="flex flex-wrap items-center gap-2 p-3 bg-[var(--color-bg-muted)] rounded-xl border border-white/8">
         {/* Type pills */}
         {TYPE_PILLS.map((p) => (
           <button
@@ -487,7 +487,7 @@ export default function CouponList() {
               "px-3 py-1.5 rounded-full font-ui text-xs cursor-pointer transition-colors",
               filters.coupon_type === p.value
                 ? "bg-[#F25F2D]/20 text-[#F25F2D] border border-[#F25F2D]/40"
-                : "bg-[#334155] text-[#94A3B8] hover:bg-[#475569] hover:text-[#F1F5F9]"
+                : "bg-secondary text-muted-foreground hover:bg-[var(--color-bg-raised)] hover:text-foreground"
             )}
           >
             {p.label}
@@ -505,7 +505,7 @@ export default function CouponList() {
               "px-3 py-1.5 rounded-full font-ui text-xs cursor-pointer transition-colors",
               filters.status === p.value
                 ? "bg-[#F25F2D]/20 text-[#F25F2D] border border-[#F25F2D]/40"
-                : "bg-[#334155] text-[#94A3B8] hover:bg-[#475569] hover:text-[#F1F5F9]"
+                : "bg-secondary text-muted-foreground hover:bg-[var(--color-bg-raised)] hover:text-foreground"
             )}
           >
             {p.label}
@@ -514,12 +514,12 @@ export default function CouponList() {
 
         {/* Search */}
         <div className="relative flex-1 min-w-[180px]">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#475569]" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-fg-subtle" />
           <Input
             value={filters.q}
             onChange={handleSearchChange}
             placeholder="ค้นหาด้วย code..."
-            className="pl-8 bg-[#0F172A] border-white/10 text-[#F1F5F9] placeholder:text-[#475569] focus:border-[#F25F2D] h-8 text-sm"
+            className="pl-8 bg-[#0F172A] border-white/10 text-foreground placeholder:text-fg-subtle focus:border-[#F25F2D] h-8 text-sm"
           />
         </div>
       </div>
@@ -527,7 +527,7 @@ export default function CouponList() {
       {/* ── Bulk actions bar ── */}
       {selectedIds.size > 0 && (
         <div className="fixed bottom-20 md:bottom-6 left-1/2 -translate-x-1/2 z-40 flex items-center gap-3 px-4 py-2.5 bg-slate-900/95 backdrop-blur-md border border-white/10 rounded-full shadow-2xl whitespace-nowrap">
-          <span className="font-ui text-sm text-[#F1F5F9]">เลือกแล้ว {selectedIds.size} รายการ</span>
+          <span className="font-ui text-sm text-foreground">เลือกแล้ว {selectedIds.size} รายการ</span>
           <Button
             size="sm"
             onClick={openBulkRevoke}
@@ -537,7 +537,7 @@ export default function CouponList() {
           </Button>
           <button
             onClick={() => setSelectedIds(new Set())}
-            className="flex items-center justify-center w-7 h-7 rounded-full hover:bg-white/10 text-[#94A3B8] transition-colors"
+            className="flex items-center justify-center w-7 h-7 rounded-full hover:bg-white/10 text-muted-foreground transition-colors"
           >
             <X className="w-4 h-4" />
           </button>
@@ -562,9 +562,10 @@ export default function CouponList() {
       )}
 
       {!isLoading && !isError && items.length === 0 && (
-        <div className="rounded-xl border border-white/8 bg-[#1E293B] py-16 flex flex-col items-center gap-4">
-          <p className="font-display text-lg text-[#475569]">ยังไม่มีคูปอง</p>
+        <div className="rounded-xl border border-white/8 bg-card py-16 flex flex-col items-center gap-4">
+          <p className="font-display text-lg text-fg-subtle">ยังไม่มีคูปอง</p>
           <Button
+            variant="cta"
             onClick={() => openCreateModal("paid")}
             className="bg-[#F25F2D] hover:bg-[#C7461A] text-white"
           >
@@ -576,10 +577,10 @@ export default function CouponList() {
       {/* Desktop table */}
       {!isLoading && !isError && items.length > 0 && (
         <>
-          <div className="hidden md:block bg-[#1E293B] rounded-xl overflow-hidden border border-white/8">
+          <div className="hidden md:block bg-card rounded-xl overflow-hidden border border-white/8">
             <table className="w-full">
-              <thead>
-                <tr className="bg-[#0F172A]/60 backdrop-blur-sm sticky top-0">
+              <thead className="glass-table-header sticky top-0 z-10">
+                <tr>
                   <th className="px-4 py-3 w-10">
                     <input
                       type="checkbox"
@@ -588,13 +589,13 @@ export default function CouponList() {
                       className="w-4 h-4 rounded border-white/20 bg-[#0F172A] accent-[#F25F2D]"
                     />
                   </th>
-                  <th className="px-4 py-3 font-ui text-xs text-[#94A3B8] uppercase tracking-wide text-left">Code</th>
-                  <th className="px-4 py-3 font-ui text-xs text-[#94A3B8] uppercase tracking-wide text-left">ประเภท</th>
-                  <th className="px-4 py-3 font-ui text-xs text-[#94A3B8] uppercase tracking-wide text-right">krub</th>
-                  <th className="px-4 py-3 font-ui text-xs text-[#94A3B8] uppercase tracking-wide text-right">ใช้/สูงสุด</th>
-                  <th className="px-4 py-3 font-ui text-xs text-[#94A3B8] uppercase tracking-wide text-left">สถานะ</th>
-                  <th className="px-4 py-3 font-ui text-xs text-[#94A3B8] uppercase tracking-wide text-left">สร้างโดย</th>
-                  <th className="px-4 py-3 font-ui text-xs text-[#94A3B8] uppercase tracking-wide text-left">วันที่สร้าง</th>
+                  <th className="px-4 py-3 font-ui text-xs text-muted-foreground uppercase tracking-wide text-left">Code</th>
+                  <th className="px-4 py-3 font-ui text-xs text-muted-foreground uppercase tracking-wide text-left">ประเภท</th>
+                  <th className="px-4 py-3 font-ui text-xs text-muted-foreground uppercase tracking-wide text-right">krub</th>
+                  <th className="px-4 py-3 font-ui text-xs text-muted-foreground uppercase tracking-wide text-right">ใช้/สูงสุด</th>
+                  <th className="px-4 py-3 font-ui text-xs text-muted-foreground uppercase tracking-wide text-left">สถานะ</th>
+                  <th className="px-4 py-3 font-ui text-xs text-muted-foreground uppercase tracking-wide text-left">สร้างโดย</th>
+                  <th className="px-4 py-3 font-ui text-xs text-muted-foreground uppercase tracking-wide text-left">วันที่สร้าง</th>
                   <th className="px-4 py-3 w-10" />
                 </tr>
               </thead>
@@ -629,31 +630,31 @@ export default function CouponList() {
           {/* Pagination */}
           <div className="flex items-center justify-between mt-4 px-2">
             <div className="flex items-center gap-2">
-              <span className="font-ui text-xs text-[#475569]">แสดง</span>
+              <span className="font-ui text-xs text-fg-subtle">แสดง</span>
               <select
                 value={filters.limit}
                 onChange={handleLimitChange}
-                className="bg-[#0F172A] border border-white/10 rounded px-2 py-1 font-ui text-xs text-[#94A3B8]"
+                className="bg-[#0F172A] border border-white/10 rounded px-2 py-1 font-ui text-xs text-muted-foreground"
               >
                 <option value={20}>20</option>
                 <option value={50}>50</option>
                 <option value={100}>100</option>
               </select>
-              <span className="font-ui text-xs text-[#475569]">รายการ</span>
+              <span className="font-ui text-xs text-fg-subtle">รายการ</span>
             </div>
             <div className="flex items-center gap-2">
               {cursorStack.length > 0 && (
-                <Button size="sm" variant="outline" onClick={goPrev} className="border-white/20 text-[#94A3B8] hover:bg-white/5 h-8 text-xs">
+                <Button size="sm" variant="outline" onClick={goPrev} className="border-white/20 text-muted-foreground hover:bg-white/5 h-8 text-xs">
                   ← ก่อนหน้า
                 </Button>
               )}
               {data?.next_cursor && (
-                <Button size="sm" variant="outline" onClick={goNext} className="border-white/20 text-[#94A3B8] hover:bg-white/5 h-8 text-xs">
+                <Button size="sm" variant="outline" onClick={goNext} className="border-white/20 text-muted-foreground hover:bg-white/5 h-8 text-xs">
                   ถัดไป →
                 </Button>
               )}
               {data?.total != null && (
-                <span className="font-ui text-xs text-[#475569]">รวม {data.total} รายการ</span>
+                <span className="font-ui text-xs text-fg-subtle">รวม {data.total} รายการ</span>
               )}
             </div>
           </div>
@@ -711,7 +712,7 @@ function DesktopRow({ coupon, selected, onToggleSelect, onView, onDisable, onRev
     <tr
       className={cn(
         "border-t border-white/5 hover:bg-white/5 transition-colors group cursor-pointer",
-        selected && "bg-[#F25F2D]/5"
+        selected && "bg-[rgba(242,95,45,0.12)] border-l-2 border-l-[var(--color-accent)]"
       )}
       onClick={onView}
     >
@@ -726,9 +727,9 @@ function DesktopRow({ coupon, selected, onToggleSelect, onView, onDisable, onRev
       </td>
       <td className="px-4 py-3">
         <div className="flex items-center gap-1.5">
-          <span className="font-mono text-xs text-[#F1F5F9] tabular-nums">{coupon.code}</span>
+          <span className="font-mono text-xs text-foreground tabular-nums">{coupon.code}</span>
           <button
-            className="p-0.5 rounded text-[#475569] hover:text-[#F25F2D] opacity-0 group-hover:opacity-100 transition-opacity"
+            className="p-0.5 rounded text-fg-subtle hover:text-[#F25F2D] opacity-0 group-hover:opacity-100 transition-opacity"
             onClick={(e) => { e.stopPropagation(); copyToClipboard(coupon.code); }}
             title="copy code"
           >
@@ -737,15 +738,15 @@ function DesktopRow({ coupon, selected, onToggleSelect, onView, onDisable, onRev
         </div>
       </td>
       <td className="px-4 py-3"><TypeBadge type={coupon.coupon_type} /></td>
-      <td className="px-4 py-3 text-right font-mono text-sm text-[#F1F5F9] tabular-nums">{coupon.krub_amount}</td>
-      <td className="px-4 py-3 text-right font-content text-sm text-[#94A3B8] tabular-nums">{coupon.used_count}/{coupon.max_uses}</td>
+      <td className="px-4 py-3 text-right font-mono text-sm text-foreground tabular-nums">{coupon.krub_amount}</td>
+      <td className="px-4 py-3 text-right font-content text-sm text-muted-foreground tabular-nums">{coupon.used_count}/{coupon.max_uses}</td>
       <td className="px-4 py-3"><StatusBadge status={coupon.status} /></td>
-      <td className="px-4 py-3 font-content text-sm text-[#94A3B8]">{coupon.created_by}</td>
-      <td className="px-4 py-3 font-mono text-xs text-[#475569] tabular-nums">{formatDateTime(coupon.created_at)}</td>
+      <td className="px-4 py-3 font-content text-sm text-muted-foreground">{coupon.created_by}</td>
+      <td className="px-4 py-3 font-mono text-xs text-fg-subtle tabular-nums">{formatDateTime(coupon.created_at)}</td>
       <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <button className="flex items-center justify-center w-8 h-8 rounded-md text-[#475569] hover:text-[#F1F5F9] hover:bg-white/8 transition-colors">
+            <button className="flex items-center justify-center w-8 h-8 rounded-md text-fg-subtle hover:text-foreground hover:bg-white/8 transition-colors">
               <MoreHorizontal className="w-4 h-4" />
             </button>
           </DropdownMenuTrigger>
@@ -778,7 +779,7 @@ function DesktopRow({ coupon, selected, onToggleSelect, onView, onDisable, onRev
 
 function MobileCard({ coupon, onView, onRevoke }: { coupon: Coupon; onView: () => void; onRevoke: () => void }) {
   return (
-    <div className="bg-[#1E293B] rounded-xl border border-white/8 p-4 space-y-2">
+    <div className="bg-card rounded-xl border border-white/8 p-4 space-y-2">
       <div className="flex items-start justify-between gap-2">
         <div className="flex items-center gap-2 flex-wrap">
           <StatusBadge status={coupon.status} />
@@ -786,18 +787,18 @@ function MobileCard({ coupon, onView, onRevoke }: { coupon: Coupon; onView: () =
         </div>
         <button
           onClick={() => copyToClipboard(coupon.code)}
-          className="shrink-0 p-1.5 rounded-lg text-[#475569] hover:text-[#F25F2D] hover:bg-white/5 transition-colors"
+          className="shrink-0 p-1.5 rounded-lg text-fg-subtle hover:text-[#F25F2D] hover:bg-white/5 transition-colors"
         >
           <Copy className="w-4 h-4" />
         </button>
       </div>
-      <p className="font-mono text-sm text-[#F1F5F9] tabular-nums">{coupon.code}</p>
-      <p className="font-content text-sm text-[#94A3B8]">
+      <p className="font-mono text-sm text-foreground tabular-nums">{coupon.code}</p>
+      <p className="font-content text-sm text-muted-foreground">
         {coupon.krub_amount} krub · ใช้แล้ว {coupon.used_count}/{coupon.max_uses}
       </p>
-      <p className="font-mono text-xs text-[#475569] tabular-nums">{formatDateTime(coupon.created_at)} · {coupon.created_by}</p>
+      <p className="font-mono text-xs text-fg-subtle tabular-nums">{formatDateTime(coupon.created_at)} · {coupon.created_by}</p>
       <div className="flex items-center gap-2 pt-1">
-        <Button size="sm" variant="outline" onClick={onView} className="flex-1 border-white/20 text-[#94A3B8] hover:bg-white/5 h-9">
+        <Button size="sm" variant="outline" onClick={onView} className="flex-1 border-white/20 text-muted-foreground hover:bg-white/5 h-9">
           ดูรายละเอียด
         </Button>
         {(coupon.status === "active" || coupon.status === "disabled") && (
@@ -816,7 +817,7 @@ function MobileCard({ coupon, onView, onRevoke }: { coupon: Coupon; onView: () =
 
 function LoadingSkeleton() {
   return (
-    <div className="bg-[#1E293B] rounded-xl border border-white/8 overflow-hidden">
+    <div className="bg-card rounded-xl border border-white/8 overflow-hidden">
       {Array.from({ length: 5 }).map((_, i) => (
         <div key={i} className="border-t border-white/5 first:border-t-0 px-4 py-3 flex items-center gap-4">
           <div className="h-4 w-4 rounded bg-white/5 animate-pulse shrink-0" />
