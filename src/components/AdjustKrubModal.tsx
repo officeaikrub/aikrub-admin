@@ -131,17 +131,17 @@ export function AdjustKrubModal({
         <div className="space-y-4 py-2">
           {/* Current balance */}
           <div>
-            <p className="font-ui text-xs text-fg-subtle uppercase tracking-wide mb-1.5">
+            <p className="font-ui font-medium text-xs text-fg-subtle uppercase tracking-wide mb-1.5">
               ยอดปัจจุบัน
             </p>
-            <div className="font-display text-2xl text-foreground bg-[#0F172A] rounded-lg px-4 py-3 cursor-not-allowed select-none">
+            <div className="font-display text-2xl text-foreground bg-[var(--color-bg)] rounded-lg px-4 py-3 cursor-not-allowed select-none">
               {balance} krub
             </div>
           </div>
 
           {/* Direction radio */}
           <div>
-            <p className="font-ui text-xs text-fg-subtle uppercase tracking-wide mb-2">
+            <p className="font-ui font-medium text-xs text-fg-subtle uppercase tracking-wide mb-2">
               ประเภท
             </p>
             <div className="flex gap-4">
@@ -153,7 +153,7 @@ export function AdjustKrubModal({
                     value={d}
                     checked={direction === d}
                     onChange={() => { setDirection(d); setIsDirty(true); }}
-                    className="accent-[#F25F2D]"
+                    className="accent-accent"
                   />
                   <span className="font-ui text-sm text-foreground">
                     {d === "add" ? "เพิ่ม krub" : "ลด krub"}
@@ -165,7 +165,7 @@ export function AdjustKrubModal({
 
           {/* Amount input */}
           <div>
-            <p className="font-ui text-xs text-fg-subtle uppercase tracking-wide mb-1.5">
+            <p className="font-ui font-medium text-xs text-fg-subtle uppercase tracking-wide mb-1.5">
               จำนวน (krub) *
             </p>
             <input
@@ -175,25 +175,25 @@ export function AdjustKrubModal({
               onChange={(e) => { setAmountStr(e.target.value); setIsDirty(true); }}
               placeholder="0"
               className={cn(
-                "w-full bg-[#0F172A] border rounded-lg px-3 py-2.5 font-mono text-lg text-foreground tabular-nums focus:outline-none transition-colors",
-                balanceError ? "border-red-500/50" : "border-white/10 focus:border-[#F25F2D]",
+                "w-full bg-[var(--color-bg)] border rounded-lg px-3 py-2.5 font-mono text-lg text-foreground tabular-nums focus:outline-none transition-colors",
+                balanceError ? "border-[var(--color-error)]/50" : "border-white/10 focus:border-[var(--color-accent)]",
               )}
             />
             {balanceError && (
-              <p className="text-xs text-red-400 mt-1">{balanceError}</p>
+              <p className="text-xs text-[var(--color-error-text)] mt-1">{balanceError}</p>
             )}
           </div>
 
           {/* New balance preview */}
           {newBalance !== null && !balanceError && (
             <div>
-              <p className="font-ui text-xs text-fg-subtle uppercase tracking-wide mb-1.5">
+              <p className="font-ui font-medium text-xs text-fg-subtle uppercase tracking-wide mb-1.5">
                 ยอดใหม่จะเป็น
               </p>
               <div
                 className={cn(
-                  "font-display text-xl bg-[#0F172A] rounded-lg px-4 py-2.5",
-                  direction === "add" ? "text-green-400" : "text-red-400",
+                  "font-display text-xl bg-[var(--color-bg)] rounded-lg px-4 py-2.5",
+                  direction === "add" ? "text-[var(--color-success-text)]" : "text-[var(--color-error-text)]",
                 )}
               >
                 {newBalance} krub
@@ -201,7 +201,7 @@ export function AdjustKrubModal({
               <p
                 className={cn(
                   "font-ui text-sm mt-2",
-                  direction === "add" ? "text-green-400" : "text-red-400",
+                  direction === "add" ? "text-[var(--color-success-text)]" : "text-[var(--color-error-text)]",
                 )}
               >
                 ปรับ {direction === "add" ? "+" : "-"}{amount} krub สำหรับ {displayName} —
@@ -212,7 +212,7 @@ export function AdjustKrubModal({
 
           {/* Note / reason */}
           <div>
-            <p className="font-ui text-xs text-fg-subtle uppercase tracking-wide mb-1.5">
+            <p className="font-ui font-medium text-xs text-fg-subtle uppercase tracking-wide mb-1.5">
               เหตุผล *
             </p>
             <textarea
@@ -221,21 +221,21 @@ export function AdjustKrubModal({
               placeholder="ระบุเหตุผลการปรับ krub..."
               rows={3}
               className={cn(
-                "w-full bg-[#0F172A] border rounded-lg px-3 py-2.5 font-content text-sm text-foreground min-h-[80px] resize-none focus:outline-none transition-colors",
-                noteError ? "border-red-500/50" : "border-white/10 focus:border-[#F25F2D]",
+                "w-full bg-[var(--color-bg)] border rounded-lg px-3 py-2.5 font-content text-sm text-foreground min-h-[80px] resize-none focus:outline-none transition-colors",
+                noteError ? "border-[var(--color-error)]/50" : "border-white/10 focus:border-[var(--color-accent)]",
               )}
             />
             {noteError && (
-              <p className="text-xs text-red-400 mt-1">{noteError}</p>
+              <p className="text-xs text-[var(--color-error-text)] mt-1">{noteError}</p>
             )}
-            <p className="text-xs text-amber-400 mt-1 flex items-center gap-1">
+            <p className="text-xs text-[var(--color-warning-text)] mt-1 flex items-center gap-1">
               ⚠ ผู้ใช้จะเห็น note นี้ใน credit history
             </p>
           </div>
 
           {/* Mutation error */}
           {mutation.isError && (
-            <p className="text-xs text-red-400">
+            <p className="text-xs text-[var(--color-error-text)]">
               {mutation.error instanceof Error ? mutation.error.message : "เกิดข้อผิดพลาด — ลองใหม่"}
             </p>
           )}
@@ -254,7 +254,7 @@ export function AdjustKrubModal({
             variant="cta"
             onClick={() => mutation.mutate()}
             disabled={!canSubmit || mutation.isPending}
-            className="bg-[#F25F2D] hover:bg-[#C7461A] text-white font-ui"
+            className="bg-accent hover:bg-accent/80 text-white font-ui"
           >
             {mutation.isPending ? "กำลังบันทึก..." : "ยืนยัน →"}
           </Button>

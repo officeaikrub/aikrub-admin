@@ -22,8 +22,10 @@ const buttonVariants = cva(
           "hover:bg-white/5 text-foreground",
         outline:
           "border border-white/20 text-muted-foreground hover:bg-white/5",
+        /* Outline-only — no red fill at idle (spec §4A). bg-transparent on idle,
+           subtle error/8 tint on hover only. Red fill is reserved for status badges. */
         destructive:
-          "bg-destructive text-destructive-foreground hover:bg-destructive/90",
+          "border border-[var(--color-error)] text-[var(--color-error-text)] bg-transparent hover:bg-[var(--color-error)]/8",
         link: "text-primary underline-offset-4 hover:underline",
       },
       size: {

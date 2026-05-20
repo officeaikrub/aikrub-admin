@@ -83,22 +83,22 @@ export function ClawbackRowModal({
           {/* Question */}
           <p className="font-content text-sm text-foreground">
             ดึงคืน{" "}
-            <span className="font-mono text-amber-300">{krubAmount} Krub</span>{" "}
+            <span className="font-mono text-[var(--color-warning-text)]">{krubAmount} Krub</span>{" "}
             จาก{" "}
             <span className="font-mono text-muted-foreground">{userEmail}</span>?
           </p>
 
           {/* Warning banner */}
-          <div className="bg-amber-900/20 border border-amber-500/30 rounded-lg px-3 py-3 space-y-1.5">
-            <p className="font-ui text-xs text-amber-300 font-semibold">⚠ การกระทำนี้จะ:</p>
+          <div className="bg-[var(--color-warning)]/12 border border-[var(--color-warning)]/30 rounded-lg px-3 py-3 space-y-1.5">
+            <p className="font-ui text-xs text-[var(--color-warning-text)] font-semibold">⚠ การกระทำนี้จะ:</p>
             <ul className="space-y-0.5 ml-2">
-              <li className="font-content text-xs text-amber-200">
+              <li className="font-content text-xs text-[var(--color-warning-text)]/80">
                 • หัก {krubAmount} Krub จาก user ทันที
               </li>
-              <li className="font-content text-xs text-amber-200">
+              <li className="font-content text-xs text-[var(--color-warning-text)]/80">
                 • ส่ง notification แจ้ง user ทันที
               </li>
-              <li className="font-content text-xs text-amber-200">
+              <li className="font-content text-xs text-[var(--color-warning-text)]/80">
                 • บันทึกใน audit log
               </li>
             </ul>
@@ -106,7 +106,7 @@ export function ClawbackRowModal({
 
           {/* Reason dropdown */}
           <div className="space-y-1.5">
-            <label className="font-ui text-xs text-muted-foreground uppercase tracking-wide">
+            <label className="font-ui font-medium text-xs text-muted-foreground uppercase tracking-wide">
               เหตุผล *
             </label>
             <select
@@ -114,9 +114,9 @@ export function ClawbackRowModal({
               onChange={(e) => setReasonCategory(e.target.value as ClawbackReason)}
               disabled={mutation.isPending}
               className={cn(
-                "w-full bg-[#0F172A] border border-white/10 rounded-lg px-3 py-2",
+                "w-full bg-[var(--color-bg)] border border-white/10 rounded-lg px-3 py-2",
                 "font-ui text-sm text-foreground",
-                "focus:outline-none focus:border-[#F25F2D]/60",
+                "focus:outline-none focus:border-[var(--color-accent)]/60",
                 "disabled:opacity-50",
               )}
             >
@@ -130,7 +130,7 @@ export function ClawbackRowModal({
 
           {/* Note textarea */}
           <div className="space-y-1.5">
-            <label className="font-ui text-xs text-muted-foreground uppercase tracking-wide">
+            <label className="font-ui font-medium text-xs text-muted-foreground uppercase tracking-wide">
               บันทึก (ไม่บังคับ)
             </label>
             <textarea
@@ -140,9 +140,9 @@ export function ClawbackRowModal({
               placeholder="รายละเอียดเพิ่มเติม..."
               rows={2}
               className={cn(
-                "w-full bg-[#0F172A] border border-white/10 rounded-lg px-3 py-2",
+                "w-full bg-[var(--color-bg)] border border-white/10 rounded-lg px-3 py-2",
                 "font-content text-sm text-foreground placeholder:text-fg-subtle",
-                "focus:outline-none focus:border-[#F25F2D]/60 resize-none",
+                "focus:outline-none focus:border-[var(--color-accent)]/60 resize-none",
                 "disabled:opacity-50",
               )}
             />
@@ -150,7 +150,7 @@ export function ClawbackRowModal({
 
           {/* Mutation error */}
           {mutation.isError && (
-            <p className="font-content text-xs text-red-400">
+            <p className="font-content text-xs text-[var(--color-error-text)]">
               {mutation.error instanceof ApiError
                 ? mutation.error.message
                 : "เกิดข้อผิดพลาด — ลองใหม่"}
@@ -173,7 +173,7 @@ export function ClawbackRowModal({
             size="sm"
             onClick={() => mutation.mutate()}
             disabled={mutation.isPending}
-            className="bg-red-600 hover:bg-red-700 text-white font-ui"
+            className="border border-[var(--color-error)] text-[var(--color-error-text)] bg-transparent hover:bg-[var(--color-error)]/8 font-ui"
           >
             {mutation.isPending ? "กำลังดึงคืน..." : "ดึงคืน ↩"}
           </Button>

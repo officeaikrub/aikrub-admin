@@ -128,10 +128,10 @@ function BulkPreviewStack({ users }: { users: AdminUserRow[] }) {
   const overflow = users.length - MAX_SHOWN;
 
   return (
-    <div className="bg-[#0F172A] rounded-lg border border-white/8 divide-y divide-white/5 max-h-[180px] overflow-y-auto">
+    <div className="bg-[var(--color-bg)] rounded-lg border border-white/8 divide-y divide-white/5 max-h-[180px] overflow-y-auto">
       {shown.map((u) => (
         <div key={u.id} className="flex items-center gap-3 px-3 py-2">
-          <div className="w-7 h-7 rounded-full bg-slate-700 flex items-center justify-center text-xs font-display text-muted-foreground shrink-0">
+          <div className="w-7 h-7 rounded-full bg-secondary flex items-center justify-center text-xs font-display text-muted-foreground shrink-0">
             {userInitial(u)}
           </div>
           <span className="font-content text-xs text-muted-foreground flex-1 truncate min-w-0">
@@ -139,9 +139,9 @@ function BulkPreviewStack({ users }: { users: AdminUserRow[] }) {
           </span>
           <span className={cn(
             "px-1.5 py-0.5 rounded text-xs font-ui shrink-0",
-            u.role === "admin" ? "bg-blue-900/40 text-blue-300"
-            : u.role === "owner" ? "bg-amber-900/40 text-amber-300"
-            : "bg-slate-700/50 text-slate-300",
+            u.role === "admin" ? "bg-[var(--color-info)]/12 text-[var(--color-info-text)]"
+            : u.role === "owner" ? "bg-[var(--color-warning)]/12 text-[var(--color-warning-text)]"
+            : "bg-secondary text-muted-foreground",
           )}>
             {u.role}
           </span>
@@ -279,7 +279,7 @@ export function SuspendUserModal({
           )}
 
           {/* JWT warning */}
-          <div className="flex items-start gap-2 p-3 rounded-lg bg-amber-900/20 border border-amber-500/30 text-amber-300 text-sm font-content">
+          <div className="flex items-start gap-2 p-3 rounded-lg bg-[var(--color-warning)]/12 border border-[var(--color-warning)]/30 text-[var(--color-warning-text)] text-sm font-content">
             <span className="shrink-0">⚠</span>
             <span>
               ผู้ใช้จะยังเข้าระบบได้จนกว่า JWT หมดอายุ (~1 ชม) แต่ไม่สามารถใช้ฟีเจอร์ใหม่ได้ทันที
@@ -288,7 +288,7 @@ export function SuspendUserModal({
 
           {/* Reason dropdown */}
           <div>
-            <label className="font-ui text-xs text-fg-subtle uppercase tracking-wide block mb-1.5">
+            <label className="font-ui font-medium text-xs text-fg-subtle uppercase tracking-wide block mb-1.5">
               เหตุผล *
             </label>
             {isBulk ? (
@@ -296,7 +296,7 @@ export function SuspendUserModal({
                 value={bulkReason}
                 onChange={(e) => setBulkReason(e.target.value as BulkSuspendReason)}
                 disabled={isPending}
-                className="w-full bg-[#0F172A] border border-white/10 rounded-lg px-3 py-2.5 font-ui text-sm text-foreground focus:border-[#F25F2D] focus:outline-none disabled:opacity-50"
+                className="w-full bg-[var(--color-bg)] border border-white/10 rounded-lg px-3 py-2.5 font-ui text-sm text-foreground focus:border-[var(--color-accent)] focus:outline-none disabled:opacity-50"
               >
                 {BULK_REASON_OPTIONS.map((o) => (
                   <option key={o.value} value={o.value}>{o.label}</option>
@@ -307,7 +307,7 @@ export function SuspendUserModal({
                 value={singleReason}
                 onChange={(e) => setSingleReason(e.target.value as SuspendReason)}
                 disabled={isPending}
-                className="w-full bg-[#0F172A] border border-white/10 rounded-lg px-3 py-2.5 font-ui text-sm text-foreground focus:border-[#F25F2D] focus:outline-none disabled:opacity-50"
+                className="w-full bg-[var(--color-bg)] border border-white/10 rounded-lg px-3 py-2.5 font-ui text-sm text-foreground focus:border-[var(--color-accent)] focus:outline-none disabled:opacity-50"
               >
                 {SINGLE_REASON_OPTIONS.map((o) => (
                   <option key={o.value} value={o.value}>{o.label}</option>
@@ -318,7 +318,7 @@ export function SuspendUserModal({
 
           {/* Optional note */}
           <div>
-            <label className="font-ui text-xs text-fg-subtle uppercase tracking-wide block mb-1.5">
+            <label className="font-ui font-medium text-xs text-fg-subtle uppercase tracking-wide block mb-1.5">
               บันทึกเพิ่มเติม (ไม่บังคับ)
             </label>
             <textarea
@@ -328,13 +328,13 @@ export function SuspendUserModal({
               placeholder="รายละเอียดเพิ่มเติม..."
               rows={2}
               maxLength={500}
-              className="w-full bg-[#0F172A] border border-white/10 rounded-lg px-3 py-2.5 font-content text-sm text-foreground placeholder:text-fg-subtle min-h-[60px] resize-none focus:border-[#F25F2D] focus:outline-none disabled:opacity-50"
+              className="w-full bg-[var(--color-bg)] border border-white/10 rounded-lg px-3 py-2.5 font-content text-sm text-foreground placeholder:text-fg-subtle min-h-[60px] resize-none focus:border-[var(--color-accent)] focus:outline-none disabled:opacity-50"
             />
           </div>
 
           {/* Duration radio */}
           <div>
-            <p className="font-ui text-xs text-fg-subtle uppercase tracking-wide mb-2">
+            <p className="font-ui font-medium text-xs text-fg-subtle uppercase tracking-wide mb-2">
               ระยะเวลา
             </p>
             <div className="flex flex-wrap gap-2">
@@ -347,7 +347,7 @@ export function SuspendUserModal({
                   className={cn(
                     "rounded-lg px-3 py-1.5 text-sm font-ui border transition-colors",
                     duration === opt.value
-                      ? "border-amber-500 bg-amber-900/20 text-amber-300"
+                      ? "border-[var(--color-warning)] bg-[var(--color-warning)]/12 text-[var(--color-warning-text)]"
                       : "border-white/10 text-muted-foreground hover:border-white/30",
                     "disabled:opacity-50 disabled:cursor-not-allowed",
                   )}
@@ -359,14 +359,14 @@ export function SuspendUserModal({
           </div>
 
           {/* Suspend-until preview */}
-          <div className="rounded-lg border border-white/10 bg-[#0F172A]/60 px-3 py-2.5">
+          <div className="rounded-lg border border-white/10 bg-[var(--color-bg)]/60 px-3 py-2.5">
             {suspendUntil !== null ? (
               <p className="font-content text-xs text-muted-foreground">
                 user จะถูกปลด suspend อัตโนมัติเมื่อ{" "}
                 <span className="font-mono text-foreground">{formatSuspendUntil(suspendUntil)}</span>
               </p>
             ) : (
-              <p className="font-content text-xs text-amber-400">
+              <p className="font-content text-xs text-[var(--color-warning-text)]">
                 user จะถูก suspend ถาวร — ต้องปลดด้วยมือเท่านั้น
               </p>
             )}
@@ -379,7 +379,7 @@ export function SuspendUserModal({
               checked={notifyUser}
               onChange={(e) => setNotifyUser(e.target.checked)}
               disabled={isPending}
-              style={{ accentColor: "#F25F2D" }}
+              style={{ accentColor: "var(--color-accent)" }}
               className="mt-0.5 w-4 h-4 shrink-0 disabled:opacity-50"
             />
             <span className="space-y-0.5">
@@ -394,7 +394,7 @@ export function SuspendUserModal({
 
           {/* Mutation error */}
           {mutationError && (
-            <p className="text-xs text-red-400">
+            <p className="text-xs text-[var(--color-error-text)]">
               {mutationError instanceof ApiError
                 ? mutationError.message
                 : "เกิดข้อผิดพลาด — ลองใหม่"}
@@ -417,8 +417,8 @@ export function SuspendUserModal({
             className={cn(
               "font-ui text-sm",
               isPending
-                ? "bg-amber-900/30 text-amber-300/50 cursor-not-allowed"
-                : "bg-amber-600 hover:bg-amber-700 text-white",
+                ? "bg-[var(--color-warning)]/12 text-[var(--color-warning-text)]/50 cursor-not-allowed"
+                : "bg-[var(--color-warning)] hover:bg-[var(--color-warning)]/80 text-white",
             )}
           >
             {ctaLabel}

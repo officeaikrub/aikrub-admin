@@ -28,7 +28,7 @@
   /* Dark text */
   --color-fg:         #F5F1E8;
   --color-fg-muted:   #A8A89C;
-  --color-fg-subtle:  #5A5A51;
+  --color-fg-subtle:  #94948C;   /* was #5A5A51 — WCAG fail; now 4.73–5.84:1 */
 
   /* Dark border */
   --color-border:        rgba(245, 241, 232, 0.10);
@@ -40,11 +40,17 @@
   --color-accent-tint: rgba(242, 95, 45, 0.18);
   --color-accent-fg:   #FFFFFF;
 
-  /* Status */
+  /* Status — dot/fill tokens (saturated; use for bg dots and borders) */
   --color-success: #2E8B57;
   --color-warning: #E89412;
   --color-error:   #D4452D;
   --color-info:    #2A6FDB;
+
+  /* Status text variants — WCAG AA certified on all dark surfaces (≥4.5:1) */
+  --color-success-text: #4CAF7D;
+  --color-warning-text: #E89412;   /* same as dot — amber already passes */
+  --color-error-text:   #F27262;
+  --color-info-text:    #5B9CF6;
 
   /* shadcn/ui CSS vars — dark mode values (HSL triplet without hsl() wrapper).
      Format: H S% L%  — Tailwind wraps with hsl() via bg-primary etc.
@@ -155,6 +161,20 @@ body {
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* ─── Base overrides (layer base — lower specificity than Tailwind utilities) ─
+   .font-display explicitly binds font-weight: 700.
+   Without this, a parent element's font-weight: 400 can override the family
+   default and force the browser to synthesize a blurry faux-regular Krub.
+   WARNING: do NOT also add font-normal/medium/semibold/bold alongside font-display
+   on any element — those Tailwind utilities override this @layer base rule.
+─────────────────────────────────────────────────────────────────────────────── */
+@layer base {
+  .font-display {
+    font-family: var(--font-display);
+    font-weight: 700;
+  }
+}
 
 /* ─── Glass utilities (v2 — Premium Dark Glass) ──────────────
    ALLOW LIST (ref: admin-design-system-v2.md §2A):

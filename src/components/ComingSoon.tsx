@@ -14,7 +14,7 @@ export default function ComingSoon({ name }: ComingSoonProps) {
         <span className="text-primary text-xl">🚧</span>
       </div>
       <div className="text-center">
-        <h2 className="font-display text-xl font-bold text-foreground mb-1">
+        <h2 className="font-display text-xl text-foreground mb-1">
           {name}
         </h2>
         <p className="font-content text-sm text-muted-foreground">

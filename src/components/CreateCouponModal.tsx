@@ -82,9 +82,9 @@ function FieldLabel({
   required?: boolean;
 }) {
   return (
-    <label className="font-ui text-xs text-muted-foreground uppercase tracking-wide block mb-1.5">
+    <label className="font-ui font-medium text-xs text-muted-foreground uppercase tracking-wide block mb-1.5">
       {children}
-      {required && <span className="text-red-400 ml-1">*</span>}
+      {required && <span className="text-[var(--color-error-text)] ml-1">*</span>}
     </label>
   );
 }
@@ -147,9 +147,9 @@ function PrefixModePicker({
               className={cn(
                 "flex-1 py-2 font-ui text-xs text-center transition-colors",
                 isActive
-                  ? "text-[#F25F2D] bg-[#F25F2D]/10 border-b-2 border-[#F25F2D]"
-                  : "text-muted-foreground bg-[#0F172A] hover:bg-secondary",
-                isDisabled && "opacity-30 cursor-not-allowed hover:bg-[#0F172A]",
+                  ? "text-accent bg-accent/10 border-b-2 border-accent"
+                  : "text-muted-foreground bg-[var(--color-bg)] hover:bg-secondary",
+                isDisabled && "opacity-30 cursor-not-allowed hover:bg-[var(--color-bg)]",
               )}
               title={
                 isDisabled
@@ -185,8 +185,8 @@ function PrefixModePicker({
               maxLength={12}
               placeholder="เช่น SUMMER, BIRTHDAY"
               className={cn(
-                "w-32 bg-[#0F172A] border border-white/10 rounded-lg px-2 py-1.5 font-mono text-xs text-foreground uppercase focus:border-[#F25F2D] focus:outline-none",
-                prefixError && "border-red-500",
+                "w-32 bg-[var(--color-bg)] border border-white/10 rounded-lg px-2 py-1.5 font-mono text-xs text-foreground uppercase focus:border-accent focus:outline-none",
+                prefixError && "border-[var(--color-error)]",
               )}
             />
             {/* Template quick-picks */}
@@ -225,7 +225,7 @@ function PrefixModePicker({
           )}
 
           {prefixError && (
-            <p className="font-content text-xs text-red-400 mt-1">{prefixError}</p>
+            <p className="font-content text-xs text-[var(--color-error-text)] mt-1">{prefixError}</p>
           )}
           <p className="font-content text-xs text-fg-subtle mt-0.5">
             A-Z, 0-9, _ ได้ | ไม่เกิน 12 ตัว
@@ -261,14 +261,14 @@ function DiscardGuardDialog({ open, onStay, onDiscard }: DiscardGuardProps) {
         <DialogFooter className="justify-between">
           <Button
             onClick={onDiscard}
-            className="border border-red-500/40 text-error bg-transparent hover:bg-red-900/20 h-9 px-4 font-ui text-sm"
+            className="border border-[var(--color-error)]/40 text-[var(--color-error-text)] bg-transparent hover:bg-[var(--color-error)]/8 h-9 px-4 font-ui text-sm"
           >
             ทิ้ง
           </Button>
           <Button
             autoFocus
             onClick={onStay}
-            className="bg-transparent border-2 border-[#F25F2D] text-[#F25F2D] hover:bg-[#F25F2D]/10 ring-2 ring-[#F25F2D] h-9 px-4 font-ui text-sm"
+            className="bg-transparent border-2 border-accent text-accent hover:bg-accent/10 ring-2 ring-accent h-9 px-4 font-ui text-sm"
           >
             อยู่ต่อ
           </Button>
@@ -350,16 +350,16 @@ function ConfirmModal({
           )}
         </div>
 
-        <div className="mt-4 flex items-start gap-2 p-3 rounded-lg bg-amber-900/20 border border-amber-500/30">
-          <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
-          <p className="font-content text-xs text-amber-300">
+        <div className="mt-4 flex items-start gap-2 p-3 rounded-lg bg-[var(--color-warning)]/12 border border-[var(--color-warning)]/30">
+          <AlertTriangle className="w-4 h-4 text-[var(--color-warning-text)] shrink-0 mt-0.5" />
+          <p className="font-content text-xs text-[var(--color-warning-text)]">
             ตรวจสอบข้อมูลก่อนยืนยัน เมื่อสร้างแล้วจะแก้ไข code ไม่ได้
           </p>
         </div>
 
         {error && (
-          <div className="mt-2 p-3 rounded-lg bg-red-900/20 border border-red-500/30">
-            <p className="font-content text-xs text-red-400">{error}</p>
+          <div className="mt-2 p-3 rounded-lg bg-[var(--color-error)]/12 border border-[var(--color-error)]/30">
+            <p className="font-content text-xs text-[var(--color-error-text)]">{error}</p>
           </div>
         )}
 
@@ -378,7 +378,7 @@ function ConfirmModal({
             variant="cta"
             onClick={onConfirm}
             disabled={loading}
-            className="bg-[#F25F2D] hover:bg-[#C7461A] text-white"
+            className="bg-accent hover:bg-accent/80 text-white"
           >
             {loading ? "กำลังสร้าง..." : "ยืนยัน สร้างคูปอง"}
           </Button>
@@ -493,7 +493,7 @@ function PaidFormBody({
         <select
           value={form.channel}
           onChange={(e) => onChannelChange(e.target.value as CouponChannel)}
-          className="w-full bg-[#0F172A] border border-white/10 rounded-lg px-3 py-2.5 font-ui text-sm text-foreground focus:border-[#F25F2D] focus:outline-none"
+          className="w-full bg-[var(--color-bg)] border border-white/10 rounded-lg px-3 py-2.5 font-ui text-sm text-foreground focus:border-accent focus:outline-none"
         >
           {(Object.entries(CHANNEL_LABELS) as [CouponChannel, string][]).map(
             ([val, label]) => (
@@ -533,8 +533,8 @@ function PaidFormBody({
                   onFieldChange("code", sanitizeManualCode(e.target.value))
                 }
                 className={cn(
-                  "bg-[#0F172A] border-white/10 text-foreground font-mono uppercase focus:border-[#F25F2D]",
-                  errors.code && "border-red-500",
+                  "bg-[var(--color-bg)] border-white/10 text-foreground font-mono uppercase focus:border-accent",
+                  errors.code && "border-[var(--color-error)]",
                 )}
                 placeholder="WELCOME2026"
                 maxLength={64}
@@ -545,7 +545,7 @@ function PaidFormBody({
               อย่างน้อย 8 ตัว ผสมตัวเลข+ตัวอักษร ห้ามใช้ I L O U
             </p>
             {errors.code && (
-              <p className="font-content text-xs text-red-400 mt-1">{errors.code}</p>
+              <p className="font-content text-xs text-[var(--color-error-text)] mt-1">{errors.code}</p>
             )}
             <button
               type="button"
@@ -558,7 +558,7 @@ function PaidFormBody({
           </>
         ) : (
           <>
-            <div className="flex items-center gap-2 bg-[#0F172A] border border-white/10 rounded-lg px-3 py-2.5">
+            <div className="flex items-center gap-2 bg-[var(--color-bg)] border border-white/10 rounded-lg px-3 py-2.5">
               <span className="flex-1 font-mono text-sm text-foreground tabular-nums truncate">
                 {codePreview}
               </span>
@@ -574,7 +574,7 @@ function PaidFormBody({
             <button
               type="button"
               onClick={onManualCodeToggle}
-              className="text-xs text-[#F25F2D] underline cursor-pointer mt-1 inline-flex items-center gap-1"
+              className="text-xs text-accent underline cursor-pointer mt-1 inline-flex items-center gap-1"
             >
               <Pencil className="w-3 h-3" />
               ตั้งชื่อเอง
@@ -593,13 +593,13 @@ function PaidFormBody({
             value={form.krub_amount}
             onChange={(e) => onKrubChange(e.target.value)}
             className={cn(
-              "bg-[#0F172A] border-white/10 text-foreground font-mono tabular-nums focus:border-[#F25F2D]",
-              errors.krub_amount && "border-red-500",
+              "bg-[var(--color-bg)] border-white/10 text-foreground font-mono tabular-nums focus:border-accent",
+              errors.krub_amount && "border-[var(--color-error)]",
             )}
             placeholder="200"
           />
           {errors.krub_amount && (
-            <p className="font-content text-xs text-red-400 mt-1">
+            <p className="font-content text-xs text-[var(--color-error-text)] mt-1">
               {errors.krub_amount}
             </p>
           )}
@@ -612,7 +612,7 @@ function PaidFormBody({
               min={1}
               value={form.payment_thb}
               readOnly
-              className="bg-[#0F172A] border-white/10 text-foreground font-mono tabular-nums cursor-not-allowed opacity-70 pr-10"
+              className="bg-[var(--color-bg)] border-white/10 text-foreground font-mono tabular-nums cursor-not-allowed opacity-70 pr-10"
               placeholder="auto-sync"
             />
             <Lock className="w-4 h-4 text-fg-subtle absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
@@ -629,7 +629,7 @@ function PaidFormBody({
         <Input
           value={form.slip_ref}
           onChange={(e) => onFieldChange("slip_ref", e.target.value)}
-          className="bg-[#0F172A] border-white/10 text-foreground focus:border-[#F25F2D]"
+          className="bg-[var(--color-bg)] border-white/10 text-foreground focus:border-accent"
           placeholder="REF20260518..."
         />
       </div>
@@ -644,8 +644,8 @@ function PaidFormBody({
               className={cn(
                 "hidden md:flex border-2 border-dashed rounded-xl p-6 flex-col items-center gap-2 transition-colors cursor-pointer",
                 isDragging
-                  ? "border-[#F25F2D]/50 bg-[#F25F2D]/5"
-                  : "border-white/20 hover:border-[#F25F2D]/50 hover:bg-[#F25F2D]/5",
+                  ? "border-accent/50 bg-accent/5"
+                  : "border-white/20 hover:border-accent/50 hover:bg-accent/5",
               )}
               onDragOver={onDragOver}
               onDragLeave={onDragLeave}
@@ -703,10 +703,10 @@ function PaidFormBody({
                 <p className="font-ui text-sm text-white">กำลังอัปโหลด...</p>
               )}
               {isUploadSuccess && (
-                <p className="font-ui text-sm text-green-400">อัปโหลดสำเร็จ ✓</p>
+                <p className="font-ui text-sm text-[var(--color-success-text)]">อัปโหลดสำเร็จ ✓</p>
               )}
               {isUploadError && (
-                <p className="font-ui text-sm text-red-400">อัปโหลดล้มเหลว</p>
+                <p className="font-ui text-sm text-[var(--color-error-text)]">อัปโหลดล้มเหลว</p>
               )}
             </div>
             <button
@@ -726,7 +726,7 @@ function PaidFormBody({
         <Input
           value={form.contact_info}
           onChange={(e) => onFieldChange("contact_info", e.target.value)}
-          className="bg-[#0F172A] border-white/10 text-foreground focus:border-[#F25F2D]"
+          className="bg-[var(--color-bg)] border-white/10 text-foreground focus:border-accent"
           placeholder="@lineid หรือ ชื่อ-นามสกุล"
         />
       </div>
@@ -739,7 +739,7 @@ function PaidFormBody({
             type="date"
             value={form.expires_at}
             onChange={(e) => onFieldChange("expires_at", e.target.value)}
-            className="bg-[#0F172A] border-white/10 text-foreground font-mono focus:border-[#F25F2D]"
+            className="bg-[var(--color-bg)] border-white/10 text-foreground font-mono focus:border-accent"
           />
         </div>
         <div>
@@ -749,7 +749,7 @@ function PaidFormBody({
             min={1}
             value={form.max_uses}
             onChange={(e) => onFieldChange("max_uses", e.target.value)}
-            className="bg-[#0F172A] border-white/10 text-foreground font-mono tabular-nums focus:border-[#F25F2D]"
+            className="bg-[var(--color-bg)] border-white/10 text-foreground font-mono tabular-nums focus:border-accent"
           />
           <p className="font-content text-xs text-fg-subtle mt-1">
             default 1 — ตั้งมากกว่า 1 สำหรับ campaign
@@ -764,7 +764,7 @@ function PaidFormBody({
           value={form.note}
           onChange={(e) => onFieldChange("note", e.target.value)}
           rows={3}
-          className="w-full bg-[#0F172A] border border-white/10 rounded-lg px-3 py-2.5 font-content text-sm text-foreground focus:border-[#F25F2D] focus:outline-none resize-none"
+          className="w-full bg-[var(--color-bg)] border border-white/10 rounded-lg px-3 py-2.5 font-content text-sm text-foreground focus:border-accent focus:outline-none resize-none"
           placeholder="บันทึกภายใน..."
         />
       </div>
@@ -863,8 +863,8 @@ function FreeFormBody({
                   onFieldChange("code", sanitizeManualCode(e.target.value))
                 }
                 className={cn(
-                  "bg-[#0F172A] border-white/10 text-foreground font-mono uppercase focus:border-[#F25F2D]",
-                  errors.code && "border-red-500",
+                  "bg-[var(--color-bg)] border-white/10 text-foreground font-mono uppercase focus:border-accent",
+                  errors.code && "border-[var(--color-error)]",
                 )}
                 placeholder="WELCOME2026"
                 maxLength={64}
@@ -875,7 +875,7 @@ function FreeFormBody({
               อย่างน้อย 8 ตัว ผสมตัวเลข+ตัวอักษร ห้ามใช้ I L O U
             </p>
             {errors.code && (
-              <p className="font-content text-xs text-red-400 mt-1">{errors.code}</p>
+              <p className="font-content text-xs text-[var(--color-error-text)] mt-1">{errors.code}</p>
             )}
             <button
               type="button"
@@ -888,7 +888,7 @@ function FreeFormBody({
           </>
         ) : (
           <>
-            <div className="flex items-center gap-2 bg-[#0F172A] border border-white/10 rounded-lg px-3 py-2.5">
+            <div className="flex items-center gap-2 bg-[var(--color-bg)] border border-white/10 rounded-lg px-3 py-2.5">
               <span className="flex-1 font-mono text-sm text-foreground tabular-nums truncate">
                 {codePreview}
               </span>
@@ -904,7 +904,7 @@ function FreeFormBody({
             <button
               type="button"
               onClick={onManualCodeToggle}
-              className="text-xs text-[#F25F2D] underline cursor-pointer mt-1 inline-flex items-center gap-1"
+              className="text-xs text-accent underline cursor-pointer mt-1 inline-flex items-center gap-1"
             >
               <Pencil className="w-3 h-3" />
               ตั้งชื่อเอง
@@ -922,13 +922,13 @@ function FreeFormBody({
           value={form.krub_amount}
           onChange={(e) => onFieldChange("krub_amount", e.target.value)}
           className={cn(
-            "bg-[#0F172A] border-white/10 text-foreground font-mono tabular-nums focus:border-[#F25F2D]",
+            "bg-[var(--color-bg)] border-white/10 text-foreground font-mono tabular-nums focus:border-accent",
             errors.krub_amount && "border-red-500",
           )}
           placeholder="50"
         />
         {errors.krub_amount && (
-          <p className="font-content text-xs text-red-400 mt-1">
+          <p className="font-content text-xs text-[var(--color-error-text)] mt-1">
             {errors.krub_amount}
           </p>
         )}
@@ -941,8 +941,8 @@ function FreeFormBody({
           value={form.purpose}
           onChange={(e) => onFieldChange("purpose", e.target.value as CouponPurpose)}
           className={cn(
-            "w-full bg-[#0F172A] border border-white/10 rounded-lg px-3 py-2.5 font-ui text-sm text-foreground focus:border-[#F25F2D] focus:outline-none",
-            errors.purpose && "border-red-500",
+            "w-full bg-[var(--color-bg)] border border-white/10 rounded-lg px-3 py-2.5 font-ui text-sm text-foreground focus:border-accent focus:outline-none",
+            errors.purpose && "border-[var(--color-error)]",
           )}
         >
           {(Object.entries(PURPOSE_LABELS) as [CouponPurpose, string][]).map(
@@ -954,7 +954,7 @@ function FreeFormBody({
           )}
         </select>
         {errors.purpose && (
-          <p className="font-content text-xs text-red-400 mt-1">{errors.purpose}</p>
+          <p className="font-content text-xs text-[var(--color-error-text)] mt-1">{errors.purpose}</p>
         )}
       </div>
 
@@ -964,7 +964,7 @@ function FreeFormBody({
         <Input
           value={form.campaign_tag}
           onChange={(e) => onFieldChange("campaign_tag", e.target.value)}
-          className="bg-[#0F172A] border-white/10 text-foreground focus:border-[#F25F2D]"
+          className="bg-[var(--color-bg)] border-white/10 text-foreground focus:border-accent"
           placeholder="launch-may-2026"
         />
         <p className="font-content text-xs text-fg-subtle mt-1">
@@ -980,7 +980,7 @@ function FreeFormBody({
             type="date"
             value={form.expires_at}
             onChange={(e) => onFieldChange("expires_at", e.target.value)}
-            className="bg-[#0F172A] border-white/10 text-foreground font-mono focus:border-[#F25F2D]"
+            className="bg-[var(--color-bg)] border-white/10 text-foreground font-mono focus:border-accent"
           />
         </div>
         <div>
@@ -990,7 +990,7 @@ function FreeFormBody({
             min={1}
             value={form.max_uses}
             onChange={(e) => onFieldChange("max_uses", e.target.value)}
-            className="bg-[#0F172A] border-white/10 text-foreground font-mono tabular-nums focus:border-[#F25F2D]"
+            className="bg-[var(--color-bg)] border-white/10 text-foreground font-mono tabular-nums focus:border-accent"
           />
           <p className="font-content text-xs text-fg-subtle mt-1">
             default 1 — ตั้งมากกว่า 1 สำหรับ campaign
@@ -1005,7 +1005,7 @@ function FreeFormBody({
           value={form.note}
           onChange={(e) => onFieldChange("note", e.target.value)}
           rows={3}
-          className="w-full bg-[#0F172A] border border-white/10 rounded-lg px-3 py-2.5 font-content text-sm text-foreground focus:border-[#F25F2D] focus:outline-none resize-none"
+          className="w-full bg-[var(--color-bg)] border border-white/10 rounded-lg px-3 py-2.5 font-content text-sm text-foreground focus:border-accent focus:outline-none resize-none"
           placeholder="บันทึกภายใน..."
         />
       </div>
@@ -1470,7 +1470,7 @@ export function CreateCouponModal({
           >
             {/* Sticky header */}
             <div className="sticky top-0 bg-card flex items-center justify-between px-6 py-4 border-b border-white/8 z-10 shrink-0">
-              <h2 className="font-display text-base font-bold text-foreground">
+              <h2 className="font-display text-base text-foreground">
                 สร้างคูปอง
               </h2>
               <DialogPrimitive.Close asChild>
@@ -1491,7 +1491,7 @@ export function CreateCouponModal({
                 className={cn(
                   "px-4 py-2.5 font-ui text-sm transition-colors",
                   activeTab === "paid"
-                    ? "text-foreground border-b-2 border-[#F25F2D]"
+                    ? "text-foreground border-b-2 border-accent"
                     : "text-muted-foreground hover:text-foreground",
                 )}
               >
@@ -1506,7 +1506,7 @@ export function CreateCouponModal({
                 className={cn(
                   "px-4 py-2.5 font-ui text-sm transition-colors flex items-center gap-1",
                   activeTab === "free"
-                    ? "text-foreground border-b-2 border-[#F25F2D]"
+                    ? "text-foreground border-b-2 border-accent"
                     : role === "owner"
                       ? "text-muted-foreground hover:text-foreground"
                       : "text-fg-subtle cursor-not-allowed",
@@ -1558,9 +1558,9 @@ export function CreateCouponModal({
               ) : role !== "owner" ? (
                 /* Owner gate inside modal */
                 <div className="py-8 flex flex-col items-center gap-4 text-center">
-                  <ShieldAlert className="w-12 h-12 text-amber-400" />
+                  <ShieldAlert className="w-12 h-12 text-[var(--color-warning-text)]" />
                   <div>
-                    <h3 className="font-display text-lg font-bold text-foreground mb-1">
+                    <h3 className="font-display text-lg text-foreground mb-1">
                       ฟีเจอร์นี้สำหรับ owner เท่านั้น
                     </h3>
                     <p className="font-content text-sm text-muted-foreground">
@@ -1601,7 +1601,7 @@ export function CreateCouponModal({
                 variant="cta"
                 onClick={handleSubmitClick}
                 disabled={createMutation.isPending || uploadMutation.isPending}
-                className="bg-[#F25F2D] hover:bg-[#C7461A] text-white h-11 px-6 font-ui text-sm"
+                className="bg-accent hover:bg-accent/80 text-white h-11 px-6 font-ui text-sm"
               >
                 สร้างคูปอง →
               </Button>

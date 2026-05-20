@@ -86,7 +86,7 @@ export function UserDetailModal({ open, userId, onClose }: UserDetailModalProps)
 
           {/* Sticky header — shrink-0, always fixed */}
           <div className="shrink-0 flex items-center justify-between px-6 py-4 border-b border-white/[0.08] bg-[var(--color-bg-muted)]">
-            <p className="font-ui text-[10px] text-[var(--color-fg-subtle)] uppercase tracking-widest">
+            <p className="font-ui font-medium text-[10px] text-[var(--color-fg-subtle)] uppercase tracking-widest">
               รายละเอียดผู้ใช้
             </p>
             <DialogPrimitive.Close asChild>
@@ -127,12 +127,12 @@ export function UserDetailModal({ open, userId, onClose }: UserDetailModalProps)
             {isLoading && <UserDetailLoadingSkeleton />}
 
             {isError && (
-              <div className="flex items-center justify-between p-4 rounded-lg bg-[var(--color-error)]/12 border border-[var(--color-error)]/30 text-[var(--color-error)] text-sm font-ui">
+              <div className="flex items-center justify-between p-4 rounded-lg bg-[var(--color-error)]/12 border border-[var(--color-error)]/30 text-[var(--color-error-text)] text-sm font-ui">
                 <span>โหลดข้อมูลผู้ใช้ไม่สำเร็จ</span>
                 <Button
                   variant="outline"
                   size="sm"
-                  className="border-[var(--color-error)]/30 text-[var(--color-error)] hover:bg-[var(--color-error)]/12"
+                  className="border-[var(--color-error)]/30 text-[var(--color-error-text)] hover:bg-[var(--color-error)]/12"
                   onClick={() => void refetch()}
                 >
                   ลองใหม่

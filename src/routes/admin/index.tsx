@@ -6,7 +6,7 @@ export default function AdminIndexPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-surface">
       <div className="glass-shell rounded-lg p-10 w-full max-w-md text-center">
-        <h1 className="font-display text-3xl font-bold text-fg mb-3">
+        <h1 className="font-display text-3xl text-fg mb-3">
           AIKrub Admin
         </h1>
         <p className="text-fg-muted">

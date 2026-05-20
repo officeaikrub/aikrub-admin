@@ -85,7 +85,7 @@ export function RestoreUserModal({
           </p>
 
           {/* Days remaining */}
-          <div className="flex items-start gap-2 p-3 rounded-lg bg-blue-900/20 border border-blue-500/30 text-blue-300 text-sm font-content">
+          <div className="flex items-start gap-2 p-3 rounded-lg bg-[var(--color-info)]/12 border border-[var(--color-info)]/30 text-[var(--color-info-text)] text-sm font-content">
             <span className="shrink-0">ℹ</span>
             <span>เหลือเวลา <strong>{daysRemaining} วัน</strong> ก่อน grace period หมด</span>
           </div>
@@ -104,7 +104,7 @@ export function RestoreUserModal({
 
           {/* Mutation error */}
           {mutation.isError && (
-            <p className="text-xs text-red-400">
+            <p className="text-xs text-[var(--color-error-text)]">
               {mutation.error instanceof Error ? mutation.error.message : "เกิดข้อผิดพลาด — ลองใหม่"}
             </p>
           )}
@@ -124,8 +124,8 @@ export function RestoreUserModal({
             disabled={mutation.isPending}
             className={
               mutation.isPending
-                ? "bg-green-900/30 text-green-300/50 cursor-not-allowed font-ui text-sm"
-                : "bg-green-700 hover:bg-green-600 text-white font-ui text-sm"
+                ? "bg-[var(--color-success)]/12 text-[var(--color-success-text)]/50 cursor-not-allowed font-ui text-sm"
+                : "bg-[var(--color-success)] hover:bg-[var(--color-success)]/80 text-white font-ui text-sm"
             }
           >
             {mutation.isPending ? "กำลังกู้คืน..." : "กู้คืน ↩"}

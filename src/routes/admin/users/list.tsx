@@ -96,17 +96,17 @@ function UserStatusBadge({ status }: { status: UserStatus }) {
   const map: Record<UserStatus, { dot: string; badge: string; label: string }> = {
     active: {
       dot:   "bg-[var(--color-success)]",
-      badge: "bg-[var(--color-success)]/15 text-[var(--color-success)] border-[var(--color-success)]/20",
+      badge: "bg-[var(--color-success)]/12 text-[var(--color-success-text)] border-[var(--color-success)]/20",
       label: "เปิดใช้งาน",
     },
     suspended: {
       dot:   "bg-[var(--color-warning)]",
-      badge: "bg-[var(--color-warning)]/15 text-[var(--color-warning)] border-[var(--color-warning)]/20",
+      badge: "bg-[var(--color-warning)]/12 text-[var(--color-warning-text)] border-[var(--color-warning)]/20",
       label: "ระงับ",
     },
     soft_deleted: {
       dot:   "bg-[var(--color-error)]",
-      badge: "bg-[var(--color-error)]/15 text-[var(--color-error)] border-[var(--color-error)]/20",
+      badge: "bg-[var(--color-error)]/12 text-[var(--color-error-text)] border-[var(--color-error)]/20",
       label: "ลบแล้ว",
     },
   };
@@ -126,8 +126,8 @@ function UserStatusBadge({ status }: { status: UserStatus }) {
 function UserRoleBadge({ role }: { role: UserRole }) {
   const map: Record<UserRole, string> = {
     user:  "px-2 py-0.5 rounded bg-[var(--color-bg-raised)] text-[var(--color-fg-muted)] text-xs font-ui",
-    admin: "px-2 py-0.5 rounded bg-[var(--color-info)]/15 text-[var(--color-info)] text-xs font-ui",
-    owner: "px-2 py-0.5 rounded bg-[var(--color-warning)]/15 text-[var(--color-warning)] text-xs font-ui",
+    admin: "px-2 py-0.5 rounded bg-[var(--color-info)]/12 text-[var(--color-info-text)] text-xs font-ui",
+    owner: "px-2 py-0.5 rounded bg-[var(--color-warning)]/12 text-[var(--color-warning-text)] text-xs font-ui",
   };
   return <span className={map[role]}>{role}</span>;
 }
@@ -153,12 +153,12 @@ function BulkResultBanner({ result, onDismiss }: BulkResultBannerProps) {
   return (
     <div className="bg-[var(--color-bg-muted)] border border-white/[0.08] rounded-xl px-4 py-3 flex items-center gap-4 flex-wrap">
       {suspendedCount > 0 && (
-        <span className="font-ui text-sm text-[var(--color-success)]">
+        <span className="font-ui text-sm text-[var(--color-success-text)]">
           ✓ ระงับแล้ว {suspendedCount} คน
         </span>
       )}
       {failedCount > 0 && (
-        <span className="font-ui text-sm text-[var(--color-error)]">
+        <span className="font-ui text-sm text-[var(--color-error-text)]">
           ✗ ล้มเหลว {failedCount} คน
         </span>
       )}
@@ -222,31 +222,31 @@ function TableHead({
       </th>
       {/* Email */}
       <th className="px-4 text-left">
-        <span className="font-ui text-xs text-[var(--color-fg-muted)] uppercase tracking-wide">
+        <span className="font-ui font-medium text-xs text-[var(--color-fg-muted)] uppercase tracking-wide">
           Email
         </span>
       </th>
       {/* ชื่อ */}
       <th className="w-32 px-4 text-left">
-        <span className="font-ui text-xs text-[var(--color-fg-muted)] uppercase tracking-wide">
+        <span className="font-ui font-medium text-xs text-[var(--color-fg-muted)] uppercase tracking-wide">
           ชื่อ
         </span>
       </th>
       {/* Role */}
       <th className="w-24 px-4 text-left">
-        <span className="font-ui text-xs text-[var(--color-fg-muted)] uppercase tracking-wide">
+        <span className="font-ui font-medium text-xs text-[var(--color-fg-muted)] uppercase tracking-wide">
           Role
         </span>
       </th>
       {/* krub */}
       <th className="w-24 px-4 text-right">
-        <span className="font-ui text-xs text-[var(--color-fg-muted)] uppercase tracking-wide">
+        <span className="font-ui font-medium text-xs text-[var(--color-fg-muted)] uppercase tracking-wide">
           krub
         </span>
       </th>
       {/* สถานะ */}
       <th className="w-28 px-4 text-left">
-        <span className="font-ui text-xs text-[var(--color-fg-muted)] uppercase tracking-wide">
+        <span className="font-ui font-medium text-xs text-[var(--color-fg-muted)] uppercase tracking-wide">
           สถานะ
         </span>
       </th>
@@ -642,7 +642,7 @@ export default function UserList() {
                       {canSuspend(user) && (
                         <DropdownMenuItem
                           onClick={() => openModal("suspend", user)}
-                          className="font-ui text-sm text-[var(--color-warning)] focus:text-[var(--color-warning)] cursor-pointer"
+                          className="font-ui text-sm text-[var(--color-warning-text)] focus:text-[var(--color-warning-text)] cursor-pointer"
                         >
                           ระงับบัญชี
                         </DropdownMenuItem>
@@ -665,7 +665,7 @@ export default function UserList() {
                       <DropdownMenuSeparator className="bg-white/10" />
                       <DropdownMenuItem
                         onClick={() => openModal("restore", user)}
-                        className="font-ui text-sm text-[var(--color-success)] focus:text-[var(--color-success)] cursor-pointer"
+                        className="font-ui text-sm text-[var(--color-success-text)] focus:text-[var(--color-success-text)] cursor-pointer"
                       >
                         กู้คืนบัญชี
                       </DropdownMenuItem>
@@ -711,7 +711,7 @@ export default function UserList() {
           className="w-4 h-4 shrink-0 text-[var(--color-info)]"
           aria-hidden="true"
         />
-        <span className="font-ui text-sm text-[var(--color-info)]">
+        <span className="font-ui text-sm text-[var(--color-info-text)]">
           การเข้าถึงข้อมูลนี้ถูกบันทึกแล้ว · อ่านข้อมูล PDPA
         </span>
       </div>
@@ -757,11 +757,11 @@ export default function UserList() {
 
         {isError && (
           <div className="flex items-center justify-between p-4 rounded-xl bg-[var(--color-error)]/10 border border-[var(--color-error)]/30">
-            <span className="font-ui text-sm text-[var(--color-error)]">โหลดข้อมูลไม่สำเร็จ</span>
+            <span className="font-ui text-sm text-[var(--color-error-text)]">โหลดข้อมูลไม่สำเร็จ</span>
             <Button
               variant="outline"
               size="sm"
-              className="border-[var(--color-error)]/30 text-[var(--color-error)] hover:bg-[var(--color-error)]/10"
+              className="border-[var(--color-error)]/30 text-[var(--color-error-text)] hover:bg-[var(--color-error)]/10"
               onClick={() => void refetch()}
             >
               ลองใหม่

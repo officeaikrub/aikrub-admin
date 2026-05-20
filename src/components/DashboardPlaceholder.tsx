@@ -9,7 +9,7 @@ export default function DashboardPlaceholder() {
   return (
     <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4 px-6">
       <div className="text-center">
-        <h1 className="font-display text-2xl font-bold mb-2">
+        <h1 className="font-display text-2xl mb-2">
           <WordmarkLogo suffix=" Admin" />
         </h1>
         <p className="font-content text-sm text-muted-foreground">

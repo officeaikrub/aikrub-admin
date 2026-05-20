@@ -63,10 +63,10 @@ export function StatChip({ label, value, dot, className }: StatChipProps) {
 
       {/* Value + label stacked */}
       <div className="flex flex-col leading-tight">
-        <span className="font-display tabular-nums text-xl text-[var(--color-fg)]">
+        <span className="font-display tabular-nums text-xl md:text-2xl text-[var(--color-fg)]">
           {displayValue}
         </span>
-        <span className="font-ui text-[10px] uppercase tracking-wide text-[var(--color-fg-muted)]">
+        <span className="font-ui font-medium text-[10px] uppercase tracking-wider text-[var(--color-fg-muted)]">
           {label}
         </span>
       </div>

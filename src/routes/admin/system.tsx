@@ -198,7 +198,7 @@ function ResolutionSection({ form, errors, readonly, onChange }: ResolutionSecti
 
   return (
     <div className="bg-card rounded-xl border border-white/8 p-5 space-y-3">
-      <p className="font-ui text-xs text-muted-foreground uppercase tracking-wide mb-4">
+      <p className="font-ui font-medium text-xs text-muted-foreground uppercase tracking-wide mb-4">
         ราคา krub ตาม resolution
       </p>
       {rows.map((r) => {
@@ -223,7 +223,7 @@ function ResolutionSection({ form, errors, readonly, onChange }: ResolutionSecti
               <span className="font-ui text-sm text-fg-subtle">krub</span>
             </div>
             {err && (
-              <span className="font-ui text-xs text-red-400">{err}</span>
+              <span className="font-ui text-xs text-[var(--color-error-text)]">{err}</span>
             )}
           </div>
         );
@@ -257,15 +257,15 @@ function PacksSection({
 }: PacksSectionProps) {
   return (
     <div className="bg-card rounded-xl border border-white/8 p-5">
-      <p className="font-ui text-xs text-muted-foreground uppercase tracking-wide mb-4">
+      <p className="font-ui font-medium text-xs text-muted-foreground uppercase tracking-wide mb-4">
         Packs ราคาเติม
       </p>
 
       {/* Column headers */}
       <div className="flex items-center gap-3 mb-2">
-        <span className="font-ui text-xs text-fg-subtle uppercase tracking-wide w-8 shrink-0" />
-        <span className="font-ui text-xs text-muted-foreground uppercase tracking-wide w-28">THB</span>
-        <span className="font-ui text-xs text-muted-foreground uppercase tracking-wide w-28">KRUB</span>
+        <span className="font-ui font-medium text-xs text-fg-subtle uppercase tracking-wide w-8 shrink-0" />
+        <span className="font-ui font-medium text-xs text-muted-foreground uppercase tracking-wide w-28">THB</span>
+        <span className="font-ui font-medium text-xs text-muted-foreground uppercase tracking-wide w-28">KRUB</span>
       </div>
 
       <div className="space-y-2">
@@ -292,7 +292,7 @@ function PacksSection({
                   )}
                 />
                 {pe.thb && (
-                  <span className="font-ui text-xs text-red-400 mt-0.5">{pe.thb}</span>
+                  <span className="font-ui text-xs text-[var(--color-error-text)] mt-0.5">{pe.thb}</span>
                 )}
               </div>
               <div className="flex flex-col">
@@ -311,7 +311,7 @@ function PacksSection({
                   )}
                 />
                 {pe.krub && (
-                  <span className="font-ui text-xs text-red-400 mt-0.5">{pe.krub}</span>
+                  <span className="font-ui text-xs text-[var(--color-error-text)] mt-0.5">{pe.krub}</span>
                 )}
               </div>
               {!readonly && (
@@ -323,7 +323,7 @@ function PacksSection({
                     "flex items-center justify-center w-8 h-8 rounded-md transition-colors",
                     packs.length <= 1
                       ? "opacity-30 cursor-not-allowed text-fg-subtle"
-                      : "text-fg-subtle hover:text-red-400 hover:bg-red-900/20"
+                      : "text-fg-subtle hover:text-[var(--color-error-text)] hover:bg-[var(--color-error)]/8"
                   )}
                 >
                   <X className="w-3.5 h-3.5" />
@@ -335,13 +335,13 @@ function PacksSection({
       </div>
 
       {globalError && (
-        <p className="font-ui text-xs text-red-400 mt-2">{globalError}</p>
+        <p className="font-ui text-xs text-[var(--color-error-text)] mt-2">{globalError}</p>
       )}
 
       {!readonly && (
         <button
           onClick={onAdd}
-          className="mt-4 flex items-center gap-1.5 font-ui text-sm text-[#F25F2D] hover:text-[#C7461A] transition-colors"
+          className="mt-4 flex items-center gap-1.5 font-ui text-sm text-accent hover:text-accent/80 transition-colors"
         >
           <Plus className="w-4 h-4" />
           เพิ่ม pack
@@ -387,7 +387,7 @@ function ConfirmModal({
           {/* Changed resolution rows */}
           {changedRes.length > 0 && (
             <div className="space-y-1">
-              <p className="font-ui text-xs text-muted-foreground uppercase tracking-wide">
+              <p className="font-ui font-medium text-xs text-muted-foreground uppercase tracking-wide">
                 Resolution ที่เปลี่ยน
               </p>
               {changedRes.map((d) => {
@@ -400,7 +400,7 @@ function ConfirmModal({
                     </span>
                     <span className={cn(
                       "text-xs",
-                      delta > 0 ? "text-green-400" : "text-red-400"
+                      delta > 0 ? "text-[var(--color-success-text)]" : "text-[var(--color-error-text)]"
                     )}>
                       ({delta > 0 ? "+" : ""}{delta})
                     </span>
@@ -424,7 +424,7 @@ function ConfirmModal({
           )}
 
           {/* Warning */}
-          <div className="flex items-start gap-2 px-3 py-2.5 rounded-lg bg-amber-900/20 border border-amber-500/30 text-amber-300 text-sm font-content">
+          <div className="flex items-start gap-2 px-3 py-2.5 rounded-lg bg-[var(--color-warning)]/12 border border-[var(--color-warning)]/30 text-[var(--color-warning-text)] text-sm font-content">
             <span className="shrink-0">⚠</span>
             <span>
               ราคาใหม่จะมีผลทันที. การสร้างที่กำลังรันอยู่ใช้ราคาเดิม.
@@ -442,7 +442,7 @@ function ConfirmModal({
             variant="cta"
             onClick={onConfirm}
             disabled={isSaving || (changedRes.length === 0 && !packChanged)}
-            className="bg-[#F25F2D] hover:bg-[#C7461A] text-white"
+            className="bg-accent hover:bg-accent/80 text-white"
           >
             {isSaving ? "กำลังบันทึก..." : "ยืนยัน บันทึก"}
           </Button>
@@ -474,9 +474,9 @@ function ToggleSwitch({ checked, disabled, onChange, id }: ToggleSwitchProps) {
       className={cn(
         "relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent",
         "transition-colors duration-200 ease-in-out",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F25F2D] focus-visible:ring-offset-2",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2",
         "disabled:cursor-not-allowed disabled:opacity-40",
-        checked ? "bg-[#F25F2D]" : "bg-secondary"
+        checked ? "bg-accent" : "bg-secondary"
       )}
     >
       <span
@@ -497,9 +497,9 @@ function ToggleSwitch({ checked, disabled, onChange, id }: ToggleSwitchProps) {
 
 function SeverityBadge({ severity }: { severity: NotificationSeverity }) {
   const map: Record<NotificationSeverity, { label: string; cls: string }> = {
-    critical: { label: "CRITICAL", cls: "bg-red-900/30 text-red-300 border-red-500/30" },
-    warning:  { label: "WARNING",  cls: "bg-amber-900/30 text-amber-300 border-amber-500/30" },
-    info:     { label: "INFO",     cls: "bg-blue-900/30 text-blue-300 border-blue-500/30" },
+    critical: { label: "CRITICAL", cls: "bg-[var(--color-error)]/12   text-[var(--color-error-text)]   border-[var(--color-error)]/30"   },
+    warning:  { label: "WARNING",  cls: "bg-[var(--color-warning)]/12  text-[var(--color-warning-text)]  border-[var(--color-warning)]/30"  },
+    info:     { label: "INFO",     cls: "bg-[var(--color-info)]/12     text-[var(--color-info-text)]     border-[var(--color-info)]/30"     },
   };
   const { label, cls } = map[severity];
   return (
@@ -547,15 +547,15 @@ function NotificationSettingsSection({ isOwner }: NotificationSettingsSectionPro
   if (isError) {
     return (
       <div className="bg-card rounded-xl border border-white/8 p-5">
-        <p className="font-ui text-xs text-muted-foreground uppercase tracking-wide mb-3">
+        <p className="font-ui font-medium text-xs text-muted-foreground uppercase tracking-wide mb-3">
           การแจ้งเตือน — ระบบ
         </p>
-        <div className="flex items-center justify-between p-3 rounded-lg bg-red-900/20 border border-red-500/30 text-red-300 text-sm font-ui">
+        <div className="flex items-center justify-between p-3 rounded-lg bg-[var(--color-error)]/12 border border-[var(--color-error)]/30 text-[var(--color-error-text)] text-sm font-ui">
           <span>โหลดข้อมูลไม่สำเร็จ (รอ Cheese deploy endpoint)</span>
           <Button
             variant="outline"
             size="sm"
-            className="border-red-500/30 text-red-300 hover:bg-red-900/30"
+            className="border-[var(--color-error)]/30 text-[var(--color-error-text)] hover:bg-[var(--color-error)]/8"
             onClick={() => refetch()}
           >
             ลองใหม่
@@ -569,15 +569,15 @@ function NotificationSettingsSection({ isOwner }: NotificationSettingsSectionPro
 
   return (
     <div className="bg-card rounded-xl border border-white/8 p-5">
-      <p className="font-ui text-xs text-muted-foreground uppercase tracking-wide mb-4">
+      <p className="font-ui font-medium text-xs text-muted-foreground uppercase tracking-wide mb-4">
         การแจ้งเตือน — ระบบ
       </p>
 
       {/* Column headers */}
       <div className="grid grid-cols-[1fr_auto_auto] gap-3 mb-2 px-1">
-        <span className="font-ui text-xs text-fg-subtle uppercase tracking-wide">ประเภท</span>
-        <span className="font-ui text-xs text-fg-subtle uppercase tracking-wide w-20 text-center">Severity</span>
-        <span className="font-ui text-xs text-fg-subtle uppercase tracking-wide w-16 text-center">เปิด</span>
+        <span className="font-ui font-medium text-xs text-fg-subtle uppercase tracking-wide">ประเภท</span>
+        <span className="font-ui font-medium text-xs text-fg-subtle uppercase tracking-wide w-20 text-center">Severity</span>
+        <span className="font-ui font-medium text-xs text-fg-subtle uppercase tracking-wide w-16 text-center">เปิด</span>
       </div>
 
       <div className="space-y-1">
@@ -654,7 +654,7 @@ function NotificationSettingsSection({ isOwner }: NotificationSettingsSectionPro
 
       {/* Save error inline */}
       {updateMutation.isError && (
-        <div className="mt-3 flex items-center gap-2 px-3 py-2 rounded-lg bg-red-900/20 border border-red-500/30 text-red-300 text-sm font-ui">
+        <div className="mt-3 flex items-center gap-2 px-3 py-2 rounded-lg bg-[var(--color-error)]/12 border border-[var(--color-error)]/30 text-[var(--color-error-text)] text-sm font-ui">
           <span>✕</span>
           <span>
             บันทึกไม่สำเร็จ —{" "}
@@ -822,7 +822,7 @@ export default function SystemPricing() {
 
     return (
       <div className="p-4 md:p-6">
-        <div className="flex items-center justify-between p-4 rounded-lg bg-red-900/20 border border-red-500/30 text-red-300 text-sm font-ui">
+        <div className="flex items-center justify-between p-4 rounded-lg bg-[var(--color-error)]/12 border border-[var(--color-error)]/30 text-[var(--color-error-text)] text-sm font-ui">
           <span>
             {isNotDeployed
               ? "รอ Cheese deploy endpoint (GET /api/admin/config/pricing)"
@@ -831,7 +831,7 @@ export default function SystemPricing() {
           <Button
             variant="outline"
             size="sm"
-            className="border-red-500/30 text-red-300 hover:bg-red-900/30"
+            className="border-[var(--color-error)]/30 text-[var(--color-error-text)] hover:bg-[var(--color-error)]/8"
             onClick={() => refetch()}
           >
             ลองใหม่
@@ -845,19 +845,19 @@ export default function SystemPricing() {
     <TooltipProvider>
       <div className="p-4 md:p-6 space-y-4 max-w-2xl">
         {/* Page title */}
-        <h1 className="font-display text-xl font-bold text-foreground">
+        <h1 className="font-display text-xl text-foreground">
           ตั้งค่าระบบ
         </h1>
 
         {/* PII access banner */}
-        <div className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-blue-900/20 border border-blue-500/30 text-blue-300 text-sm font-ui">
+        <div className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-[var(--color-info)]/12 border border-[var(--color-info)]/30 text-[var(--color-info-text)] text-sm font-ui">
           <span>🔒</span>
           <span>การเปลี่ยนแปลงการตั้งค่านี้จะถูกบันทึกใน audit log</span>
         </div>
 
         {/* Save error banner */}
         {saveMutation.isError && (
-          <div className="flex items-start gap-2 px-4 py-2.5 rounded-lg bg-red-900/20 border border-red-500/30 text-red-300 text-sm font-ui">
+          <div className="flex items-start gap-2 px-4 py-2.5 rounded-lg bg-[var(--color-error)]/12 border border-[var(--color-error)]/30 text-[var(--color-error-text)] text-sm font-ui">
             <span>✕</span>
             <span>
               บันทึกไม่สำเร็จ —{" "}
@@ -870,7 +870,7 @@ export default function SystemPricing() {
 
         {/* Save success banner */}
         {saveMutation.isSuccess && (
-          <div className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-green-900/20 border border-green-500/30 text-green-300 text-sm font-ui">
+          <div className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-[var(--color-success)]/12 border border-[var(--color-success)]/30 text-[var(--color-success-text)] text-sm font-ui">
             <span>✓</span>
             <span>บันทึกราคาสำเร็จแล้ว</span>
           </div>
@@ -900,7 +900,7 @@ export default function SystemPricing() {
 
         {/* Form-level validation error summary */}
         {formHasErrors && (
-          <p className="font-ui text-sm text-red-400">
+          <p className="font-ui text-sm text-[var(--color-error-text)]">
             กรุณาแก้ไขข้อผิดพลาดก่อนบันทึก
           </p>
         )}
@@ -912,7 +912,7 @@ export default function SystemPricing() {
               variant="cta"
               onClick={handleSaveClick}
               disabled={saveMutation.isPending}
-              className="bg-[#F25F2D] hover:bg-[#C7461A] text-white"
+              className="bg-accent hover:bg-accent/80 text-white"
             >
               {saveMutation.isPending ? "กำลังบันทึก..." : "บันทึก"}
             </Button>
@@ -922,7 +922,7 @@ export default function SystemPricing() {
                 <span className="inline-block">
                   <Button
                     disabled
-                    className="bg-[#F25F2D]/40 text-white cursor-not-allowed pointer-events-none"
+                    className="bg-accent/40 text-white cursor-not-allowed pointer-events-none"
                   >
                     บันทึก
                   </Button>

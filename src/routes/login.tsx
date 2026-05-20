@@ -113,7 +113,7 @@ export default function LoginPage() {
     <div className="min-h-screen bg-background flex flex-col items-center justify-center px-4">
       {/* Brand */}
       <div className="text-center mb-8">
-        <h1 className="font-display text-3xl font-bold tracking-tighter">
+        <h1 className="font-display text-3xl tracking-tighter">
           <WordmarkLogo suffix=" Admin" />
         </h1>
         <p className="font-content text-sm text-muted-foreground mt-1">
@@ -123,7 +123,7 @@ export default function LoginPage() {
 
       {/* Card */}
       <div className="glass-shell w-full max-w-[400px] rounded-xl px-8 py-10">
-        <h2 className="font-display text-xl font-bold text-foreground mb-6">
+        <h2 className="font-display text-xl text-foreground mb-6">
           เข้าสู่ระบบ
         </h2>
 
@@ -135,7 +135,7 @@ export default function LoginPage() {
         >
           {/* Email */}
           <div>
-            <label className="block font-ui text-xs text-muted-foreground uppercase tracking-wide mb-1.5">
+            <label className="block font-ui font-medium text-xs text-muted-foreground uppercase tracking-wide mb-1.5">
               อีเมล
             </label>
             <input
@@ -155,7 +155,7 @@ export default function LoginPage() {
 
           {/* Password */}
           <div>
-            <label className="block font-ui text-xs text-muted-foreground uppercase tracking-wide mb-1.5">
+            <label className="block font-ui font-medium text-xs text-muted-foreground uppercase tracking-wide mb-1.5">
               รหัสผ่าน
             </label>
             <div className="relative">

@@ -91,7 +91,7 @@ export function UserListFilters({
             className={cn(
               "px-4 py-2.5 font-ui text-sm whitespace-nowrap shrink-0 transition-colors",
               filters.role === tab.value
-                ? "text-foreground border-b-2 border-[#F25F2D]"
+                ? "text-foreground border-b-2 border-accent"
                 : "text-muted-foreground hover:text-foreground",
             )}
           >
@@ -106,7 +106,7 @@ export function UserListFilters({
         <select
           value={filters.status}
           onChange={handleStatusChange}
-          className="h-8 bg-[#0F172A] border border-white/10 rounded-lg px-3 font-ui text-sm text-foreground focus:border-[#F25F2D] focus:outline-none"
+          className="h-8 bg-[var(--color-bg)] border border-white/10 rounded-lg px-3 font-ui text-sm text-foreground focus:border-accent focus:outline-none"
         >
           {STATUS_OPTIONS.map((o) => (
             <option key={o.value} value={o.value}>
@@ -123,7 +123,7 @@ export function UserListFilters({
             value={filters.q}
             onChange={handleQChange}
             placeholder="ค้นหา email, ชื่อ หรือ UUID..."
-            className="w-full h-8 bg-[#0F172A] border border-white/10 rounded-lg pl-8 pr-3 font-ui text-sm text-foreground placeholder:text-fg-subtle focus:border-[#F25F2D] focus:outline-none"
+            className="w-full h-8 bg-[var(--color-bg)] border border-white/10 rounded-lg pl-8 pr-3 font-ui text-sm text-foreground placeholder:text-fg-subtle focus:border-accent focus:outline-none"
           />
         </div>
 

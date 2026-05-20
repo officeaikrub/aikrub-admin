@@ -49,11 +49,11 @@ import { cn } from "@/lib/utils";
 
 function StatusBadge({ status }: { status: CouponStatus }) {
   const map: Record<CouponStatus, { dot: string; badge: string }> = {
-    active:   { dot: "bg-[var(--color-success)]",   badge: "bg-[var(--color-success)]/15   text-[var(--color-success)]   border-[var(--color-success)]/20"   },
-    disabled: { dot: "bg-[var(--color-warning)]",   badge: "bg-[var(--color-warning)]/15   text-[var(--color-warning)]   border-[var(--color-warning)]/20"   },
-    revoked:  { dot: "bg-[var(--color-error)]",     badge: "bg-[var(--color-error)]/15     text-[var(--color-error)]     border-[var(--color-error)]/20"     },
-    used:     { dot: "bg-[var(--color-fg-subtle)]", badge: "bg-[var(--color-fg-subtle)]/15 text-[var(--color-fg-subtle)] border-[var(--color-fg-subtle)]/20" },
-    expired:  { dot: "bg-[var(--color-warning)]",   badge: "bg-[var(--color-warning)]/15   text-[var(--color-warning)]   border-[var(--color-warning)]/20"   },
+    active:   { dot: "bg-[var(--color-success)]",   badge: "bg-[var(--color-success)]/12   text-[var(--color-success-text)]   border-[var(--color-success)]/20"   },
+    disabled: { dot: "bg-[var(--color-warning)]",   badge: "bg-[var(--color-warning)]/12   text-[var(--color-warning-text)]   border-[var(--color-warning)]/20"   },
+    revoked:  { dot: "bg-[var(--color-error)]",     badge: "bg-[var(--color-error)]/12     text-[var(--color-error-text)]     border-[var(--color-error)]/20"     },
+    used:     { dot: "bg-[var(--color-fg-subtle)]", badge: "bg-[var(--color-fg-subtle)]/12 text-[var(--color-fg-subtle)]     border-[var(--color-fg-subtle)]/20" },
+    expired:  { dot: "bg-[var(--color-warning)]",   badge: "bg-[var(--color-warning)]/12   text-[var(--color-warning-text)]   border-[var(--color-warning)]/20"   },
   };
   const s = map[status];
   return (
@@ -66,9 +66,9 @@ function StatusBadge({ status }: { status: CouponStatus }) {
 
 function TypeBadge({ type }: { type: CouponType }) {
   return type === "paid" ? (
-    <span className="px-2 py-0.5 rounded bg-blue-900/30 text-blue-300 text-xs font-ui">จ่าย</span>
+    <span className="px-2 py-0.5 rounded bg-[var(--color-info)]/12 text-[var(--color-info-text)] text-xs font-ui">จ่าย</span>
   ) : (
-    <span className="px-2 py-0.5 rounded bg-purple-900/30 text-purple-300 text-xs font-ui">ฟรี</span>
+    <span className="px-2 py-0.5 rounded bg-[var(--color-fg-muted)]/12 text-[var(--color-fg-muted)] text-xs font-ui">ฟรี</span>
   );
 }
 
@@ -128,13 +128,13 @@ function RevokeModal({
         <div className="space-y-4">
           <p className="font-mono text-sm text-foreground">{coupon.code}</p>
           <div>
-            <label className="font-ui text-xs text-muted-foreground uppercase tracking-wide block mb-1.5">
+            <label className="font-ui font-medium text-xs text-muted-foreground uppercase tracking-wide block mb-1.5">
               หมวดหมู่เหตุผล *
             </label>
             <select
               value={reason}
               onChange={(e) => setReason(e.target.value as RevokeReason)}
-              className="w-full bg-[#0F172A] border border-white/10 rounded-lg px-3 py-2.5 font-ui text-sm text-foreground focus:border-[#F25F2D] focus:outline-none"
+              className="w-full bg-[var(--color-bg)] border border-white/10 rounded-lg px-3 py-2.5 font-ui text-sm text-foreground focus:border-[var(--color-accent)] focus:outline-none"
             >
               <option value="fraud">Fraud</option>
               <option value="duplicate_slip">สลิปซ้ำ</option>
@@ -143,14 +143,14 @@ function RevokeModal({
             </select>
           </div>
           <div>
-            <label className="font-ui text-xs text-muted-foreground uppercase tracking-wide block mb-1.5">
+            <label className="font-ui font-medium text-xs text-muted-foreground uppercase tracking-wide block mb-1.5">
               หมายเหตุ (ไม่บังคับ)
             </label>
             <Input
               value={note}
               onChange={(e) => setNote(e.target.value)}
               placeholder="รายละเอียดเพิ่มเติม..."
-              className="bg-[#0F172A] border-white/10 text-foreground focus:border-[#F25F2D]"
+              className="bg-[var(--color-bg)] border-white/10 text-foreground focus:border-[var(--color-accent)]"
             />
           </div>
         </div>
@@ -168,7 +168,7 @@ function RevokeModal({
           <Button
             onClick={() => onConfirm(reason, note)}
             disabled={loading}
-            className="bg-red-600 hover:bg-red-700 text-white"
+            className="border border-[var(--color-error)] text-[var(--color-error-text)] bg-transparent hover:bg-[var(--color-error)]/8"
           >
             {loading ? "กำลัง Revoke..." : "Revoke ✕"}
           </Button>
@@ -245,10 +245,10 @@ function RedemptionTable({ couponId, couponStatus, records, onClawbackSuccess }:
         <table className="w-full">
           <thead>
             <tr>
-              <th className="px-3 py-2 font-ui text-xs text-muted-foreground uppercase tracking-wide text-left">User</th>
-              <th className="px-3 py-2 font-ui text-xs text-muted-foreground uppercase tracking-wide text-left">วันที่ใช้</th>
-              <th className="px-3 py-2 font-ui text-xs text-muted-foreground uppercase tracking-wide text-right">Krub</th>
-              <th className="px-3 py-2 font-ui text-xs text-muted-foreground uppercase tracking-wide text-right">Action</th>
+              <th className="px-3 py-2 font-ui font-medium text-xs text-muted-foreground uppercase tracking-wide text-left">User</th>
+              <th className="px-3 py-2 font-ui font-medium text-xs text-muted-foreground uppercase tracking-wide text-left">วันที่ใช้</th>
+              <th className="px-3 py-2 font-ui font-medium text-xs text-muted-foreground uppercase tracking-wide text-right">Krub</th>
+              <th className="px-3 py-2 font-ui font-medium text-xs text-muted-foreground uppercase tracking-wide text-right">Action</th>
               <th className="px-3 py-2 w-8" />
             </tr>
           </thead>
@@ -278,7 +278,7 @@ function RedemptionTable({ couponId, couponStatus, records, onClawbackSuccess }:
                           userEmail: r.user_email,
                           krubAmount: r.krub_credited,
                         })}
-                        className="border border-red-500/40 text-red-400 hover:bg-red-900/20 rounded-lg px-3 py-1 text-xs font-ui transition-colors"
+                        className="border border-[var(--color-error)]/40 text-[var(--color-error-text)] hover:bg-[var(--color-error)]/8 rounded-lg px-3 py-1 text-xs font-ui transition-colors"
                       >
                         ↩ ดึงคืน
                       </button>
@@ -389,9 +389,9 @@ export default function CouponDetail() {
   if (isError || !data) {
     return (
       <div className="px-4 py-6 md:px-6 md:py-8">
-        <div className="rounded-xl border border-red-500/30 bg-red-900/20 p-4 flex items-center justify-between">
-          <p className="font-ui text-sm text-red-400">โหลดข้อมูลล้มเหลว</p>
-          <Button size="sm" variant="outline" onClick={() => void refetch()} className="border-red-500/30 text-red-400 hover:bg-red-900/20">
+        <div className="rounded-xl border border-[var(--color-error)]/30 bg-[var(--color-error)]/12 p-4 flex items-center justify-between">
+          <p className="font-ui text-sm text-[var(--color-error-text)]">โหลดข้อมูลล้มเหลว</p>
+          <Button size="sm" variant="outline" onClick={() => void refetch()} className="border-[var(--color-error)]/30 text-[var(--color-error-text)] hover:bg-[var(--color-error)]/8">
             ลองใหม่
           </Button>
         </div>
@@ -404,7 +404,7 @@ export default function CouponDetail() {
   return (
     <div className="px-4 py-6 md:px-6 md:py-8 space-y-6">
       {/* PII access transparency banner (Q-OQ-05) */}
-      <div className="flex items-center gap-2 p-3 rounded-lg bg-slate-800/60 border border-white/8">
+      <div className="flex items-center gap-2 p-3 rounded-lg bg-card border border-white/8">
         <span className="text-muted-foreground text-sm">🔒</span>
         <p className="font-content text-xs text-muted-foreground">
           การเข้าถึงนี้ถูกบันทึกแล้ว — ข้อมูลนี้มี PII บันทึกไว้ใน audit log
@@ -419,7 +419,7 @@ export default function CouponDetail() {
         >
           ← รายการคูปอง
         </button>
-        <h1 className="font-display text-xl font-bold text-foreground">รายละเอียดคูปอง</h1>
+        <h1 className="font-display text-xl text-foreground">รายละเอียดคูปอง</h1>
       </div>
 
       {/* Hero: code + badges */}
@@ -450,7 +450,7 @@ export default function CouponDetail() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* ข้อมูลหลัก */}
         <div className="bg-card rounded-xl border border-white/8 p-4">
-          <h2 className="font-ui text-xs text-muted-foreground uppercase tracking-wide mb-3">ข้อมูลหลัก</h2>
+          <h2 className="font-ui font-medium text-xs text-muted-foreground uppercase tracking-wide mb-3">ข้อมูลหลัก</h2>
           <div>
             <DetailRow label="ID" value={`${coupon.id.slice(0, 8)}...${coupon.id.slice(-4)}`} mono />
             <DetailRow label="สร้างเมื่อ" value={formatDateTime(coupon.created_at)} mono />
@@ -473,7 +473,7 @@ export default function CouponDetail() {
 
         {/* หลักฐานการชำระเงิน (paid only) */}
         <div className="bg-card rounded-xl border border-white/8 p-4">
-          <h2 className="font-ui text-xs text-muted-foreground uppercase tracking-wide mb-3">หลักฐานการชำระเงิน</h2>
+          <h2 className="font-ui font-medium text-xs text-muted-foreground uppercase tracking-wide mb-3">หลักฐานการชำระเงิน</h2>
           {coupon.coupon_type === "paid" ? (
             <div className="space-y-3">
               {coupon.slip_image_url && (
@@ -494,7 +494,7 @@ export default function CouponDetail() {
                 </button>
               )}
               {!coupon.slip_image_url && (
-                <div className="w-full aspect-video rounded-xl border border-white/8 bg-[#0F172A] flex items-center justify-center">
+                <div className="w-full aspect-video rounded-xl border border-white/8 bg-[var(--color-bg)] flex items-center justify-center">
                   <p className="font-content text-sm text-fg-subtle">ไม่มีรูป Slip</p>
                 </div>
               )}
@@ -511,7 +511,7 @@ export default function CouponDetail() {
       {data.redemptions.length > 0 && (
         <div className="bg-card rounded-xl border border-white/8 overflow-hidden">
           <div className="px-4 pt-4 pb-2">
-            <h2 className="font-ui text-xs text-muted-foreground uppercase tracking-wide">ประวัติการใช้คูปอง</h2>
+            <h2 className="font-ui font-medium text-xs text-muted-foreground uppercase tracking-wide">ประวัติการใช้คูปอง</h2>
           </div>
           <RedemptionTable
             couponId={coupon.id}
@@ -529,7 +529,7 @@ export default function CouponDetail() {
             variant="outline"
             onClick={() => disableMutation.mutate()}
             disabled={disableMutation.isPending}
-            className="border-amber-500/30 text-amber-400 hover:bg-amber-900/20"
+            className="border-[var(--color-warning)]/30 text-[var(--color-warning-text)] hover:bg-[var(--color-warning)]/8"
           >
             {disableMutation.isPending ? "กำลังปิด..." : "ปิดใช้งาน"}
           </Button>
@@ -539,7 +539,7 @@ export default function CouponDetail() {
           <Button
             variant="outline"
             onClick={() => setRevokeModal({ open: true })}
-            className="border-red-500/30 text-red-400 hover:bg-red-900/20"
+            className="border-[var(--color-error)]/30 text-[var(--color-error-text)] hover:bg-[var(--color-error)]/8"
           >
             ยกเลิก (Revoke)
           </Button>

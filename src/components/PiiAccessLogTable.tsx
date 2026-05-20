@@ -45,16 +45,16 @@ export function PiiAccessLogTable({ rows, viewerRole }: PiiAccessLogTableProps) 
       <table className="w-full">
         <thead>
           <tr>
-            <th className="px-2 py-2 font-ui text-xs text-muted-foreground text-left uppercase tracking-wide">
+            <th className="px-2 py-2 font-ui font-medium text-xs text-muted-foreground text-left uppercase tracking-wide">
               Admin
             </th>
-            <th className="px-2 py-2 font-ui text-xs text-muted-foreground text-left uppercase tracking-wide">
+            <th className="px-2 py-2 font-ui font-medium text-xs text-muted-foreground text-left uppercase tracking-wide">
               Field
             </th>
-            <th className="px-2 py-2 font-ui text-xs text-muted-foreground text-left uppercase tracking-wide">
+            <th className="px-2 py-2 font-ui font-medium text-xs text-muted-foreground text-left uppercase tracking-wide">
               เวลา
             </th>
-            <th className="px-2 py-2 font-ui text-xs text-muted-foreground text-left uppercase tracking-wide">
+            <th className="px-2 py-2 font-ui font-medium text-xs text-muted-foreground text-left uppercase tracking-wide">
               IP
             </th>
           </tr>
@@ -81,7 +81,7 @@ export function PiiAccessLogTable({ rows, viewerRole }: PiiAccessLogTableProps) 
                   </span>
                 </td>
                 <td className="px-2 py-2">
-                  <span className="px-1.5 py-0.5 rounded bg-blue-900/20 text-blue-300 text-xs font-ui">
+                  <span className="px-1.5 py-0.5 rounded bg-[var(--color-info)]/12 text-[var(--color-info-text)] text-xs font-ui">
                     {fieldLabel(row.viewed_field)}
                   </span>
                 </td>

@@ -288,7 +288,7 @@ export default function AdminLayout() {
           </button>
 
           {/* Brand wordmark */}
-          <span className="font-display text-lg font-bold tracking-tight">
+          <span className="font-display text-lg tracking-tight">
             <WordmarkLogo suffix=" Admin" />
           </span>
 

@@ -93,10 +93,10 @@ export function SoftDeleteUserModal({
           <>
             <div className="space-y-4 py-2">
               {/* Warning box */}
-              <div className="p-3 rounded-lg bg-red-900/20 border border-red-500/30 text-red-300 text-sm font-content space-y-1">
-                <p className="font-ui text-sm font-medium text-red-300">⚠ คำเตือน — อ่านก่อนยืนยัน</p>
-                <p className="text-xs mt-1 font-content text-red-200/80">เมื่อลบบัญชี:</p>
-                <ul className="text-xs space-y-1 text-red-200/80 pl-2">
+              <div className="p-3 rounded-lg bg-[var(--color-error)]/12 border border-[var(--color-error)]/30 text-[var(--color-error-text)] text-sm font-content space-y-1">
+                <p className="font-ui text-sm font-medium text-[var(--color-error-text)]">⚠ คำเตือน — อ่านก่อนยืนยัน</p>
+                <p className="text-xs mt-1 font-content text-[var(--color-error-text)]/80">เมื่อลบบัญชี:</p>
+                <ul className="text-xs space-y-1 text-[var(--color-error-text)]/80 pl-2">
                   <li>• email จะถูก anonymize เป็น deleted-{"{"}{"{"}uuid{"}"}{"}"}{"@"}aikrub.local ทันที</li>
                   <li>• display_name จะถูกลบ</li>
                   <li>• ภาพที่สร้างจะซ่อนจาก public</li>
@@ -110,7 +110,7 @@ export function SoftDeleteUserModal({
                   type="checkbox"
                   checked={checked}
                   onChange={(e) => setChecked(e.target.checked)}
-                  className="mt-0.5 accent-[#F25F2D]"
+                  className="mt-0.5 accent-accent"
                 />
                 <span className="font-content text-sm text-foreground">
                   ฉันยืนยันว่าต้องการลบบัญชีของ{" "}
@@ -133,8 +133,8 @@ export function SoftDeleteUserModal({
                 className={cn(
                   "font-ui text-sm",
                   !checked
-                    ? "opacity-40 cursor-not-allowed bg-red-900/30 text-red-400"
-                    : "bg-red-600 hover:bg-red-700 text-white",
+                    ? "opacity-40 cursor-not-allowed bg-[var(--color-error)]/12 text-[var(--color-error-text)]"
+                    : "border border-[var(--color-error)] text-[var(--color-error-text)] bg-transparent hover:bg-[var(--color-error)]/8",
                 )}
               >
                 ถัดไป →
@@ -148,7 +148,7 @@ export function SoftDeleteUserModal({
             <div className="space-y-4 py-2">
               <p className="font-ui text-sm text-foreground">
                 พิมพ์{" "}
-                <span className="font-mono font-bold text-red-400">DELETE</span>
+                <span className="font-mono font-bold text-[var(--color-error-text)]">DELETE</span>
                 {" "}เพื่อยืนยัน
               </p>
 
@@ -159,15 +159,15 @@ export function SoftDeleteUserModal({
                 placeholder="พิมพ์ DELETE"
                 autoFocus
                 className={cn(
-                  "w-full bg-[#0F172A] border rounded-lg px-3 py-2.5 font-mono text-sm text-foreground focus:outline-none transition-colors",
+                  "w-full bg-[var(--color-bg)] border rounded-lg px-3 py-2.5 font-mono text-sm text-foreground focus:outline-none transition-colors",
                   isDeleteConfirmed
-                    ? "border-green-500/50 bg-green-900/10"
-                    : "border-white/10 focus:border-[#F25F2D]",
+                    ? "border-[var(--color-success)]/50 bg-[var(--color-success)]/8"
+                    : "border-white/10 focus:border-[var(--color-accent)]",
                 )}
               />
 
               {mutation.isError && (
-                <p className="text-xs text-red-400">
+                <p className="text-xs text-[var(--color-error-text)]">
                   {mutation.error instanceof Error ? mutation.error.message : "เกิดข้อผิดพลาด — ลองใหม่"}
                 </p>
               )}
@@ -188,8 +188,8 @@ export function SoftDeleteUserModal({
                 className={cn(
                   "font-ui text-sm",
                   !isDeleteConfirmed || mutation.isPending
-                    ? "bg-red-900/30 text-red-400/50 cursor-not-allowed"
-                    : "bg-red-600 hover:bg-red-700 text-white",
+                    ? "bg-[var(--color-error)]/12 text-[var(--color-error-text)]/50 cursor-not-allowed"
+                    : "border border-[var(--color-error)] text-[var(--color-error-text)] bg-transparent hover:bg-[var(--color-error)]/8",
                 )}
               >
                 {mutation.isPending ? "กำลังลบ..." : "ลบบัญชี 🗑"}

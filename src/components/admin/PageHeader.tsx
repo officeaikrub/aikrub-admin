@@ -27,7 +27,7 @@ export function PageHeader({ title, chips, cta, className }: PageHeaderProps) {
     <div className={cn("mb-4", className)}>
       {/* Desktop: single row */}
       <div className="hidden md:flex items-center gap-3 min-h-[40px]">
-        <h1 className="font-display text-2xl text-[var(--color-fg)] shrink-0">
+        <h1 className="font-display text-2xl md:text-3xl text-[var(--color-fg)] shrink-0">
           {title}
         </h1>
         {chips && (
@@ -44,7 +44,7 @@ export function PageHeader({ title, chips, cta, className }: PageHeaderProps) {
 
       {/* Mobile: stacked layout */}
       <div className="flex flex-col gap-2 md:hidden">
-        <h1 className="font-display text-lg text-[var(--color-fg)]">
+        <h1 className="font-display text-2xl text-[var(--color-fg)]">
           {title}
         </h1>
         {chips && (

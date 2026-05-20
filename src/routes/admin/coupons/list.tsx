@@ -137,11 +137,11 @@ function copyToClipboard(text: string) {
  */
 function StatusBadge({ status }: { status: CouponStatus }) {
   const map: Record<CouponStatus, { dot: string; badge: string }> = {
-    active:   { dot: "bg-[var(--color-success)]",   badge: "bg-[var(--color-success)]/15   text-[var(--color-success)]   border-[var(--color-success)]/20"   },
-    disabled: { dot: "bg-[var(--color-warning)]",   badge: "bg-[var(--color-warning)]/15   text-[var(--color-warning)]   border-[var(--color-warning)]/20"   },
-    revoked:  { dot: "bg-[var(--color-error)]",     badge: "bg-[var(--color-error)]/15     text-[var(--color-error)]     border-[var(--color-error)]/20"     },
-    used:     { dot: "bg-[var(--color-fg-subtle)]", badge: "bg-[var(--color-fg-subtle)]/15 text-[var(--color-fg-subtle)] border-[var(--color-fg-subtle)]/20" },
-    expired:  { dot: "bg-[var(--color-warning)]",   badge: "bg-[var(--color-warning)]/15   text-[var(--color-warning)]   border-[var(--color-warning)]/20"   },
+    active:   { dot: "bg-[var(--color-success)]",   badge: "bg-[var(--color-success)]/12   text-[var(--color-success-text)]   border-[var(--color-success)]/20"   },
+    disabled: { dot: "bg-[var(--color-warning)]",   badge: "bg-[var(--color-warning)]/12   text-[var(--color-warning-text)]   border-[var(--color-warning)]/20"   },
+    revoked:  { dot: "bg-[var(--color-error)]",     badge: "bg-[var(--color-error)]/12     text-[var(--color-error-text)]     border-[var(--color-error)]/20"     },
+    used:     { dot: "bg-[var(--color-fg-subtle)]", badge: "bg-[var(--color-fg-subtle)]/12 text-[var(--color-fg-subtle)]     border-[var(--color-fg-subtle)]/20" },
+    expired:  { dot: "bg-[var(--color-warning)]",   badge: "bg-[var(--color-warning)]/12   text-[var(--color-warning-text)]   border-[var(--color-warning)]/20"   },
   };
   const s = map[status];
   return (
@@ -166,11 +166,11 @@ function StatusBadge({ status }: { status: CouponStatus }) {
  */
 function TypeBadge({ type }: { type: CouponType }) {
   return type === "paid" ? (
-    <span className="px-2 py-0.5 rounded bg-[var(--color-info)]/15 text-[var(--color-info)] text-xs font-ui">
+    <span className="px-2 py-0.5 rounded bg-[var(--color-info)]/12 text-[var(--color-info-text)] text-xs font-ui">
       จ่าย
     </span>
   ) : (
-    <span className="px-2 py-0.5 rounded bg-[var(--color-fg-muted)]/15 text-[var(--color-fg-muted)] text-xs font-ui">
+    <span className="px-2 py-0.5 rounded bg-[var(--color-fg-muted)]/12 text-[var(--color-fg-muted)] text-xs font-ui">
       ฟรี
     </span>
   );
@@ -212,7 +212,7 @@ function RevokeReasonModal({
         <div className="space-y-4">
           <p className="font-mono text-sm text-[var(--color-fg)]">{state.coupon?.code}</p>
           <div>
-            <label className="font-ui text-xs text-[var(--color-fg-muted)] uppercase tracking-wide block mb-1.5">
+            <label className="font-ui font-medium text-xs text-[var(--color-fg-muted)] uppercase tracking-wide block mb-1.5">
               เหตุผล *
             </label>
             <select
@@ -227,7 +227,7 @@ function RevokeReasonModal({
             </select>
           </div>
           <div>
-            <label className="font-ui text-xs text-[var(--color-fg-muted)] uppercase tracking-wide block mb-1.5">
+            <label className="font-ui font-medium text-xs text-[var(--color-fg-muted)] uppercase tracking-wide block mb-1.5">
               หมายเหตุ (ไม่บังคับ)
             </label>
             <Input
@@ -288,7 +288,7 @@ function BulkRevokeModal({
             ))}
           </div>
           <div>
-            <label className="font-ui text-xs text-[var(--color-fg-muted)] uppercase tracking-wide block mb-1.5">
+            <label className="font-ui font-medium text-xs text-[var(--color-fg-muted)] uppercase tracking-wide block mb-1.5">
               เหตุผล *
             </label>
             <select
@@ -303,7 +303,7 @@ function BulkRevokeModal({
             </select>
           </div>
           <div>
-            <label className="font-ui text-xs text-[var(--color-fg-muted)] uppercase tracking-wide block mb-1.5">
+            <label className="font-ui font-medium text-xs text-[var(--color-fg-muted)] uppercase tracking-wide block mb-1.5">
               หมายเหตุ (ไม่บังคับ)
             </label>
             <Input
@@ -590,27 +590,27 @@ export default function CouponList() {
       </th>
       {/* CODE */}
       <th className="w-36 px-4 text-left">
-        <span className="font-ui text-xs text-[var(--color-fg-muted)] uppercase tracking-wide">Code</span>
+        <span className="font-ui font-medium text-xs text-[var(--color-fg-muted)] uppercase tracking-wide">Code</span>
       </th>
       {/* ประเภท */}
       <th className="w-28 px-4 text-left">
-        <span className="font-ui text-xs text-[var(--color-fg-muted)] uppercase tracking-wide">ประเภท</span>
+        <span className="font-ui font-medium text-xs text-[var(--color-fg-muted)] uppercase tracking-wide">ประเภท</span>
       </th>
       {/* มูลค่า */}
       <th className="w-24 px-4 text-right">
-        <span className="font-ui text-xs text-[var(--color-fg-muted)] uppercase tracking-wide">มูลค่า</span>
+        <span className="font-ui font-medium text-xs text-[var(--color-fg-muted)] uppercase tracking-wide">มูลค่า</span>
       </th>
       {/* ใช้แล้ว / สูงสุด */}
       <th className="w-28 px-4 text-right">
-        <span className="font-ui text-xs text-[var(--color-fg-muted)] uppercase tracking-wide">ใช้แล้ว&nbsp;/&nbsp;สูงสุด</span>
+        <span className="font-ui font-medium text-xs text-[var(--color-fg-muted)] uppercase tracking-wide">ใช้แล้ว&nbsp;/&nbsp;สูงสุด</span>
       </th>
       {/* หมดอายุ */}
       <th className="w-32 px-4 text-left">
-        <span className="font-ui text-xs text-[var(--color-fg-muted)] uppercase tracking-wide">หมดอายุ</span>
+        <span className="font-ui font-medium text-xs text-[var(--color-fg-muted)] uppercase tracking-wide">หมดอายุ</span>
       </th>
       {/* สถานะ */}
       <th className="w-28 px-4 text-left">
-        <span className="font-ui text-xs text-[var(--color-fg-muted)] uppercase tracking-wide">สถานะ</span>
+        <span className="font-ui font-medium text-xs text-[var(--color-fg-muted)] uppercase tracking-wide">สถานะ</span>
       </th>
       {/* Actions */}
       <th className="w-16 px-4 text-right">
@@ -707,12 +707,12 @@ export default function CouponList() {
       {/* ── Success banner (auto-dismiss 5s) ── */}
       {successCode && (
         <div className="flex items-center justify-between gap-3 px-4 py-3 bg-[var(--color-success)]/15 border border-[var(--color-success)]/30 rounded-xl">
-          <p className="font-ui text-sm text-[var(--color-success)]">
+          <p className="font-ui text-sm text-[var(--color-success-text)]">
             สร้างคูปอง <span className="font-mono font-bold">{successCode}</span> เรียบร้อยแล้ว
           </p>
           <button
             onClick={() => setSuccessCode(null)}
-            className="shrink-0 p-1 rounded text-[var(--color-success)]/60 hover:text-[var(--color-success)] hover:bg-[var(--color-success)]/10 motion-safe:transition-colors duration-150"
+            className="shrink-0 p-1 rounded text-[var(--color-success-text)]/60 hover:text-[var(--color-success-text)] hover:bg-[var(--color-success)]/10 motion-safe:transition-colors duration-150"
           >
             <X className="w-4 h-4" />
           </button>
@@ -921,7 +921,7 @@ function CouponRow({ coupon, selected, onToggleSelect, onDisable, onRevoke }: Co
             {coupon.status === "active" && (
               <DropdownMenuItem
                 onClick={onDisable}
-                className="font-ui text-sm cursor-pointer text-[var(--color-warning)] focus:text-[var(--color-warning)]"
+                className="font-ui text-sm cursor-pointer text-[var(--color-warning-text)] focus:text-[var(--color-warning-text)]"
               >
                 ปิดใช้งาน
               </DropdownMenuItem>
@@ -929,7 +929,7 @@ function CouponRow({ coupon, selected, onToggleSelect, onDisable, onRevoke }: Co
             {(coupon.status === "active" || coupon.status === "disabled") && (
               <DropdownMenuItem
                 onClick={onRevoke}
-                className="font-ui text-sm cursor-pointer text-[var(--color-error)] focus:text-[var(--color-error)]"
+                className="font-ui text-sm cursor-pointer text-[var(--color-error-text)] focus:text-[var(--color-error-text)]"
               >
                 ยกเลิก (Revoke)
               </DropdownMenuItem>

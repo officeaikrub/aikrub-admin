@@ -76,17 +76,17 @@ function UserStatusBadge({ status }: { status: AdminUserRow["status"] }) {
   const map: Record<AdminUserRow["status"], { dot: string; badge: string; label: string }> = {
     active: {
       dot:   "bg-[var(--color-success)]",
-      badge: "bg-[var(--color-success)]/15 text-[var(--color-success)] border-[var(--color-success)]/20",
+      badge: "bg-[var(--color-success)]/12 text-[var(--color-success-text)] border-[var(--color-success)]/20",
       label: "เปิดใช้งาน",
     },
     suspended: {
       dot:   "bg-[var(--color-warning)]",
-      badge: "bg-[var(--color-warning)]/15 text-[var(--color-warning)] border-[var(--color-warning)]/20",
+      badge: "bg-[var(--color-warning)]/12 text-[var(--color-warning-text)] border-[var(--color-warning)]/20",
       label: "ระงับ",
     },
     soft_deleted: {
       dot:   "bg-[var(--color-error)]",
-      badge: "bg-[var(--color-error)]/15 text-[var(--color-error)] border-[var(--color-error)]/20",
+      badge: "bg-[var(--color-error)]/12 text-[var(--color-error-text)] border-[var(--color-error)]/20",
       label: "ลบแล้ว",
     },
   };
@@ -102,8 +102,8 @@ function UserStatusBadge({ status }: { status: AdminUserRow["status"] }) {
 function UserRoleBadge({ role }: { role: AdminUserRow["role"] }) {
   const map: Record<AdminUserRow["role"], string> = {
     user:  "px-2 py-0.5 rounded bg-[var(--color-bg-raised)] text-[var(--color-fg-muted)] text-xs font-ui",
-    admin: "px-2 py-0.5 rounded bg-[var(--color-info)]/15 text-[var(--color-info)] text-xs font-ui",
-    owner: "px-2 py-0.5 rounded bg-[var(--color-warning)]/15 text-[var(--color-warning)] text-xs font-ui",
+    admin: "px-2 py-0.5 rounded bg-[var(--color-info)]/12 text-[var(--color-info-text)] text-xs font-ui",
+    owner: "px-2 py-0.5 rounded bg-[var(--color-warning)]/12 text-[var(--color-warning-text)] text-xs font-ui",
   };
   return <span className={map[role]}>{role}</span>;
 }
@@ -116,11 +116,11 @@ type KrubTxKind = "reserve" | "refund" | "coupon" | "signup_bonus" | "admin_adju
 
 function KrubKindBadge({ kind }: { kind: string }) {
   const map: Partial<Record<KrubTxKind, { bg: string; text: string }>> = {
-    reserve:      { bg: "bg-[var(--color-error)]/12",   text: "text-[var(--color-error)]"   },
-    refund:       { bg: "bg-[var(--color-success)]/12", text: "text-[var(--color-success)]" },
-    coupon:       { bg: "bg-[var(--color-info)]/12",    text: "text-[var(--color-info)]"    },
+    reserve:      { bg: "bg-[var(--color-error)]/12",   text: "text-[var(--color-error-text)]"   },
+    refund:       { bg: "bg-[var(--color-success)]/12", text: "text-[var(--color-success-text)]" },
+    coupon:       { bg: "bg-[var(--color-info)]/12",    text: "text-[var(--color-info-text)]"    },
     signup_bonus: { bg: "bg-[var(--color-bg-raised)]",  text: "text-[var(--color-fg-muted)]" },
-    admin_adjust: { bg: "bg-[var(--color-warning)]/12", text: "text-[var(--color-warning)]" },
+    admin_adjust: { bg: "bg-[var(--color-warning)]/12", text: "text-[var(--color-warning-text)]" },
     purchase:     { bg: "bg-[var(--color-bg-raised)]",  text: "text-[var(--color-fg-muted)]" },
   };
   const s = map[kind as KrubTxKind] ?? { bg: "bg-[var(--color-bg-raised)]", text: "text-[var(--color-fg-subtle)]" };
@@ -196,10 +196,10 @@ export function UserDetailHero({ user, balance }: UserDetailHeroProps) {
 
       {/* Balance block */}
       <div className="mt-4 pt-4 border-t border-white/[0.06]">
-        <p className="font-ui text-[10px] text-[var(--color-fg-subtle)] uppercase tracking-widest mb-1">
+        <p className="font-ui font-medium text-[10px] text-[var(--color-fg-subtle)] uppercase tracking-widest mb-1">
           ยอดปัจจุบัน
         </p>
-        <p className="font-display text-2xl text-[var(--color-fg)] tabular-nums">
+        <p className="font-display text-3xl md:text-4xl text-[var(--color-fg)] tabular-nums">
           {balance.toLocaleString()} <span className="text-base text-[var(--color-fg-muted)]">krub</span>
         </p>
       </div>
@@ -207,7 +207,7 @@ export function UserDetailHero({ user, balance }: UserDetailHeroProps) {
       {/* Info row: UUID / สมัคร / conditional third cell */}
       <div className="grid grid-cols-3 gap-3 mt-4 text-xs">
         <div>
-          <p className="font-ui text-[var(--color-fg-subtle)] uppercase tracking-wide text-[10px] mb-1">UUID</p>
+          <p className="font-ui font-medium text-[var(--color-fg-subtle)] uppercase tracking-wide text-[10px] mb-1">UUID</p>
           <div className="flex items-center gap-1">
             <span className="font-mono text-[var(--color-fg-muted)] tabular-nums">{truncateId(user.id)}</span>
             <button
@@ -220,13 +220,13 @@ export function UserDetailHero({ user, balance }: UserDetailHeroProps) {
           </div>
         </div>
         <div>
-          <p className="font-ui text-[var(--color-fg-subtle)] uppercase tracking-wide text-[10px] mb-1">สมัคร</p>
+          <p className="font-ui font-medium text-[var(--color-fg-subtle)] uppercase tracking-wide text-[10px] mb-1">สมัคร</p>
           <p className="font-mono text-[var(--color-fg-muted)] tabular-nums">
             {user.created_at ? formatDateTime(user.created_at).slice(0, 10) : "—"}
           </p>
         </div>
         <div>
-          <p className="font-ui text-[var(--color-fg-subtle)] uppercase tracking-wide text-[10px] mb-1">
+          <p className="font-ui font-medium text-[var(--color-fg-subtle)] uppercase tracking-wide text-[10px] mb-1">
             {thirdCell.label}
           </p>
           <p className="font-mono text-[var(--color-fg-muted)] tabular-nums">
@@ -237,7 +237,7 @@ export function UserDetailHero({ user, balance }: UserDetailHeroProps) {
 
       {/* Suspend banner */}
       {user.status === "suspended" && (
-        <div className="flex items-start gap-2 p-3 rounded-lg bg-[var(--color-warning)]/12 border border-[var(--color-warning)]/30 text-[var(--color-warning)] text-sm font-content mt-4">
+        <div className="flex items-start gap-2 p-3 rounded-lg bg-[var(--color-warning)]/12 border border-[var(--color-warning)]/30 text-[var(--color-warning-text)] text-sm font-content mt-4">
           <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" aria-hidden="true" />
           <span>
             บัญชีถูกระงับ
@@ -248,7 +248,7 @@ export function UserDetailHero({ user, balance }: UserDetailHeroProps) {
 
       {/* Soft-deleted banner */}
       {user.status === "soft_deleted" && (
-        <div className="flex items-start gap-2 p-3 rounded-lg bg-[var(--color-error)]/12 border border-[var(--color-error)]/30 text-[var(--color-error)] text-sm font-content mt-4">
+        <div className="flex items-start gap-2 p-3 rounded-lg bg-[var(--color-error)]/12 border border-[var(--color-error)]/30 text-[var(--color-error-text)] text-sm font-content mt-4">
           <Trash2 className="w-4 h-4 shrink-0 mt-0.5" aria-hidden="true" />
           <span>
             บัญชีถูกลบ — hard purge ใน {days} วัน
@@ -331,8 +331,8 @@ function ActionsPanel({
           className={cn(
             "inline-flex items-center gap-1.5 h-8 px-3 rounded-full font-ui text-xs border motion-safe:transition-colors duration-150",
             isPeerAdminBlock
-              ? "opacity-40 cursor-not-allowed bg-[var(--color-warning)]/12 border-[var(--color-warning)]/30 text-[var(--color-warning)]"
-              : "bg-[var(--color-warning)]/12 border-[var(--color-warning)]/30 text-[var(--color-warning)] hover:bg-[var(--color-warning)]/20",
+              ? "opacity-40 cursor-not-allowed bg-[var(--color-warning)]/12 border-[var(--color-warning)]/30 text-[var(--color-warning-text)]"
+              : "bg-[var(--color-warning)]/12 border-[var(--color-warning)]/30 text-[var(--color-warning-text)] hover:bg-[var(--color-warning)]/20",
           )}
         >
           <Ban className="w-3 h-3" aria-hidden="true" />
@@ -362,7 +362,7 @@ function ActionsPanel({
       {canRestore && (
         <button
           onClick={onRestore}
-          className="inline-flex items-center gap-1.5 h-8 px-3 rounded-full font-ui text-xs border bg-[var(--color-success)]/12 border-[var(--color-success)]/30 text-[var(--color-success)] hover:bg-[var(--color-success)]/20 motion-safe:transition-colors duration-150"
+          className="inline-flex items-center gap-1.5 h-8 px-3 rounded-full font-ui text-xs border bg-[var(--color-success)]/12 border-[var(--color-success)]/30 text-[var(--color-success-text)] hover:bg-[var(--color-success)]/20 motion-safe:transition-colors duration-150"
         >
           <RotateCcw className="w-3 h-3" aria-hidden="true" />
           กู้คืนบัญชี
@@ -379,7 +379,7 @@ function ActionsPanel({
       {viewerRole === "owner" && user.status === "active" && user.role === "user" && (
         <button
           onClick={onDelete}
-          className="inline-flex items-center gap-1.5 h-8 px-3 rounded-full font-ui text-xs border bg-[var(--color-error)]/12 border-[var(--color-error)]/30 text-[var(--color-error)] hover:bg-[var(--color-error)]/20 motion-safe:transition-colors duration-150"
+          className="inline-flex items-center gap-1.5 h-8 px-3 rounded-full font-ui text-xs border border-[var(--color-error)] text-[var(--color-error-text)] bg-transparent hover:bg-[var(--color-error)]/8 motion-safe:transition-colors duration-150"
         >
           <Trash2 className="w-3 h-3" aria-hidden="true" />
           ลบบัญชี (Soft)
@@ -405,13 +405,13 @@ const TAB_LABELS: { id: TabId; label: string }[] = [
 function GenerationStatusBadge({ status }: { status: string }) {
   const isOk = status === "completed" || status === "success";
   return isOk ? (
-    <span className="inline-flex items-center gap-1 text-xs font-ui text-[var(--color-success)]">
-      <CheckCircle2 className="w-3 h-3" aria-hidden="true" />
+    <span className="inline-flex items-center gap-1 text-xs font-ui text-[var(--color-success-text)]">
+      <CheckCircle2 className="w-3 h-3 text-[var(--color-success)]" aria-hidden="true" />
       สำเร็จ
     </span>
   ) : (
-    <span className="inline-flex items-center gap-1 text-xs font-ui text-[var(--color-error)]">
-      <XCircle className="w-3 h-3" aria-hidden="true" />
+    <span className="inline-flex items-center gap-1 text-xs font-ui text-[var(--color-error-text)]">
+      <XCircle className="w-3 h-3 text-[var(--color-error)]" aria-hidden="true" />
       ล้มเหลว
     </span>
   );
@@ -481,9 +481,9 @@ function TabsPanel({ data, viewerRole }: { data: AdminUserDetail; viewerRole: "a
               <table className="w-full">
                 <thead>
                   <tr>
-                    <th className="px-2 py-2 font-ui text-xs text-[var(--color-fg-muted)] text-left uppercase tracking-wide">วันที่</th>
-                    <th className="px-2 py-2 font-ui text-xs text-[var(--color-fg-muted)] text-left uppercase tracking-wide">ประเภท</th>
-                    <th className="px-2 py-2 font-ui text-xs text-[var(--color-fg-muted)] text-right uppercase tracking-wide">krub</th>
+                    <th className="px-2 py-2 font-ui font-medium text-xs text-[var(--color-fg-muted)] text-left uppercase tracking-wide">วันที่</th>
+                    <th className="px-2 py-2 font-ui font-medium text-xs text-[var(--color-fg-muted)] text-left uppercase tracking-wide">ประเภท</th>
+                    <th className="px-2 py-2 font-ui font-medium text-xs text-[var(--color-fg-muted)] text-right uppercase tracking-wide">krub</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -495,7 +495,7 @@ function TabsPanel({ data, viewerRole }: { data: AdminUserDetail; viewerRole: "a
                       <td className="px-2 py-2">
                         <KrubKindBadge kind="coupon" />
                       </td>
-                      <td className="px-2 py-2 font-mono text-sm text-right text-[var(--color-success)] tabular-nums">
+                      <td className="px-2 py-2 font-mono text-sm text-right text-[var(--color-success-text)] tabular-nums">
                         +{r.krub_added}
                       </td>
                     </tr>
@@ -516,9 +516,9 @@ function TabsPanel({ data, viewerRole }: { data: AdminUserDetail; viewerRole: "a
               <table className="w-full">
                 <thead>
                   <tr>
-                    <th className="px-2 py-2 font-ui text-xs text-[var(--color-fg-muted)] text-left uppercase tracking-wide">วันที่ Redeem</th>
-                    <th className="px-2 py-2 font-ui text-xs text-[var(--color-fg-muted)] text-left uppercase tracking-wide">Coupon ID</th>
-                    <th className="px-2 py-2 font-ui text-xs text-[var(--color-fg-muted)] text-right uppercase tracking-wide">krub ที่ได้</th>
+                    <th className="px-2 py-2 font-ui font-medium text-xs text-[var(--color-fg-muted)] text-left uppercase tracking-wide">วันที่ Redeem</th>
+                    <th className="px-2 py-2 font-ui font-medium text-xs text-[var(--color-fg-muted)] text-left uppercase tracking-wide">Coupon ID</th>
+                    <th className="px-2 py-2 font-ui font-medium text-xs text-[var(--color-fg-muted)] text-right uppercase tracking-wide">krub ที่ได้</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -530,7 +530,7 @@ function TabsPanel({ data, viewerRole }: { data: AdminUserDetail; viewerRole: "a
                       <td className="px-2 py-2 font-mono text-xs text-[var(--color-fg-muted)]">
                         {r.coupon_id.slice(0, 12)}…
                       </td>
-                      <td className="px-2 py-2 font-mono text-sm text-right text-[var(--color-success)] tabular-nums">
+                      <td className="px-2 py-2 font-mono text-sm text-right text-[var(--color-success-text)] tabular-nums">
                         +{r.krub_added}
                       </td>
                     </tr>
@@ -559,7 +559,7 @@ function TabsPanel({ data, viewerRole }: { data: AdminUserDetail; viewerRole: "a
 function AuditTrailCard({ trail }: { trail: AdminUserDetail["audit_trail"] }) {
   return (
     <div className="bg-[var(--color-bg)] rounded-xl border border-white/[0.08] p-4">
-      <p className="font-ui text-xs text-[var(--color-fg-muted)] uppercase tracking-wide mb-3">
+      <p className="font-ui font-medium text-xs text-[var(--color-fg-muted)] uppercase tracking-wide mb-3">
         {trail.length === 0
           ? "ประวัติการดำเนินการของแอดมิน"
           : `ประวัติการดำเนินการของแอดมิน (${Math.min(trail.length, 10)} รายการล่าสุด)`}
@@ -649,14 +649,14 @@ export function UserDetailBody({ data, userId }: UserDetailBodyProps) {
       {/* PII access banner */}
       <div className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-[var(--color-info)]/12 border border-[var(--color-info)]/30">
         <ShieldAlert className="w-4 h-4 shrink-0 text-[var(--color-info)]" aria-hidden="true" />
-        <span className="font-ui text-sm text-[var(--color-info)]">
+        <span className="font-ui text-sm text-[var(--color-info-text)]">
           การเข้าถึงข้อมูลนี้ถูกบันทึกแล้ว · อ่านข้อมูล PDPA
         </span>
       </div>
 
       {/* Actions row */}
       <div className="px-1">
-        <p className="font-ui text-[10px] text-[var(--color-fg-subtle)] uppercase tracking-widest mb-2">
+        <p className="font-ui font-medium text-[10px] text-[var(--color-fg-subtle)] uppercase tracking-widest mb-2">
           การดำเนินการ
         </p>
         <ActionsPanel
