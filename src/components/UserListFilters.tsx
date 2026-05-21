@@ -104,6 +104,7 @@ export function UserListFilters({
       <div className="flex flex-wrap gap-2 items-center p-3 rounded-lg bg-[var(--color-bg-muted)] border border-white/10">
         {/* Status dropdown */}
         <select
+          aria-label="กรองตามสถานะ"
           value={filters.status}
           onChange={handleStatusChange}
           className="h-8 bg-[var(--color-bg)] border border-white/10 rounded-lg px-3 font-ui text-sm text-foreground focus:border-accent focus:outline-none"

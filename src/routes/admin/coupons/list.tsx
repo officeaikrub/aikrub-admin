@@ -220,6 +220,7 @@ function RevokeReasonModal({
               เหตุผล *
             </label>
             <select
+              aria-label="เหตุผล Revoke คูปอง"
               value={reason}
               onChange={(e) => setReason(e.target.value as RevokeReason)}
               className="w-full bg-[var(--color-bg)] border border-white/10 rounded-lg px-3 py-2.5 font-ui text-sm text-[var(--color-fg)] focus:border-[var(--color-accent)] focus:outline-none"
@@ -296,6 +297,7 @@ function BulkRevokeModal({
               เหตุผล *
             </label>
             <select
+              aria-label="เหตุผล Revoke คูปองหลายรายการ"
               value={reason}
               onChange={(e) => setReason(e.target.value as RevokeReason)}
               className="w-full bg-[var(--color-bg)] border border-white/10 rounded-lg px-3 py-2.5 font-ui text-sm text-[var(--color-fg)] focus:border-[var(--color-accent)] focus:outline-none"
@@ -534,6 +536,7 @@ export default function CouponList() {
       <div className="flex items-center gap-2">
         <span className="font-ui text-xs text-[var(--color-fg-subtle)]">แสดง</span>
         <select
+          aria-label="จำนวนรายการต่อหน้า"
           value={filters.limit}
           onChange={handleLimitChange}
           className="bg-[var(--color-bg)] border border-white/10 rounded px-2 py-1 font-ui text-xs text-[var(--color-fg-muted)]"

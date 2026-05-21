@@ -132,6 +132,7 @@ function RevokeModal({
               หมวดหมู่เหตุผล *
             </label>
             <select
+              aria-label="หมวดหมู่เหตุผล Revoke"
               value={reason}
               onChange={(e) => setReason(e.target.value as RevokeReason)}
               className="w-full bg-[var(--color-bg)] border border-white/10 rounded-lg px-3 py-2.5 font-ui text-sm text-foreground focus:border-[var(--color-accent)] focus:outline-none"

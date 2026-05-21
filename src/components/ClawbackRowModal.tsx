@@ -110,6 +110,7 @@ export function ClawbackRowModal({
               เหตุผล *
             </label>
             <select
+              aria-label="เหตุผลการดึงคืน Krub"
               value={reasonCategory}
               onChange={(e) => setReasonCategory(e.target.value as ClawbackReason)}
               disabled={mutation.isPending}

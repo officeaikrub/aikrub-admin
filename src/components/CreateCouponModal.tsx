@@ -491,6 +491,7 @@ function PaidFormBody({
       <div>
         <FieldLabel required>Channel</FieldLabel>
         <select
+          aria-label="ช่องทางการชำระเงิน"
           value={form.channel}
           onChange={(e) => onChannelChange(e.target.value as CouponChannel)}
           className="w-full bg-[var(--color-bg)] border border-white/10 rounded-lg px-3 py-2.5 font-ui text-sm text-foreground focus:border-accent focus:outline-none"
@@ -938,6 +939,7 @@ function FreeFormBody({
       <div>
         <FieldLabel required>วัตถุประสงค์</FieldLabel>
         <select
+          aria-label="วัตถุประสงค์ของคูปอง"
           value={form.purpose}
           onChange={(e) => onFieldChange("purpose", e.target.value as CouponPurpose)}
           className={cn(

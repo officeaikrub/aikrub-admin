@@ -293,6 +293,7 @@ export function SuspendUserModal({
             </label>
             {isBulk ? (
               <select
+                aria-label="เหตุผลระงับบัญชีหลายรายการ"
                 value={bulkReason}
                 onChange={(e) => setBulkReason(e.target.value as BulkSuspendReason)}
                 disabled={isPending}
@@ -304,6 +305,7 @@ export function SuspendUserModal({
               </select>
             ) : (
               <select
+                aria-label="เหตุผลระงับบัญชี"
                 value={singleReason}
                 onChange={(e) => setSingleReason(e.target.value as SuspendReason)}
                 disabled={isPending}
