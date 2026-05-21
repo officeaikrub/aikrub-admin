@@ -201,7 +201,7 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full h-11 rounded-sm bg-primary hover:bg-primary/90
+            className="w-full h-11 rounded-sm bg-[var(--color-accent-deep)] hover:bg-[var(--color-accent-deep)]
                        text-primary-foreground font-ui text-sm font-medium
                        disabled:opacity-50 disabled:cursor-not-allowed
                        transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"

@@ -12,12 +12,14 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        /* Neutral primary — no glow. Use for secondary actions, pagination, cancel-adjacent confirms. */
+        /* Neutral primary — no glow. Use for secondary actions, pagination, cancel-adjacent confirms.
+           WCAG 1.4.3: idle shifted to --color-accent-deep (#C7461A) which achieves 4.5:1 with white. */
         default:
-          "bg-primary text-primary-foreground hover:bg-[var(--color-accent-deep)]",
-        /* Primary CTA — accent glow on hover (only place glow is allowed per spec §4). */
+          "bg-[var(--color-accent-deep)] text-primary-foreground",
+        /* Primary CTA — accent glow on hover (only place glow is allowed per spec §4).
+           WCAG 1.4.3: idle shifted to --color-accent-deep (#C7461A) which achieves 4.5:1 with white. */
         cta:
-          "bg-primary text-primary-foreground hover:bg-[var(--color-accent-deep)] hover:shadow-[0_0_16px_rgba(242,95,45,0.25)]",
+          "bg-[var(--color-accent-deep)] text-primary-foreground hover:shadow-[0_0_16px_rgba(242,95,45,0.25)]",
         ghost:
           "hover:bg-white/5 text-foreground",
         outline:

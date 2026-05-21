@@ -245,8 +245,8 @@ function ActionsPanel({
         className={cn(
           "inline-flex items-center gap-1.5 h-8 px-4 rounded-full font-ui text-xs motion-safe:transition-colors duration-150 text-[var(--color-accent-fg)]",
           isPeerAdminBlock || isSoftDeleted
-            ? "opacity-40 cursor-not-allowed bg-[var(--color-accent)]/50"
-            : "bg-[var(--color-accent)] hover:bg-[var(--color-accent-deep)]",
+            ? "opacity-40 cursor-not-allowed bg-[var(--color-accent-deep)]/50"
+            : "bg-[var(--color-accent-deep)]",
         )}
       >
         <Zap className="w-3 h-3" aria-hidden="true" />

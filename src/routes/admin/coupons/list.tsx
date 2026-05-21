@@ -707,7 +707,7 @@ export default function CouponList() {
           /* variant="cta" carries accent + glow per design-system §4 */
           <Button variant="cta" size="sm" className="gap-1.5" onClick={() => setCreateModalOpen(true)}>
             <Plus className="w-4 h-4" aria-hidden="true" />
-            + สร้างคูปองใหม่
+            สร้างคูปองใหม่
           </Button>
         }
       />
@@ -862,6 +862,7 @@ function CouponRow({ coupon, selected, onToggleSelect, onDisable, onRevoke }: Co
           style={{ accentColor: "var(--color-accent)" }}
           className="w-4 h-4 cursor-pointer"
           onClick={(e) => e.stopPropagation()}
+          aria-label={`เลือกคูปอง ${coupon.code}`}
         />
       </td>
 
