@@ -21,9 +21,10 @@
  *      • Row height: py-3 → h-12 + py-0 (dense spec)
  *      • No row-level onClick (view on row removed — v2 interaction model is dropdown-first)
  *  - MobileCard removed — TableCard horizontal-scroll handles mobile per §3.7
- *  - Stat-chip data: คูปองทั้งหมด wired to data.total; other 3 chips render "—"
- *    because GET /api/admin/coupons does not return per-status aggregate counts.
- *    Backend needs: counts: { active, expired, revoked } in list response (later phase).
+ *  - Stat-chip data: คูปองทั้งหมด wired to data.total — renders immediately.
+ *    Other 3 chips (ใช้งานได้/หมดอายุ/ถูกยกเลิก): value=null → StatChip hides itself
+ *    (primitive returns null when value===null, so no "—" chip appears).
+ *    Backend needs: counts: { active, expired, revoked } in list response to enable them.
  *
  * Preserved intact: CreateCoupon dropdown + modal, bulk-revoke flow + confirm,
  * filter pills, search, cursor pagination, row selection, permission rules.
@@ -86,22 +87,25 @@ import { cn } from "@/lib/utils";
 
 /**
  * Desktop table column count:
- *   checkbox + CODE + ประเภท + มูลค่า + ใช้แล้ว/สูงสุด + หมดอายุ + สถานะ + actions = 8
+ *   [checkbox] [CODE] [สถานะ] [ประเภท] [มูลค่า] [ใช้แล้ว/สูงสุด] [หมดอายุ] [actions] = 8
+ *
+ * สถานะ moved to col 3 (right after CODE identity anchor) — F-pattern reading order.
+ * CODE stays left identity anchor; no avatar in coupons table.
  */
 const COL_COUNT = 8;
 
 /**
  * LoadingSkeleton cell shapes — coupon-shaped (no avatar column).
- * Index order matches COL_COUNT above.
+ * Index order: checkbox / code / สถานะ / ประเภท / มูลค่า / ใช้แล้ว/สูงสุด / หมดอายุ / actions
  */
 const SKELETON_SHAPES = [
   "checkbox",
   "text-md",
   "text-sm",
+  "text-sm",
   "number",
   "number",
   "text-md",
-  "text-sm",
   "action",
 ] as const;
 
@@ -509,11 +513,12 @@ export default function CouponList() {
 
   // ---------------------------------------------------------------------------
   // Stat chips — see data situation note in file header
+  // null values: StatChip hides itself → no "—" shown. Auto-reappears when backend wires counts.
   // ---------------------------------------------------------------------------
   const totalCount: number | null = data?.total ?? null;
-  const activeCount: number | null = null;    // not in list response
-  const expiredCount: number | null = null;   // not in list response
-  const revokedCount: number | null = null;   // not in list response
+  const activeCount: number | null = null;    // not in list response — chip hidden until backend adds it
+  const expiredCount: number | null = null;   // not in list response — chip hidden until backend adds it
+  const revokedCount: number | null = null;   // not in list response — chip hidden until backend adds it
 
   // ---------------------------------------------------------------------------
   // Pagination node — rendered in TableCard.pagination slot
@@ -572,7 +577,7 @@ export default function CouponList() {
   ) : null;
 
   // ---------------------------------------------------------------------------
-  // Table head
+  // Table head — col order: checkbox / CODE / สถานะ / ประเภท / มูลค่า / ใช้แล้ว/สูงสุด / หมดอายุ / actions
   // ---------------------------------------------------------------------------
   const tableHead = (
     <tr className="h-10">
@@ -588,9 +593,13 @@ export default function CouponList() {
           aria-label="เลือกทั้งหมด"
         />
       </th>
-      {/* CODE */}
+      {/* CODE — left identity anchor */}
       <th className="w-36 px-4 text-left">
         <span className="font-ui font-medium text-xs text-[var(--color-fg-muted)] uppercase tracking-wide">Code</span>
+      </th>
+      {/* สถานะ — col 3, right after CODE (F-pattern: code+status together) */}
+      <th className="w-28 px-4 text-left">
+        <span className="font-ui font-medium text-xs text-[var(--color-fg-muted)] uppercase tracking-wide">สถานะ</span>
       </th>
       {/* ประเภท */}
       <th className="w-28 px-4 text-left">
@@ -607,10 +616,6 @@ export default function CouponList() {
       {/* หมดอายุ */}
       <th className="w-32 px-4 text-left">
         <span className="font-ui font-medium text-xs text-[var(--color-fg-muted)] uppercase tracking-wide">หมดอายุ</span>
-      </th>
-      {/* สถานะ */}
-      <th className="w-28 px-4 text-left">
-        <span className="font-ui font-medium text-xs text-[var(--color-fg-muted)] uppercase tracking-wide">สถานะ</span>
       </th>
       {/* Actions */}
       <th className="w-16 px-4 text-right">
@@ -857,7 +862,7 @@ function CouponRow({ coupon, selected, onToggleSelect, onDisable, onRevoke }: Co
         />
       </td>
 
-      {/* CODE — monospace 12px, uppercase */}
+      {/* CODE — monospace 12px, uppercase; left identity anchor */}
       <td className="w-36 px-4 py-0">
         <div className="flex items-center gap-1.5 group">
           <span className="font-mono text-xs text-[var(--color-fg)] uppercase tabular-nums">
@@ -872,6 +877,11 @@ function CouponRow({ coupon, selected, onToggleSelect, onDisable, onRevoke }: Co
             <Copy className="w-3.5 h-3.5" />
           </button>
         </div>
+      </td>
+
+      {/* สถานะ — col 3, right after CODE (F-pattern: code+status together) */}
+      <td className="w-28 px-4 py-0">
+        <StatusBadge status={coupon.status} />
       </td>
 
       {/* ประเภทส่วนลด — paid/free badge (see TypeBadge note in header) */}
@@ -892,11 +902,6 @@ function CouponRow({ coupon, selected, onToggleSelect, onDisable, onRevoke }: Co
       {/* หมดอายุ — nullable: show "—" when null */}
       <td className="w-32 px-4 py-0 font-mono text-xs text-[var(--color-fg-muted)] tabular-nums">
         {coupon.expires_at ? formatDateTime(coupon.expires_at) : "—"}
-      </td>
-
-      {/* สถานะ */}
-      <td className="w-28 px-4 py-0">
-        <StatusBadge status={coupon.status} />
       </td>
 
       {/* Actions — dropdown, w-16 */}

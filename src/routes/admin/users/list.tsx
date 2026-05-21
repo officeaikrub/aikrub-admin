@@ -18,10 +18,12 @@
  *    non-token hover bg, amber bulk bar, blue-300 PII banner)
  *
  * Stat-chip data situation:
- *  - `total` chip: wired to data.total
- *  - `active`, `suspended`, `soft_deleted` chips: render "—" (null)
- *    because GET /api/admin/users currently returns only { total } at the
- *    aggregate level. A backend endpoint is needed — see summary note.
+ *  - `total` chip: wired to data.total — renders immediately.
+ *  - `active`, `suspended`, `soft_deleted` chips: value=null → StatChip hides itself
+ *    (primitive returns null when value===null, so no "—" chip appears).
+ *    GET /api/admin/users returns only { total } at the aggregate level.
+ *    Chips auto-reappear once Cheese adds counts: { active, suspended, soft_deleted }
+ *    to the list endpoint. Chip definitions kept in code — no frontend change needed.
  *
  * Preserved intact: all permission helpers, role tabs, modal logic,
  * bulk-suspend, pagination, self-target rule, JWT freshness check.
@@ -70,8 +72,15 @@ import { cn } from "@/lib/utils";
 // Column count constant — update here if columns change
 // ---------------------------------------------------------------------------
 
-/** Desktop table column count: checkbox + avatar + email + ชื่อ + role + krub + สถานะ + actions = 8 */
-const COL_COUNT = 8;
+/**
+ * Desktop table column count:
+ *   [checkbox] [identity: avatar+email+name] [สถานะ] [Role] [actions] = 5
+ *
+ * Removed: separate avatar / ชื่อ / Email columns (merged into identity).
+ * Removed: krub column (always "—", backend balance not in list API).
+ * Status moved to col 3 (right after identity) — F-pattern eye scan: who+status together.
+ */
+const COL_COUNT = 5;
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -216,38 +225,22 @@ function TableHead({
           aria-label="เลือกทั้งหมด"
         />
       </th>
-      {/* Avatar */}
-      <th className="w-10 px-2">
-        <span className="sr-only">avatar</span>
-      </th>
-      {/* Email */}
+      {/* Identity — avatar + email + display_name compound column */}
       <th className="px-4 text-left">
         <span className="font-ui font-medium text-xs text-[var(--color-fg-muted)] uppercase tracking-wide">
-          Email
+          ผู้ใช้
         </span>
       </th>
-      {/* ชื่อ */}
-      <th className="w-32 px-4 text-left">
+      {/* สถานะ — col 3, right after identity (F-pattern: who+status together) */}
+      <th className="w-28 px-4 text-left">
         <span className="font-ui font-medium text-xs text-[var(--color-fg-muted)] uppercase tracking-wide">
-          ชื่อ
+          สถานะ
         </span>
       </th>
       {/* Role */}
       <th className="w-24 px-4 text-left">
         <span className="font-ui font-medium text-xs text-[var(--color-fg-muted)] uppercase tracking-wide">
           Role
-        </span>
-      </th>
-      {/* krub */}
-      <th className="w-24 px-4 text-right">
-        <span className="font-ui font-medium text-xs text-[var(--color-fg-muted)] uppercase tracking-wide">
-          krub
-        </span>
-      </th>
-      {/* สถานะ */}
-      <th className="w-28 px-4 text-left">
-        <span className="font-ui font-medium text-xs text-[var(--color-fg-muted)] uppercase tracking-wide">
-          สถานะ
         </span>
       </th>
       {/* Actions */}
@@ -452,13 +445,13 @@ export default function UserList() {
   // `total` is wired from API response.
   // Per-status counts (active / suspended / soft_deleted) are NOT available
   // from GET /api/admin/users — the API only returns `total`.
-  // Chips render "—" until Cheese adds aggregate counts to the endpoint.
-  // See summary: backend needs `counts: { active, suspended, soft_deleted }`
-  // added to GET /api/admin/users response (or a separate /stats endpoint).
+  // null values: StatChip hides itself → no "—" shown.
+  // Chips auto-reappear when Cheese adds counts: { active, suspended, soft_deleted }
+  // to GET /api/admin/users (or a separate /stats endpoint). No frontend change needed.
   const totalCount = total;     // number | null — null until first data lands
-  const activeCount: number | null = null;      // not in API response
-  const suspendedCount: number | null = null;   // not in API response
-  const deletedCount: number | null = null;     // not in API response
+  const activeCount: number | null = null;      // not in API response — chip hidden
+  const suspendedCount: number | null = null;   // not in API response — chip hidden
+  const deletedCount: number | null = null;     // not in API response — chip hidden
 
   // -----------------------------------------------------------------------
   // Pagination controls
@@ -499,7 +492,7 @@ export default function UserList() {
       {isLoading && (
         <LoadingSkeleton
           colCount={COL_COUNT}
-          cellShapes={["checkbox", "avatar", "text-lg", "text-md", "text-sm", "number", "text-sm", "action"]}
+          cellShapes={["checkbox", "text-lg", "text-sm", "text-sm", "action"]}
         />
       )}
 
@@ -571,40 +564,31 @@ export default function UserList() {
               />
             </td>
 
-            {/* Avatar */}
-            <td className="w-10 px-2">
-              <div className="w-8 h-8 rounded-full bg-[var(--color-bg-raised)] flex items-center justify-center text-[10px] font-ui text-[var(--color-fg-muted)]">
-                {user.display_name ? user.display_name[0]?.toUpperCase() : "?"}
+            {/* Identity — avatar circle + stacked email (top) + display_name (below) */}
+            <td className="px-4">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="w-8 h-8 rounded-full bg-[var(--color-bg-raised)] flex items-center justify-center text-[10px] font-ui text-[var(--color-fg-muted)] shrink-0">
+                  {user.display_name ? user.display_name[0]?.toUpperCase() : "?"}
+                </div>
+                <div className="min-w-0 flex flex-col leading-tight">
+                  <span className="font-content text-sm text-[var(--color-fg-muted)] truncate">
+                    {user.email ?? "—"}
+                  </span>
+                  <span className="font-ui text-xs text-[var(--color-fg-subtle)] truncate">
+                    {user.display_name ?? "—"}
+                  </span>
+                </div>
               </div>
             </td>
 
-            {/* Email */}
-            <td className="px-4">
-              <span className="font-content text-sm text-[var(--color-fg-muted)] truncate max-w-[200px] block">
-                {user.email ?? "—"}
-              </span>
-            </td>
-
-            {/* ชื่อ */}
-            <td className="w-32 px-4">
-              <span className="font-ui text-sm text-[var(--color-fg)] truncate max-w-[128px] block">
-                {user.display_name ?? "—"}
-              </span>
+            {/* สถานะ — col 3, right after identity (F-pattern) */}
+            <td className="w-28 px-4">
+              <UserStatusBadge status={user.status} />
             </td>
 
             {/* Role */}
             <td className="w-24 px-4">
               <UserRoleBadge role={user.role} />
-            </td>
-
-            {/* krub — not in list response */}
-            <td className="w-24 px-4 font-mono text-sm text-right text-[var(--color-fg-muted)] tabular-nums">
-              —
-            </td>
-
-            {/* Status */}
-            <td className="w-28 px-4">
-              <UserStatusBadge status={user.status} />
             </td>
 
             {/* Actions */}
@@ -780,18 +764,25 @@ export default function UserList() {
             key={user.id}
             className="bg-[var(--color-bg-muted)] rounded-xl border border-white/[0.08] p-4 space-y-2"
           >
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="font-ui text-sm text-[var(--color-fg)]">
-                  {user.display_name ?? "—"}
-                </p>
-                <p className="font-content text-xs text-[var(--color-fg-muted)] mt-0.5">
-                  {user.email ?? "—"}
-                </p>
+            <div className="flex items-start justify-between gap-3">
+              {/* Identity: avatar + stacked email/name (matches desktop identity column) */}
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="w-8 h-8 rounded-full bg-[var(--color-bg-raised)] flex items-center justify-center text-[10px] font-ui text-[var(--color-fg-muted)] shrink-0">
+                  {user.display_name ? user.display_name[0]?.toUpperCase() : "?"}
+                </div>
+                <div className="min-w-0 flex flex-col leading-tight">
+                  <p className="font-content text-sm text-[var(--color-fg-muted)] truncate">
+                    {user.email ?? "—"}
+                  </p>
+                  <p className="font-ui text-xs text-[var(--color-fg-subtle)] truncate mt-0.5">
+                    {user.display_name ?? "—"}
+                  </p>
+                </div>
               </div>
-              <div className="flex items-center gap-1.5">
-                <UserRoleBadge role={user.role} />
+              {/* Status + role badges (status first, mirrors desktop col order) */}
+              <div className="flex items-center gap-1.5 shrink-0">
                 <UserStatusBadge status={user.status} />
+                <UserRoleBadge role={user.role} />
               </div>
             </div>
             <Button

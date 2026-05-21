@@ -5,7 +5,8 @@
  * Non-interactive. Dot + value + label stacked internally.
  *
  * Dot colors map to design-system-v2.md §5 status tokens.
- * When value is null, renders "—" (backend aggregate not yet available).
+ * When value is null the chip is NOT rendered (hidden until backend provides data).
+ * Keep chip definitions in parent code — they auto-reappear once backend wires counts.
  */
 
 import { cn } from "@/lib/utils";
@@ -34,17 +35,10 @@ const DOT_CLASS: Record<StatChipDot, string> = {
   info:    "bg-[var(--color-info)]",
 };
 
-/**
- * Formats a number with locale separator (e.g. 1234 → "1,234").
- * Returns "—" when value is null.
- */
-function formatValue(value: number | null): string {
-  if (value === null) return "—";
-  return value.toLocaleString();
-}
-
 export function StatChip({ label, value, dot, className }: StatChipProps) {
-  const displayValue = formatValue(value);
+  // Hide chip entirely when value is null — a "—" chip is worse than no chip.
+  // Chip definition stays in parent; it re-appears automatically once backend provides counts.
+  if (value === null) return null;
 
   return (
     <div
@@ -53,7 +47,7 @@ export function StatChip({ label, value, dot, className }: StatChipProps) {
         "bg-[var(--color-bg-muted)] border border-white/[0.08]",
         className,
       )}
-      aria-label={`${displayValue} ${label}`}
+      aria-label={`${value.toLocaleString()} ${label}`}
     >
       {/* Dot — vertically centered to value line */}
       <span
@@ -64,7 +58,7 @@ export function StatChip({ label, value, dot, className }: StatChipProps) {
       {/* Value + label stacked */}
       <div className="flex flex-col leading-tight">
         <span className="font-display tabular-nums text-xl md:text-2xl text-[var(--color-fg)]">
-          {displayValue}
+          {value.toLocaleString()}
         </span>
         <span className="font-ui font-medium text-[10px] uppercase tracking-wider text-[var(--color-fg-muted)]">
           {label}
