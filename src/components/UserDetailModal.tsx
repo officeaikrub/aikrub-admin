@@ -1,14 +1,17 @@
 /**
  * UserDetailModal — premium glass modal shell for user detail (C2).
  *
- * Layout (spec §6: header + hero card remain fixed, scrollable body below):
- *   sticky header (shrink-0) — eyebrow label + close X
- *   hero card (shrink-0, FIXED — not inside the scroller)
- *   scrollable body (flex-1 overflow-y-auto) — PII banner / actions / tabs / audit
- *
- * The query lives here (single subscription). Data is passed down to
- * UserDetailHero (rendered above scroller) and UserDetailBody (inside scroller).
- * This avoids double-fetch and gives one loading/error source of truth.
+ * Layout (Group B reading-pattern revision):
+ *   sticky header (shrink-0) — user NAME (bold font-display) + close X
+ *   PII pill (shrink-0)      — thin single-line ~30px: ShieldAlert + notice text
+ *   hero card (shrink-0)     — FIXED compact band: avatar | name/email + balance(right)
+ *                               row 2: role + status badges
+ *                              [status banners if suspended/soft_deleted]
+ *   scrollable body (flex-1 overflow-y-auto)
+ *     → actions (above fold — before tabs)
+ *     → tabs (ประวัติการสร้าง / PII log / ประวัติ krub / ประวัติคูปอง)
+ *     → ข้อมูลบัญชี (UUID + สมัคร + conditional 3rd)
+ *     → audit trail
  *
  * Positioning (H2): centered modal at ALL screen sizes — no bottom sheet on mobile.
  * Width: calc(100% - 2rem) for mobile-safe clearance; max-w-[640px] on desktop.
@@ -20,11 +23,12 @@
  * - max-h-[85dvh] + overflow-hidden for corner clip
  *
  * Animations: motion-safe guarded slide + fade — H3.
- * Accessibility: Title + sr-only Description — C1.
+ * Accessibility: DialogPrimitive.Title asChild → visible h2 (user name or sr-only fallback
+ *   while loading). sr-only Description silences Radix a11y warning — C1.
  */
 
 import * as DialogPrimitive from "@radix-ui/react-dialog";
-import { X } from "lucide-react";
+import { X, ShieldAlert } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { adminGetUser } from "@/lib/api-admin";
 import {
@@ -48,6 +52,9 @@ export function UserDetailModal({ open, userId, onClose }: UserDetailModalProps)
     enabled: open && !!userId,
   });
 
+  // Derive visible header label from data once loaded
+  const headerName = data?.user.display_name ?? data?.user.email ?? "รายละเอียดผู้ใช้";
+
   return (
     <DialogPrimitive.Root open={open} onOpenChange={(o) => { if (!o) onClose(); }}>
       <DialogPrimitive.Portal>
@@ -60,10 +67,9 @@ export function UserDetailModal({ open, userId, onClose }: UserDetailModalProps)
           )}
         />
 
-        {/* Modal shell — centered at all screen sizes (H2), no full-screen mobile */}
+        {/* Modal shell — centered at all breakpoints (H2) */}
         <DialogPrimitive.Content
           className={cn(
-            // Centered at all breakpoints — mobile-safe width
             "fixed z-[50] flex flex-col overflow-hidden",
             "left-1/2 top-[7.5vh] -translate-x-1/2",
             "w-[calc(100%-2rem)] max-w-[640px] max-h-[85dvh]",
@@ -76,22 +82,33 @@ export function UserDetailModal({ open, userId, onClose }: UserDetailModalProps)
             "motion-safe:data-[state=open]:slide-in-from-bottom-2 motion-safe:data-[state=closed]:slide-out-to-bottom-1",
           )}
         >
-          {/* C1: Accessibility title (sr-only) + Description (sr-only) */}
-          <DialogPrimitive.Title className="sr-only">
-            รายละเอียดผู้ใช้
-          </DialogPrimitive.Title>
+          {/* C1: Description sr-only — silences Radix a11y warning.
+              Title is wired to the visible h2 below via asChild so screen readers
+              announce the actual user name (or a fallback sr-only label while loading). */}
           <DialogPrimitive.Description className="sr-only">
             รายละเอียดข้อมูลผู้ใช้และการดำเนินการของแอดมิน
           </DialogPrimitive.Description>
 
-          {/* Sticky header — shrink-0, always fixed */}
+          {/* Sticky header — Title is the visible h2 (asChild) so AT announces real user name */}
           <div className="shrink-0 flex items-center justify-between px-6 py-4 border-b border-white/[0.08] bg-[var(--color-bg-muted)]">
-            <p className="font-ui font-medium text-[10px] text-[var(--color-fg-subtle)] uppercase tracking-widest">
-              รายละเอียดผู้ใช้
-            </p>
+            <DialogPrimitive.Title asChild>
+              <h2 className="font-display text-base text-[var(--color-fg)] truncate max-w-[calc(100%-3rem)]">
+                {data ? (
+                  headerName
+                ) : (
+                  <>
+                    <span className="sr-only">รายละเอียดผู้ใช้</span>
+                    <span
+                      aria-hidden="true"
+                      className="inline-block h-5 w-40 bg-white/[0.06] rounded motion-safe:animate-pulse align-middle"
+                    />
+                  </>
+                )}
+              </h2>
+            </DialogPrimitive.Title>
             <DialogPrimitive.Close asChild>
               <button
-                className="w-8 h-8 rounded-lg flex items-center justify-center text-[var(--color-fg-muted)] hover:text-[var(--color-fg)] hover:bg-white/[0.08] motion-safe:transition-colors duration-150"
+                className="w-8 h-8 rounded-lg flex items-center justify-center text-[var(--color-fg-muted)] hover:text-[var(--color-fg)] hover:bg-white/[0.08] motion-safe:transition-colors duration-150 shrink-0"
                 aria-label="ปิด"
               >
                 <X className="w-4 h-4" />
@@ -99,25 +116,37 @@ export function UserDetailModal({ open, userId, onClose }: UserDetailModalProps)
             </DialogPrimitive.Close>
           </div>
 
+          {/* PII pill — thin single-line ~30px: info-text on both icon + text (contrast-safe) */}
+          <div className="shrink-0 mx-6 mt-3 flex items-center gap-1.5 px-3 py-1 rounded-full bg-[var(--color-info)]/12 border border-[var(--color-info)]/20">
+            <ShieldAlert className="w-3.5 h-3.5 shrink-0 text-[var(--color-info-text)]" aria-hidden="true" />
+            <span className="font-ui text-xs text-[var(--color-info-text)] leading-none whitespace-nowrap">
+              การเข้าถึงข้อมูลนี้ถูกบันทึกแล้ว · อ่านข้อมูล PDPA
+            </span>
+          </div>
+
           {/* Hero card — shrink-0, FIXED (H1: outside the scroller) */}
           {data && (
-            <div className="shrink-0 px-6 pt-5 pb-0">
+            <div className="shrink-0 px-6 pt-3 pb-0">
               <UserDetailHero user={data.user} balance={data.credits.balance} />
             </div>
           )}
 
           {/* Skeleton hero placeholder while loading */}
           {isLoading && (
-            <div className="shrink-0 px-6 pt-5 pb-0">
-              <div className="bg-[var(--color-bg)] rounded-xl border border-white/[0.08] p-5 motion-safe:animate-pulse">
-                <div className="flex gap-4">
-                  <div className="w-16 h-16 rounded-full bg-white/[0.05]" />
-                  <div className="space-y-2 flex-1">
-                    <div className="h-5 w-36 bg-white/[0.05] rounded" />
-                    <div className="h-4 w-52 bg-white/[0.05] rounded" />
+            <div className="shrink-0 px-6 pt-3 pb-0">
+              <div className="bg-[var(--color-bg)] rounded-xl border border-white/[0.08] p-4 motion-safe:animate-pulse">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-full bg-white/[0.05] shrink-0" />
+                  <div className="flex-1 min-w-0 space-y-1.5">
+                    <div className="h-4 w-32 bg-white/[0.05] rounded" />
+                    <div className="h-3 w-48 bg-white/[0.05] rounded" />
+                    <div className="h-3 w-20 bg-white/[0.05] rounded" />
+                  </div>
+                  <div className="shrink-0 text-right space-y-1">
+                    <div className="h-3 w-16 bg-white/[0.05] rounded" />
+                    <div className="h-6 w-20 bg-white/[0.05] rounded" />
                   </div>
                 </div>
-                <div className="mt-4 h-7 w-32 bg-white/[0.05] rounded" />
               </div>
             </div>
           )}

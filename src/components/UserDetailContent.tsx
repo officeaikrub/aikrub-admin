@@ -1,13 +1,13 @@
 /**
  * UserDetailContent — shared detail implementation used by UserDetailModal.
  *
- * Split into two exported pieces that UserDetailModal composes:
- *   - UserDetailHero: hero card rendered FIXED above the scroll region
- *   - UserDetailBody: PII banner, actions, tabs, audit trail rendered
- *     inside the scrollable region
- *
- * The query lives in UserDetailModal (single subscription, no double-fetch).
- * Data + viewer context are passed in as props.
+ * Group B reading-pattern revision:
+ *   - UserDetailHero: compact 2-row band (avatar | name/email + balance-right;
+ *     badges row 2). Status banners remain here (fixed above fold context).
+ *     UUID / สมัคร / conditional 3rd cell removed — moved to ข้อมูลบัญชี.
+ *   - UserDetailBody: actions first (above tabs) → tabs (generations/PII/krub/coupons)
+ *     → ข้อมูลบัญชี (UUID + สมัคร + conditional 3rd) → audit trail.
+ *     PII pill removed (moved up to UserDetailModal fixed shell).
  *
  * Sub-modals (AdjustKrub / Suspend / SoftDelete / Restore) open via Radix
  * portal dialogs stacked above the outer glass modal.
@@ -24,8 +24,8 @@ import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Copy,
+  Check,
   AlertTriangle,
-  ShieldAlert,
   Zap,
   Ban,
   ShieldOff,
@@ -109,32 +109,11 @@ function UserRoleBadge({ role }: { role: AdminUserRow["role"] }) {
 }
 
 // ---------------------------------------------------------------------------
-// KrubKindBadge — token-bound only (no blue-900 / green-900 / saturated colors)
-// ---------------------------------------------------------------------------
-
-type KrubTxKind = "reserve" | "refund" | "coupon" | "signup_bonus" | "admin_adjust" | "purchase";
-
-function KrubKindBadge({ kind }: { kind: string }) {
-  const map: Partial<Record<KrubTxKind, { bg: string; text: string }>> = {
-    reserve:      { bg: "bg-[var(--color-error)]/12",   text: "text-[var(--color-error-text)]"   },
-    refund:       { bg: "bg-[var(--color-success)]/12", text: "text-[var(--color-success-text)]" },
-    coupon:       { bg: "bg-[var(--color-info)]/12",    text: "text-[var(--color-info-text)]"    },
-    signup_bonus: { bg: "bg-[var(--color-bg-raised)]",  text: "text-[var(--color-fg-muted)]" },
-    admin_adjust: { bg: "bg-[var(--color-warning)]/12", text: "text-[var(--color-warning-text)]" },
-    purchase:     { bg: "bg-[var(--color-bg-raised)]",  text: "text-[var(--color-fg-muted)]" },
-  };
-  const s = map[kind as KrubTxKind] ?? { bg: "bg-[var(--color-bg-raised)]", text: "text-[var(--color-fg-subtle)]" };
-  return (
-    <span className={cn("px-2 py-0.5 rounded text-xs font-ui", s.bg, s.text)}>
-      {kind}
-    </span>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Hero card (Variant A nested card) — exported so UserDetailModal can render
-// it FIXED above the scroll region (spec §6: "header + hero card remain
-// fixed, not scrolled").
+// Hero card — compact 2-row band (Group B revision).
+// Row 1: avatar | name + email (min-w-0 truncate) | balance (shrink-0, right)
+// Row 2: role + status badges
+// Status banners remain in fixed region (above-fold context).
+// UUID / สมัคร / conditional 3rd cell moved to ข้อมูลบัญชี in scroll area.
 // ---------------------------------------------------------------------------
 
 interface UserDetailHeroProps {
@@ -143,102 +122,54 @@ interface UserDetailHeroProps {
 }
 
 export function UserDetailHero({ user, balance }: UserDetailHeroProps) {
-  function copyId() {
-    void navigator.clipboard.writeText(user.id);
-  }
-
   const days = daysUntilPurge(user.deleted_at);
   const purgeDate = user.deleted_at
     ? new Date(new Date(user.deleted_at).getTime() + 30 * 24 * 60 * 60 * 1000)
     : null;
 
-  // H4: conditional third info-cell label+value based on status
-  const thirdCell = (() => {
-    if (user.status === "suspended") {
-      return {
-        label: "ระงับเมื่อ",
-        value: user.suspended_at ? formatDateTime(user.suspended_at).slice(0, 10) : "—",
-      };
-    }
-    if (user.status === "soft_deleted") {
-      return {
-        label: "ลบเมื่อ",
-        value: user.deleted_at ? formatDateTime(user.deleted_at).slice(0, 10) : "—",
-      };
-    }
-    // active — updated_at not in AdminUserRow API response; show graceful fallback
-    return {
-      label: "แก้ไขล่าสุด",
-      value: "—",
-    };
-  })();
-
   return (
-    <div className="bg-[var(--color-bg)] rounded-xl border border-white/[0.08] p-5">
-      {/* Identity row */}
-      <div className="flex items-start gap-4">
-        <div className="w-[4rem] h-[4rem] rounded-full bg-[var(--color-bg-raised)] flex items-center justify-center text-xl font-display text-[var(--color-fg-muted)] flex-shrink-0">
+    <div className="bg-[var(--color-bg)] rounded-xl border border-white/[0.08] p-4">
+      {/* Row 1: avatar | name + email | balance (right, shrink-0) */}
+      <div className="flex items-center gap-3">
+        {/* Avatar */}
+        <div className="w-12 h-12 rounded-full bg-[var(--color-bg-raised)] flex items-center justify-center text-base font-display text-[var(--color-fg-muted)] shrink-0">
           {user.display_name ? user.display_name[0]?.toUpperCase() : "?"}
         </div>
+
+        {/* Name + email — min-w-0 so truncate works in flex */}
+        {/* text-sm (name) + text-2xl (balance) are intentional compact-hero compression —
+            the spec's page-level hero uses larger scale; this modal hero is space-constrained. */}
         <div className="flex-1 min-w-0">
-          <h3 className="font-display text-lg text-[var(--color-fg)] truncate">
+          <p className="font-display text-sm text-[var(--color-fg)] truncate leading-tight">
             {user.display_name ?? "—"}
-          </h3>
-          <p className="font-content text-sm text-[var(--color-fg-muted)] mt-0.5 truncate">
+          </p>
+          <p className="font-content text-xs text-[var(--color-fg-muted)] truncate mt-0.5 leading-tight">
             {user.email ?? "—"}
           </p>
-          <div className="flex items-center gap-1.5 mt-2 flex-wrap">
-            <UserRoleBadge role={user.role} />
-            <UserStatusBadge status={user.status} />
-          </div>
         </div>
-      </div>
 
-      {/* Balance block */}
-      <div className="mt-4 pt-4 border-t border-white/[0.06]">
-        <p className="font-ui font-medium text-[10px] text-[var(--color-fg-subtle)] uppercase tracking-widest mb-1">
-          ยอดปัจจุบัน
-        </p>
-        <p className="font-display text-3xl md:text-4xl text-[var(--color-fg)] tabular-nums">
-          {balance.toLocaleString()} <span className="text-base text-[var(--color-fg-muted)]">krub</span>
-        </p>
-      </div>
-
-      {/* Info row: UUID / สมัคร / conditional third cell */}
-      <div className="grid grid-cols-3 gap-3 mt-4 text-xs">
-        <div>
-          <p className="font-ui font-medium text-[var(--color-fg-subtle)] uppercase tracking-wide text-[10px] mb-1">UUID</p>
-          <div className="flex items-center gap-1">
-            <span className="font-mono text-[var(--color-fg-muted)] tabular-nums">{truncateId(user.id)}</span>
-            <button
-              onClick={copyId}
-              className="text-[var(--color-fg-subtle)] hover:text-[var(--color-accent)] motion-safe:transition-colors duration-150"
-              aria-label="คัดลอก UUID"
-            >
-              <Copy className="w-3 h-3" />
-            </button>
-          </div>
-        </div>
-        <div>
-          <p className="font-ui font-medium text-[var(--color-fg-subtle)] uppercase tracking-wide text-[10px] mb-1">สมัคร</p>
-          <p className="font-mono text-[var(--color-fg-muted)] tabular-nums">
-            {user.created_at ? formatDateTime(user.created_at).slice(0, 10) : "—"}
+        {/* Balance — shrink-0 to protect from flex squeeze */}
+        <div className="shrink-0 text-right">
+          <p className="font-ui font-medium text-[10px] text-[var(--color-fg-subtle)] uppercase tracking-widest leading-none mb-0.5">
+            ยอดปัจจุบัน
           </p>
-        </div>
-        <div>
-          <p className="font-ui font-medium text-[var(--color-fg-subtle)] uppercase tracking-wide text-[10px] mb-1">
-            {thirdCell.label}
-          </p>
-          <p className="font-mono text-[var(--color-fg-muted)] tabular-nums">
-            {thirdCell.value}
+          <p className="font-display text-2xl text-[var(--color-fg)] tabular-nums leading-tight">
+            {balance.toLocaleString()}
+            <span className="text-xs text-[var(--color-fg-muted)] font-ui ml-1">krub</span>
           </p>
         </div>
       </div>
 
-      {/* Suspend banner */}
+      {/* Row 2: role + status badges */}
+      <div className="flex items-center gap-1.5 mt-2 flex-wrap">
+        <UserRoleBadge role={user.role} />
+        <UserStatusBadge status={user.status} />
+      </div>
+
+      {/* Suspend banner — kept in fixed hero for above-fold visibility */}
       {user.status === "suspended" && (
-        <div className="flex items-start gap-2 p-3 rounded-lg bg-[var(--color-warning)]/12 border border-[var(--color-warning)]/30 text-[var(--color-warning-text)] text-sm font-content mt-4">
-          <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" aria-hidden="true" />
+        <div className="flex items-start gap-2 p-2.5 rounded-lg bg-[var(--color-warning)]/12 border border-[var(--color-warning)]/30 text-[var(--color-warning-text)] text-xs font-content mt-3">
+          <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5" aria-hidden="true" />
           <span>
             บัญชีถูกระงับ
             {user.suspended_reason ? ` — เหตุผล: ${user.suspended_reason}` : ""}
@@ -248,8 +179,8 @@ export function UserDetailHero({ user, balance }: UserDetailHeroProps) {
 
       {/* Soft-deleted banner */}
       {user.status === "soft_deleted" && (
-        <div className="flex items-start gap-2 p-3 rounded-lg bg-[var(--color-error)]/12 border border-[var(--color-error)]/30 text-[var(--color-error-text)] text-sm font-content mt-4">
-          <Trash2 className="w-4 h-4 shrink-0 mt-0.5" aria-hidden="true" />
+        <div className="flex items-start gap-2 p-2.5 rounded-lg bg-[var(--color-error)]/12 border border-[var(--color-error)]/30 text-[var(--color-error-text)] text-xs font-content mt-3">
+          <Trash2 className="w-3.5 h-3.5 shrink-0 mt-0.5" aria-hidden="true" />
           <span>
             บัญชีถูกลบ — hard purge ใน {days} วัน
             {purgeDate ? ` (${purgeDate.toLocaleDateString("th-TH")})` : ""}
@@ -390,16 +321,16 @@ function ActionsPanel({
 }
 
 // ---------------------------------------------------------------------------
-// Tabs panel
+// Tabs panel — Group B tab order: generations / pii / krub / coupons
 // ---------------------------------------------------------------------------
 
-type TabId = "generations" | "krub" | "coupons" | "pii";
+type TabId = "generations" | "pii" | "krub" | "coupons";
 
 const TAB_LABELS: { id: TabId; label: string }[] = [
   { id: "generations", label: "ประวัติการสร้าง" },
+  { id: "pii",         label: "PII log"         },
   { id: "krub",        label: "ประวัติ krub"    },
   { id: "coupons",     label: "ประวัติคูปอง"    },
-  { id: "pii",         label: "PII log"         },
 ];
 
 function GenerationStatusBadge({ status }: { status: string }) {
@@ -471,39 +402,20 @@ function TabsPanel({ data, viewerRole }: { data: AdminUserDetail; viewerRole: "a
           </div>
         )}
 
+        {activeTab === "pii" && (
+          <PiiAccessLogTable
+            rows={data.pii_access_log ?? []}
+            viewerRole={viewerRole}
+          />
+        )}
+
         {activeTab === "krub" && (
-          <div className="overflow-x-auto">
-            {data.recent_redemptions.length === 0 ? (
-              <p className="font-content text-sm text-[var(--color-fg-subtle)] text-center py-4">
-                ยังไม่มีประวัติ krub
-              </p>
-            ) : (
-              <table className="w-full">
-                <thead>
-                  <tr>
-                    <th className="px-2 py-2 font-ui font-medium text-xs text-[var(--color-fg-muted)] text-left uppercase tracking-wide">วันที่</th>
-                    <th className="px-2 py-2 font-ui font-medium text-xs text-[var(--color-fg-muted)] text-left uppercase tracking-wide">ประเภท</th>
-                    <th className="px-2 py-2 font-ui font-medium text-xs text-[var(--color-fg-muted)] text-right uppercase tracking-wide">krub</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {data.recent_redemptions.map((r) => (
-                    <tr key={r.coupon_id + r.redeemed_at} className="border-t border-white/[0.05]">
-                      <td className="px-2 py-2 font-mono text-xs text-[var(--color-fg-subtle)] tabular-nums">
-                        {formatDateTime(r.redeemed_at)}
-                      </td>
-                      <td className="px-2 py-2">
-                        <KrubKindBadge kind="coupon" />
-                      </td>
-                      <td className="px-2 py-2 font-mono text-sm text-right text-[var(--color-success-text)] tabular-nums">
-                        +{r.krub_added}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
-          </div>
+          // Backend TODO: add `recent_credit_transactions` field to GET /api/admin/users/:id,
+          // then render rows here with KrubKindBadge per transaction type.
+          // DO NOT show recent_redemptions here — coupon data belongs in the "ประวัติคูปอง" tab only.
+          <p className="font-content text-sm text-[var(--color-fg-subtle)] text-center py-8">
+            ยังไม่มีประวัติ krub
+          </p>
         )}
 
         {activeTab === "coupons" && (
@@ -540,13 +452,84 @@ function TabsPanel({ data, viewerRole }: { data: AdminUserDetail; viewerRole: "a
             )}
           </div>
         )}
+      </div>
+    </div>
+  );
+}
 
-        {activeTab === "pii" && (
-          <PiiAccessLogTable
-            rows={data.pii_access_log ?? []}
-            viewerRole={viewerRole}
-          />
-        )}
+// ---------------------------------------------------------------------------
+// ข้อมูลบัญชี — UUID / สมัคร / conditional 3rd cell (moved from hero).
+// Rendered in scroll area (below tabs, above audit trail) — less-prominent zone.
+// ---------------------------------------------------------------------------
+
+interface AccountInfoCardProps {
+  user: AdminUserRow;
+}
+
+function AccountInfoCard({ user }: AccountInfoCardProps) {
+  const [copied, setCopied] = useState(false);
+
+  function copyId() {
+    void navigator.clipboard.writeText(user.id);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
+  }
+
+  // H4: conditional third info-cell label+value based on status
+  const thirdCell = (() => {
+    if (user.status === "suspended") {
+      return {
+        label: "ระงับเมื่อ",
+        value: user.suspended_at ? formatDateTime(user.suspended_at).slice(0, 10) : "—",
+      };
+    }
+    if (user.status === "soft_deleted") {
+      return {
+        label: "ลบเมื่อ",
+        value: user.deleted_at ? formatDateTime(user.deleted_at).slice(0, 10) : "—",
+      };
+    }
+    return {
+      label: "แก้ไขล่าสุด",
+      value: "—",
+    };
+  })();
+
+  return (
+    <div className="bg-[var(--color-bg)] rounded-xl border border-white/[0.08] px-4 py-3">
+      <p className="font-ui font-medium text-[10px] text-[var(--color-fg-subtle)] uppercase tracking-widest mb-2">
+        ข้อมูลบัญชี
+      </p>
+      <div className="grid grid-cols-3 gap-3 text-xs">
+        <div>
+          <p className="font-ui font-medium text-[var(--color-fg-subtle)] uppercase tracking-wide text-[10px] mb-1">UUID</p>
+          <div className="flex items-center gap-1">
+            <span className="font-mono text-[var(--color-fg-muted)] tabular-nums">{truncateId(user.id)}</span>
+            <button
+              onClick={copyId}
+              className="text-[var(--color-fg-subtle)] hover:text-[var(--color-accent)] motion-safe:transition-colors duration-150"
+              aria-label="คัดลอก UUID"
+            >
+              {copied
+                ? <Check className="w-3 h-3 text-[var(--color-success-text)]" />
+                : <Copy className="w-3 h-3" />}
+            </button>
+          </div>
+        </div>
+        <div>
+          <p className="font-ui font-medium text-[var(--color-fg-subtle)] uppercase tracking-wide text-[10px] mb-1">สมัคร</p>
+          <p className="font-mono text-[var(--color-fg-muted)] tabular-nums">
+            {user.created_at ? formatDateTime(user.created_at).slice(0, 10) : "—"}
+          </p>
+        </div>
+        <div>
+          <p className="font-ui font-medium text-[var(--color-fg-subtle)] uppercase tracking-wide text-[10px] mb-1">
+            {thirdCell.label}
+          </p>
+          <p className="font-mono text-[var(--color-fg-muted)] tabular-nums">
+            {thirdCell.value}
+          </p>
+        </div>
       </div>
     </div>
   );
@@ -602,7 +585,8 @@ function AuditTrailCard({ trail }: { trail: AdminUserDetail["audit_trail"] }) {
 export function UserDetailLoadingSkeleton() {
   return (
     <div className="space-y-4 motion-safe:animate-pulse">
-      {/* Body placeholder — tabs/audit area */}
+      {/* Body placeholder — actions/tabs/audit area */}
+      <div className="bg-[var(--color-bg)] rounded-xl border border-white/[0.08] h-20" />
       <div className="bg-[var(--color-bg)] rounded-xl border border-white/[0.08] h-32" />
       <div className="bg-[var(--color-bg)] rounded-xl border border-white/[0.08] h-20" />
     </div>
@@ -611,7 +595,8 @@ export function UserDetailLoadingSkeleton() {
 
 // ---------------------------------------------------------------------------
 // UserDetailBody — rendered inside the scrollable region of UserDetailModal.
-// Receives pre-fetched data + userId for cache invalidation.
+// Group B order: actions → tabs → ข้อมูลบัญชี → audit trail.
+// PII pill has moved to UserDetailModal fixed shell (above hero).
 // ---------------------------------------------------------------------------
 
 interface UserDetailBodyProps {
@@ -646,15 +631,7 @@ export function UserDetailBody({ data, userId }: UserDetailBodyProps) {
 
   return (
     <>
-      {/* PII access banner */}
-      <div className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-[var(--color-info)]/12 border border-[var(--color-info)]/30">
-        <ShieldAlert className="w-4 h-4 shrink-0 text-[var(--color-info)]" aria-hidden="true" />
-        <span className="font-ui text-sm text-[var(--color-info-text)]">
-          การเข้าถึงข้อมูลนี้ถูกบันทึกแล้ว · อ่านข้อมูล PDPA
-        </span>
-      </div>
-
-      {/* Actions row */}
+      {/* Actions — immediately after hero (above tabs) so primary action is above fold */}
       <div className="px-1">
         <p className="font-ui font-medium text-[10px] text-[var(--color-fg-subtle)] uppercase tracking-widest mb-2">
           การดำเนินการ
@@ -672,8 +649,11 @@ export function UserDetailBody({ data, userId }: UserDetailBodyProps) {
         />
       </div>
 
-      {/* Tabs */}
+      {/* Tabs — Group B order: ประวัติการสร้าง / PII log / ประวัติ krub / ประวัติคูปอง */}
       <TabsPanel data={detailData} viewerRole={viewerRole} />
+
+      {/* ข้อมูลบัญชี — UUID / สมัคร / conditional 3rd cell (below tabs, less-prominent) */}
+      <AccountInfoCard user={user} />
 
       {/* Audit trail */}
       <AuditTrailCard trail={audit_trail} />
