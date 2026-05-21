@@ -256,8 +256,8 @@ function RedemptionTable({ couponId, couponStatus, records, onClawbackSuccess }:
           <tbody>
             {records.map((r) => (
               <tr key={r.id} className="border-t border-white/5">
-                <td className="px-3 py-2 font-content text-sm text-muted-foreground max-w-[200px] truncate" title={r.user_email}>
-                  {r.user_email}
+                <td className="px-3 py-2 font-content text-sm text-muted-foreground max-w-[200px] truncate" title={r.user_email ?? undefined}>
+                  {r.user_email ?? "—"}
                 </td>
                 <td className="px-3 py-2 font-mono text-xs text-fg-subtle tabular-nums whitespace-nowrap">
                   {formatDateTime(r.redeemed_at)}
@@ -276,7 +276,7 @@ function RedemptionTable({ couponId, couponStatus, records, onClawbackSuccess }:
                         type="button"
                         onClick={() => setClawbackTarget({
                           redemptionId: r.id,
-                          userEmail: r.user_email,
+                          userEmail: r.user_email ?? "",
                           krubAmount: r.krub_credited,
                         })}
                         className="border border-[var(--color-error)]/40 text-[var(--color-error-text)] hover:bg-[var(--color-error)]/8 rounded-lg px-3 py-1 text-xs font-ui transition-colors"

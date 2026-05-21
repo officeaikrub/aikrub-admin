@@ -514,13 +514,13 @@ export default function CouponList() {
   ];
 
   // ---------------------------------------------------------------------------
-  // Stat chips — see data situation note in file header
-  // null values: StatChip hides itself → no "—" shown. Auto-reappears when backend wires counts.
+  // Stat chips — wired from data.counts (Wave B — Cheese now returns counts).
+  // null fallback: StatChip hides itself if value===null → no "—" shown during load.
   // ---------------------------------------------------------------------------
   const totalCount: number | null = data?.total ?? null;
-  const activeCount: number | null = null;    // not in list response — chip hidden until backend adds it
-  const expiredCount: number | null = null;   // not in list response — chip hidden until backend adds it
-  const revokedCount: number | null = null;   // not in list response — chip hidden until backend adds it
+  const activeCount: number | null = data?.counts?.active ?? null;
+  const expiredCount: number | null = data?.counts?.expired ?? null;
+  const revokedCount: number | null = data?.counts?.revoked ?? null;
 
   // ---------------------------------------------------------------------------
   // Pagination node — rendered in TableCard.pagination slot

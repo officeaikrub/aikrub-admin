@@ -59,7 +59,7 @@ export interface RedemptionRecord {
   id: string;
   coupon_id: string;
   user_id: string;
-  user_email: string;
+  user_email: string | null;
   redeemed_at: string;
   krub_credited: number;
   status: "active" | "clawed_back";
@@ -130,6 +130,7 @@ export interface CouponListResponse {
   items: Coupon[];
   next_cursor: string | null;
   total: number;
+  counts: { active: number; expired: number; revoked: number; disabled: number };
 }
 
 export interface CouponDetailResponse {
@@ -373,6 +374,9 @@ export interface AdminUserRow {
   suspended_at: string | null;
   suspended_reason: string | null;
   deleted_at: string | null;
+  balance: number;
+  /** ISO timestamp of last sign-in — wired for UserDetailModal and future list column; null when user has never logged in */
+  last_login: string | null;
 }
 
 export interface AdminUserDetail {
@@ -420,6 +424,7 @@ export interface UserListResponse {
   items: AdminUserRow[];
   next_cursor: string | null;
   total: number;
+  counts: { active: number; suspended: number; soft_deleted: number };
 }
 
 // ---------------------------------------------------------------------------

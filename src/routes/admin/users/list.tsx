@@ -74,13 +74,13 @@ import { cn } from "@/lib/utils";
 
 /**
  * Desktop table column count:
- *   [checkbox] [identity: avatar+email+name] [สถานะ] [Role] [actions] = 5
+ *   [checkbox] [identity: avatar+email+name] [สถานะ] [Role] [KRUB] [actions] = 6
  *
  * Removed: separate avatar / ชื่อ / Email columns (merged into identity).
- * Removed: krub column (always "—", backend balance not in list API).
  * Status moved to col 3 (right after identity) — F-pattern eye scan: who+status together.
+ * KRUB balance col added as rightmost data column before actions (Wave B).
  */
-const COL_COUNT = 5;
+const COL_COUNT = 6;
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -241,6 +241,12 @@ function TableHead({
       <th className="w-24 px-4 text-left">
         <span className="font-ui font-medium text-xs text-[var(--color-fg-muted)] uppercase tracking-wide">
           Role
+        </span>
+      </th>
+      {/* KRUB balance — rightmost data col, right-aligned per design spec */}
+      <th className="w-24 px-4 text-right">
+        <span className="font-ui font-medium text-xs text-[var(--color-fg-muted)] uppercase tracking-wide">
+          KRUB
         </span>
       </th>
       {/* Actions */}
@@ -443,15 +449,12 @@ export default function UserList() {
   // Stat chips
   // -----------------------------------------------------------------------
   // `total` is wired from API response.
-  // Per-status counts (active / suspended / soft_deleted) are NOT available
-  // from GET /api/admin/users — the API only returns `total`.
-  // null values: StatChip hides itself → no "—" shown.
-  // Chips auto-reappear when Cheese adds counts: { active, suspended, soft_deleted }
-  // to GET /api/admin/users (or a separate /stats endpoint). No frontend change needed.
+  // Per-status counts from data.counts (Wave B — Cheese now returns counts).
+  // null fallback: StatChip hides itself if value===null → no "—" shown during load.
   const totalCount = total;     // number | null — null until first data lands
-  const activeCount: number | null = null;      // not in API response — chip hidden
-  const suspendedCount: number | null = null;   // not in API response — chip hidden
-  const deletedCount: number | null = null;     // not in API response — chip hidden
+  const activeCount: number | null = data?.counts?.active ?? null;
+  const suspendedCount: number | null = data?.counts?.suspended ?? null;
+  const deletedCount: number | null = data?.counts?.soft_deleted ?? null;
 
   // -----------------------------------------------------------------------
   // Pagination controls
@@ -492,7 +495,7 @@ export default function UserList() {
       {isLoading && (
         <LoadingSkeleton
           colCount={COL_COUNT}
-          cellShapes={["checkbox", "text-lg", "text-sm", "text-sm", "action"]}
+          cellShapes={["checkbox", "text-lg", "text-sm", "text-sm", "number", "action"]}
         />
       )}
 
@@ -589,6 +592,13 @@ export default function UserList() {
             {/* Role */}
             <td className="w-24 px-4">
               <UserRoleBadge role={user.role} />
+            </td>
+
+            {/* KRUB balance — right-aligned, tabular-nums, negative in error-text */}
+            <td className="w-24 px-4 text-right">
+              <span className={`font-mono text-sm tabular-nums ${(user.balance ?? 0) < 0 ? "text-[var(--color-error-text)]" : "text-[var(--color-fg)]"}`}>
+                {(user.balance ?? 0).toLocaleString()}
+              </span>
             </td>
 
             {/* Actions */}
@@ -784,6 +794,13 @@ export default function UserList() {
                 <UserStatusBadge status={user.status} />
                 <UserRoleBadge role={user.role} />
               </div>
+            </div>
+            {/* KRUB balance — mobile row */}
+            <div className="flex items-center justify-between">
+              <span className="font-ui text-xs text-[var(--color-fg-subtle)]">KRUB</span>
+              <span className={`font-mono text-sm tabular-nums ${(user.balance ?? 0) < 0 ? "text-[var(--color-error-text)]" : "text-[var(--color-fg)]"}`}>
+                {(user.balance ?? 0).toLocaleString()}
+              </span>
             </div>
             <Button
               variant="outline"
